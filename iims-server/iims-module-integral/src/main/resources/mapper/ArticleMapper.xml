@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.integral.mapper.ArticleMapper">
+
+    <resultMap id="FindArticlePageListVoResultMap" type="com.toryu.iims.integral.model.vo.article.FindArticlePageListVO">
+        <!-- 基本字段映射 -->
+        <id property="id" column="id" />
+        <result property="title" column="title" />
+        <result property="cover" column="cover" />
+        <result property="dictCategoryId" column="dict_category_id" />
+        <result property="dictTagIds" column="dict_tag_ids" />
+        <result property="weight" column="weight" />
+        <result property="createTime" column="create_time" />
+        <result property="updateTime" column="update_time" />
+
+        <!-- 嵌套对象 userInfo 的映射 -->
+        <association property="userInfo" javaType="com.toryu.iims.common.model.entity.base.BaseAdminInfo">
+            <id property="id" column="userInfoId" />
+        </association>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into iims_integral_article(id, title, cover, summary, read_num, type, weight, dict_tag_ids, dict_category_id, is_deleted, create_by, create_time, update_by, update_time)
+        values (#{id}, #{title}, #{cover}, #{summary}, #{readNum}, #{type}, #{weight}, #{dictTagIds}, #{dictCategoryId}, #{isDeleted}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime})
+    </insert>
+
+    <update id="updateById">
+        update iims_integral_article
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="cover != null">cover = #{cover},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="dictTagIds != null">dict_tag_ids = #{dictTagIds},</if>
+            <if test="dictCategoryId != null">dict_category_id = #{dictCategoryId},</if>
+            <if test="weight != null">weight = #{weight},</if>
+            <if test="readNum != null">read_num = #{readNum},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="updateTypeByIds">
+        update iims_integral_article
+        <set>
+            <if test="type != null">type = #{type},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateArticleDeleted">
+        update iims_integral_article
+        <set>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <select id="pageQuery" resultMap="FindArticlePageListVoResultMap">
+        select id, title, cover, dict_category_id, dict_tag_ids, weight, create_time, update_time, create_by as userInfoId
+        from iims_integral_article
+        <where>
+            and is_deleted = 0
+            <if test="title != null and title != ''">
+                and title like concat('%', #{title}, '%')
+            </if>
+            <if test="type != null">
+                and type = #{type}
+            </if>
+            <if test="startDate != null">
+                and create_time >= #{startDate}
+            </if>
+            <if test="endDate != null">
+                and create_time &lt;= #{endDate}
+            </if>
+        </where>
+    </select>
+
+</mapper>

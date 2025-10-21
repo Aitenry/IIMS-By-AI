@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.ai.chat.mapper.AiChatTopicMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into iims_ai_chat_topic(id, title, is_deleted, create_by, create_time, update_by, update_time)
+        values (#{id}, #{title}, #{isDeleted}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime})
+    </insert>
+
+    <select id="pageQuery" resultType="com.toryu.iims.ai.chat.model.vo.ChatTopicVO">
+        select * from iims_ai_chat_topic
+        <where>
+            <if test="id != null">
+                id = #{id}
+            </if>
+            <if test="title != null and title.trim() != ''">
+                and title like concat('%', #{title}, '%')
+            </if>
+            <if test="isDeleted != null">
+                and is_deleted = #{isDeleted}
+            </if>
+            <if test="createBy != null">
+                and create_by = #{createBy}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <update id="updateTopicDeleted">
+        update iims_ai_chat_topic
+        set is_deleted = #{isDeleted}, update_by = #{updateBy}, update_time = #{updateTime}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="update">
+        update iims_ai_chat_topic
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="top != null">top = #{top},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+</mapper>

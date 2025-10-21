@@ -1,0 +1,396 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.0</version>
+        <relativePath/> <!-- lookup parent from repository -->
+    </parent>
+
+    <groupId>com.toryu</groupId>
+    <artifactId>iims-server</artifactId>
+    <version>${revision}</version>
+    <name>iims-server</name>
+    <!-- 项目描述 -->
+    <description>基于AI构建智能管理系统</description>
+
+    <!-- 多模块项目父工程打包模式必须指定为 pom -->
+    <packaging>pom</packaging>
+
+    <!-- 子模块管理 -->
+    <modules>
+        <!-- 入口模块 -->
+        <module>iims-starter</module>
+        <module>iims-module-integral</module>
+        <module>iims-module-subscriber</module>
+        <module>iims-module-common</module>
+        <module>iims-module-auth</module>
+        <module>iims-module-ai</module>
+        <module>dms-module-archive</module>
+        <module>iims-module-search</module>
+    </modules>
+
+
+    <!-- 版本号统一管理 -->
+    <properties>
+        <!-- 项目版本号 -->
+        <revision>1.0.0</revision>
+        <java.version>17</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+
+        <!-- 依赖包版本 -->
+        <mybatis-spring>3.5.10.1</mybatis-spring>
+        <lombok>1.18.20</lombok>
+        <fastjson>1.2.83</fastjson>
+        <commons-lang>2.6</commons-lang>
+        <druid>1.2.20</druid>
+        <mysql-connector>9.0.0</mysql-connector>
+        <pagehelper>2.1.0</pagehelper>
+        <knife4j>3.0.3</knife4j>
+        <aspectj>1.9.22.1</aspectj>
+        <jjwt>0.9.1</jjwt>
+        <jaxb-api>2.3.1</jaxb-api>
+        <poi>5.3.0</poi>
+        <redis>2.7.2</redis>
+        <websocket>3.3.4</websocket>
+        <sa-token-starter>1.34.0</sa-token-starter>
+        <sa-token-dao-redis>1.34.0</sa-token-dao-redis>
+        <sa-token-aop>1.34.0</sa-token-aop>
+        <sa-token-alone-redis>1.34.0</sa-token-alone-redis>
+        <sensitive-word>0.26.0</sensitive-word>
+        <minio>8.5.12</minio>
+        <jackson-databind>2.13.0</jackson-databind>
+        <spring-aop>2.4.5</spring-aop>
+        <apache-httpclient>0.4.8</apache-httpclient>
+        <google-protobuf>4.30.1</google-protobuf>
+        <mapstruct>1.6.2</mapstruct>
+        <jedis>5.2.0-beta4</jedis>
+        <commonmark>0.24.0</commonmark>
+        <!-- Spring AI 相关依赖 -->
+        <spring-ai-bom>1.0.0</spring-ai-bom>
+        <tika-document-reader>1.0.0</tika-document-reader>
+        <ai-ollama-starter>1.0.0</ai-ollama-starter>
+        <ai-openai-starter>1.0.0</ai-openai-starter>
+        <milvus-store>1.0.0</milvus-store>
+
+        <!-- Maven 相关 -->
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+
+    </properties>
+
+    <!-- 统一依赖管理 -->
+    <dependencyManagement>
+        <dependencies>
+
+            <dependency>
+                <groupId>com.toryu</groupId>
+                <artifactId>iims-module-common</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.toryu</groupId>
+                <artifactId>iims-module-integral</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.toryu</groupId>
+                <artifactId>iims-module-subscriber</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.toryu</groupId>
+                <artifactId>iims-module-ai</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.toryu</groupId>
+                <artifactId>iims-module-auth</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.toryu</groupId>
+                <artifactId>iims-module-search</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.toryu</groupId>
+                <artifactId>dms-module-archive</artifactId>
+                <version>${revision}</version>
+            </dependency>
+
+            <!--websocket-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-websocket</artifactId>
+                <version>${websocket}</version>
+            </dependency>
+
+            <!--redis-->
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-data-redis</artifactId>
+                <version>${redis}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.minio</groupId>
+                <artifactId>minio</artifactId>
+                <version>${minio}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.baomidou</groupId>
+                <artifactId>mybatis-plus-spring-boot3-starter</artifactId>
+                <version>${mybatis-spring}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct</artifactId>
+                <version>${mapstruct}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.mapstruct</groupId>
+                <artifactId>mapstruct-processor</artifactId>
+                <version>${mapstruct}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.projectlombok</groupId>
+                <artifactId>lombok</artifactId>
+                <version>${lombok}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>fastjson</artifactId>
+                <version>${fastjson}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>commons-lang</groupId>
+                <artifactId>commons-lang</artifactId>
+                <version>${commons-lang}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.alibaba</groupId>
+                <artifactId>druid-spring-boot-3-starter</artifactId>
+                <version>${druid}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.mysql</groupId>
+                <artifactId>mysql-connector-j</artifactId>
+                <version>${mysql-connector}</version>
+            </dependency>
+
+            <!--分页插件-->
+            <dependency>
+                <groupId>com.github.pagehelper</groupId>
+                <artifactId>pagehelper-spring-boot-starter</artifactId>
+                <version>${pagehelper}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.xiaoymin</groupId>
+                <artifactId>knife4j-spring-boot-starter</artifactId>
+                <version>${knife4j}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjrt</artifactId>
+                <version>${aspectj}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.aspectj</groupId>
+                <artifactId>aspectjweaver</artifactId>
+                <version>${aspectj}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>io.jsonwebtoken</groupId>
+                <artifactId>jjwt</artifactId>
+                <version>${jjwt}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>javax.xml.bind</groupId>
+                <artifactId>jaxb-api</artifactId>
+                <version>${jaxb-api}</version>
+            </dependency>
+
+            <!-- poi -->
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi</artifactId>
+                <version>${poi}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.apache.poi</groupId>
+                <artifactId>poi-ooxml</artifactId>
+                <version>${poi}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-starter-aop</artifactId>
+                <version>${spring-aop}</version>
+            </dependency>
+
+            <!--微信支付-->
+            <dependency>
+                <groupId>com.github.wechatpay-apiv3</groupId>
+                <artifactId>wechatpay-apache-httpclient</artifactId>
+                <version>${apache-httpclient}</version>
+            </dependency>
+
+            <!--SaToken-->
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-spring-boot3-starter</artifactId>
+                <version>${sa-token-starter}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-dao-redis</artifactId>
+                <version>${sa-token-dao-redis}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-spring-aop</artifactId>
+                <version>${sa-token-aop}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>cn.dev33</groupId>
+                <artifactId>sa-token-alone-redis</artifactId>
+                <version>${sa-token-alone-redis}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-bom</artifactId>
+                <version>${spring-ai-bom}</version>
+                <type>pom</type>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-tika-document-reader</artifactId>
+                <version>${tika-document-reader}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-starter-model-ollama</artifactId>
+                <version>${ai-ollama-starter}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-starter-model-openai</artifactId>
+                <version>${ai-openai-starter}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.springframework.ai</groupId>
+                <artifactId>spring-ai-starter-vector-store-milvus</artifactId>
+                <version>${milvus-store}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.google.protobuf</groupId>
+                <artifactId>protobuf-java</artifactId>
+                <version>${google-protobuf}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>com.github.houbb</groupId>
+                <artifactId>sensitive-word</artifactId>
+                <version>${sensitive-word}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>redis.clients</groupId>
+                <artifactId>jedis</artifactId>
+                <version>${jedis}</version>
+            </dependency>
+
+            <dependency>
+                <groupId>org.commonmark</groupId>
+                <artifactId>commonmark</artifactId>
+                <version>${commonmark}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.commonmark</groupId>
+                <artifactId>commonmark-ext-gfm-tables</artifactId>
+                <version>${commonmark}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.commonmark</groupId>
+                <artifactId>commonmark-ext-heading-anchor</artifactId>
+                <version>${commonmark}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.commonmark</groupId>
+                <artifactId>commonmark-ext-image-attributes</artifactId>
+                <version>${commonmark}</version>
+            </dependency>
+            <dependency>
+                <groupId>org.commonmark</groupId>
+                <artifactId>commonmark-ext-task-list-items</artifactId>
+                <version>${commonmark}</version>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <build>
+        <!-- 统一插件管理 -->
+        <pluginManagement>
+            <plugins>
+                <plugin>
+                    <groupId>org.springframework.boot</groupId>
+                    <artifactId>spring-boot-maven-plugin</artifactId>
+                    <configuration>
+                        <excludes>
+                            <exclude>
+                                <groupId>org.projectlombok</groupId>
+                                <artifactId>lombok</artifactId>
+                            </exclude>
+                        </excludes>
+                    </configuration>
+                </plugin>
+            </plugins>
+        </pluginManagement>
+    </build>
+
+    <!-- 使用阿里云的 Maven 仓库源，提升包下载速度 -->
+    <repositories>
+        <repository>
+            <id>aliyun-maven-central</id>
+            <name>aliyun-central</name>
+            <url>https://maven.aliyun.com/repository/central</url>
+        </repository>
+        <repository>
+            <id>aliyun-maven-public</id>
+            <name>aliyun-public</name>
+            <url>https://maven.aliyun.com/repository/public</url>
+        </repository>
+    </repositories>
+</project>

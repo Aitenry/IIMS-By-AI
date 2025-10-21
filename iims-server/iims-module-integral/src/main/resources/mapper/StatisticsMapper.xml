@@ -1,0 +1,139 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.integral.mapper.StatisticsMapper">
+
+    <select id="getStatisticsData" resultType="com.toryu.iims.integral.model.vo.statistics.StatisticsDataVO">
+        SELECT
+                (SELECT COUNT(*) FROM iims_integral_article WHERE is_deleted = 0) as articleCount,
+                (SELECT COUNT(*) FROM iims_integral_dict WHERE is_deleted = 0) as dictCount,
+                (SELECT COUNT(*) FROM iims_integral_wiki WHERE is_deleted = 0) as wikiCount,
+                (SELECT COUNT(*) FROM iims_integral_warehouse WHERE file_status != -1) as fileCount,
+                (SELECT COUNT(*) FROM iims_integral_logs WHERE is_deleted = 0) as logCount,
+                (SELECT COUNT(*) FROM iims_integral_admin WHERE is_deleted = 0) as userCount
+    </select>
+
+    <select id="getStatisticsDataByDay" resultType="com.toryu.iims.integral.model.vo.statistics.StatisticsDataVO">
+        SELECT
+            statisticDate,
+            SUM(articleCount) as articleCount,
+            SUM(dictCount) as dictCount,
+            SUM(wikiCount) as wikiCount,
+            SUM(logCount) as logCount,
+            SUM(fileCount) as fileCount,
+            SUM(userCount) as userCount
+        FROM (
+                 SELECT
+                     DATE(create_time) as statisticDate,
+                     COUNT(*) as articleCount,
+                     0 as dictCount,
+                     0 as wikiCount,
+                     0 as logCount,
+                     0 as fileCount,
+                     0 as userCount
+                 FROM iims_integral_article
+                 WHERE is_deleted = 0
+                   AND create_time BETWEEN #{startDate} AND #{endDate}
+                 GROUP BY DATE(create_time)
+
+                 UNION ALL
+
+                 SELECT
+                     DATE(create_time) as statisticDate,
+                     0 as articleCount,
+                     COUNT(*) as dictCount,
+                     0 as wikiCount,
+                     0 as logCount,
+                     0 as fileCount,
+                     0 as userCount
+                 FROM iims_integral_dict
+                 WHERE is_deleted = 0
+                   AND create_time BETWEEN #{startDate} AND #{endDate}
+                 GROUP BY DATE(create_time)
+
+                 UNION ALL
+
+                 SELECT
+                     DATE(create_time) as statisticDate,
+                     0 as articleCount,
+                     0 as dictCount,
+                     COUNT(*) as wikiCount,
+                     0 as logCount,
+                     0 as fileCount,
+                     0 as userCount
+                 FROM iims_integral_wiki
+                 WHERE is_deleted = 0
+                   AND create_time BETWEEN #{startDate} AND #{endDate}
+                 GROUP BY DATE(create_time)
+
+                 UNION ALL
+
+                 SELECT
+                     DATE(create_time) as statisticDate,
+                     0 as articleCount,
+                     0 as dictCount,
+                     0 as wikiCount,
+                     0 as logCount,
+                     COUNT(*) as fileCount,
+                     0 as userCount
+                 FROM iims_integral_warehouse
+                 WHERE file_status != -1
+                   AND create_time BETWEEN #{startDate} AND #{endDate}
+                 GROUP BY DATE(create_time)
+
+                 UNION ALL
+
+                 SELECT
+                     DATE(create_time) as statisticDate,
+                     0 as articleCount,
+                     0 as dictCount,
+                     0 as wikiCount,
+                     COUNT(*) as logCount,
+                     0 as fileCount,
+                     0 as userCount
+                 FROM iims_integral_logs
+                 WHERE is_deleted = 0
+                   AND create_time BETWEEN #{startDate} AND #{endDate}
+                 GROUP BY DATE(create_time)
+
+                 UNION ALL
+
+                 SELECT
+                     DATE(create_time) as statisticDate,
+                     0 as articleCount,
+                     0 as dictCount,
+                     0 as wikiCount,
+                     0 as logCount,
+                     0 as fileCount,
+                     COUNT(*) as userCount
+                 FROM iims_integral_admin
+                 WHERE is_deleted = 0
+                   AND create_time BETWEEN #{startDate} AND #{endDate}
+                 GROUP BY DATE(create_time)
+             ) t
+        GROUP BY statisticDate
+        ORDER BY statisticDate
+    </select>
+
+    <!-- 插入统计数据 -->
+    <insert id="insertStatisticsData">
+        INSERT INTO iims_integral_statistics (statistical_data, statistical_time)
+        VALUES (#{statisticalData}, #{statisticalTime})
+    </insert>
+
+    <!-- 根据日期查询已存在的统计数据 -->
+    <select id="getStatisticsDataByDate" resultType="com.toryu.iims.integral.model.entity.StatisticsEntity">
+        SELECT statistical_data, statistical_time
+        FROM iims_integral_statistics
+        WHERE DATE(statistical_time) = #{date}
+    </select>
+
+    <!-- 更新统计数据 -->
+    <update id="updateStatisticsData" parameterType="com.toryu.iims.integral.model.entity.StatisticsEntity">
+        UPDATE iims_integral_statistics
+        SET statistical_data = #{statisticalData},
+            statistical_time = #{statisticalTime}
+        WHERE DATE(statistical_time) = #{statisticalTime}
+    </update>
+
+</mapper>

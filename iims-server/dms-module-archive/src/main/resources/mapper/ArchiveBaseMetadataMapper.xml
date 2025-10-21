@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.dms.archive.mapper.ArchiveMetadataMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into dms_archive_metadata(id, archival_code, archival_title, archival_year, archival_date, archival_level, archival_deadline, archival_abstract, archival_responsible, metadata_property, metadata_ownership, is_deleted, create_by, create_time, update_by, update_time)
+        values (#{id}, #{archivalCode}, #{archivalTitle}, #{archivalYear}, #{archivalDate}, #{archivalLevel}, #{archivalDeadline}, #{archivalAbstract}, #{archivalResponsible}, #{metadataProperty}, #{metadataOwnership}, #{isDeleted}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime})
+    </insert>
+
+    <select id="pageQuery" resultType="com.toryu.dms.archive.model.entity.ArchiveBaseMetadata">
+        select * from dms_archive_metadata
+        <where>
+            is_deleted = 0
+            <if test="id != null">
+                and metadata_ownership = #{id}
+            </if>
+            <if test="archivalCode != null and archivalCode != ''">
+                and archival_code like concat('%', #{archivalCode}, '%')
+            </if>
+            <if test="archivalTitle != null and archivalTitle != ''">
+                and archival_title like concat('%', #{archivalTitle}, '%')
+            </if>
+            <if test="archivalResponsible != null and archivalResponsible != ''">
+                and archival_responsible like concat('%', #{archivalResponsible}, '%')
+            </if>
+            <if test="archivalYear != null">
+                and archival_year = #{archivalYear}
+            </if>
+        </where>
+    </select>
+
+    <update id="update">
+        update dms_archive_metadata
+        <set>
+            <if test="archivalCode != null">archival_code = #{archivalCode},</if>
+            <if test="archivalTitle != null">archival_title = #{archivalTitle},</if>
+            <if test="archivalNum != null">archival_num = #{archivalNum},</if>
+            <if test="archivalYear != null">archival_year = #{archivalYear},</if>
+            <if test="archivalDate != null">archival_date = #{archivalDate},</if>
+            <if test="archivalLevel != null">archival_level = #{archivalLevel},</if>
+            <if test="archivalDeadline != null">archival_deadline = #{archivalDeadline},</if>
+            <if test="archivalAbstract != null">archival_abstract = #{archivalAbstract},</if>
+            <if test="archivalResponsible != null">archival_responsible = #{archivalResponsible},</if>
+            <if test="archiveSite != null">archive_site = #{archiveSite},</if>
+            <if test="archivePackage != null">archive_package = #{archivePackage},</if>
+            <if test="archiveStatus != null">archive_status = #{archiveStatus},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="metadataProperty != null">metadata_property = #{metadataProperty},</if>
+            <if test="metadataOwnership != null">metadata_ownership = #{metadataOwnership},</if>
+            <if test="fileNum != null">file_num = #{fileNum},</if>
+            <if test="fileIds != null">file_ids = #{fileIds},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="updateArchiveDeleted">
+        update dms_archive_metadata
+        <set>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>

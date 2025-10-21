@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.common.mapper.FileStorageMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO iims_integral_warehouse (
+                    id, item_type, file_name, file_rename, file_bucket, file_key, file_path, file_size, file_type,
+                    file_date, file_abstract, create_by, create_time, update_by, update_time
+        )
+        VALUES (
+                #{id}, #{itemType}, #{fileName}, #{fileRename}, #{fileBucket}, #{fileKey}, #{filePath}, #{fileSize}, #{fileType},
+                #{fileDate},#{fileAbstract}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime}
+            )
+    </insert>
+
+    <update id="update">
+        update iims_integral_warehouse
+        <set>
+            <if test="itemType != null">item_type = #{itemType},</if>
+            <if test="fileName != null">file_name = #{fileName},</if>
+            <if test="fileRename != null">file_rename = #{fileRename},</if>
+            <if test="filePath != null">file_path = #{filePath},</if>
+            <if test="fileBucket != null">file_bucket = #{fileBucket},</if>
+            <if test="fileSize != null">file_size = #{fileSize},</if>
+            <if test="fileType != null">file_type = #{fileType},</if>
+            <if test="fileDate != null">file_date = #{fileDate},</if>
+            <if test="fileAbstract != null">file_abstract = #{fileAbstract},</if>
+            <if test="fileStatus != null">file_status = #{fileStatus},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="updateFileStatus">
+        update iims_integral_warehouse
+        set file_status = #{fileStatus}, update_by = #{updateBy}, update_time = #{updateTime}
+        where id = #{id};
+    </update>
+
+    <select id="getObjectByIds">
+        select * from iims_integral_warehouse where file_status = 1 and create_by = #{createBy} and id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </select>
+
+</mapper>

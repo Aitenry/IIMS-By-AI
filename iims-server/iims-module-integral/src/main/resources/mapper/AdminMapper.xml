@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.integral.mapper.AdminMapper">
+    <!--新增管理员-->
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into iims_integral_admin(id, name, username, email, password, phone, sex, id_number, avatar, role, create_by, create_time, update_by, update_time)
+        values (#{id}, #{name}, #{username}, #{email}, #{password}, #{phone}, #{sex}, #{idNumber}, #{avatar}, #{role}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime})
+    </insert>
+
+    <!--更新数据-->
+    <update id="update">
+        update iims_integral_admin
+        <set>
+            <if test="name != null">name = #{name},</if>
+            <if test="username != null">username = #{username},</if>
+            <if test="password != null">password = #{password},</if>
+            <if test="phone != null">phone = #{phone},</if>
+            <if test="sex != null">sex = #{sex},</if>
+            <if test="idNumber != null">id_Number = #{idNumber},</if>
+            <if test="root != null">root = #{root},</if>
+            <if test="email != null">email = #{email},</if>
+            <if test="avatar != null">avatar = #{avatar},</if>
+            <if test="organization != null">organization = #{organization},</if>
+            <if test="introduction != null">introduction = #{introduction},</if>
+            <if test="role != null">role = #{role},</if>
+            <if test="isDisable != null">is_disable = #{isDisable},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="updateAdminDeleted">
+        update iims_integral_admin
+        set is_deleted = #{isDeleted}, update_by = #{updateBy}, update_time = #{updateTime}
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <!--根据用户名或者邮箱查询用户-->
+    <select id="getByUserNameOrEmail" resultType="com.toryu.iims.common.model.entity.integral.Admin">
+        select * from iims_integral_admin
+        <where>
+            <if test="email != null and email != ''">
+                and email = #{email}
+            </if>
+            <if test="username != null and username != ''">
+                and username = #{username}
+            </if>
+            <if test="phone != null and phone != ''">
+                and phone = #{phone}
+            </if>
+            <if test="idNumber != null and idNumber != ''">
+                and id_number = #{idNumber}
+            </if>
+        </where>
+    </select>
+
+    <!--分页查询-->
+    <select id="pageQuery" resultType="com.toryu.iims.integral.model.vo.admin.AdminVO">
+        select * from iims_integral_admin
+        <where>
+            and is_deleted = 0
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+            <if test="username != null and username != ''">
+                and username like concat('%', #{username}, '%')
+            </if>
+        </where>
+    </select>
+
+    <!--根据用户id查询权限集合-->
+    <select id="searchUserPermissions" resultType="string">
+        SELECT m.perms FROM iims_integral_admin a JOIN iims_integral_role r ON JSON_CONTAINS(a.role, CONCAT('\"', CAST(r.id AS CHAR), '\"'))
+                                    JOIN iims_integral_menu m ON JSON_CONTAINS(r.menus, CONCAT('\"', CAST(m.id AS CHAR), '\"'))
+        WHERE a.id = #{userId} AND a.is_disable = 0;
+    </select>
+
+    <!--根据用户id查询角色集合-->
+    <select id="searchUserRoles" resultType="com.toryu.iims.integral.model.vo.role.RoleVO">
+        SELECT r.id,r.role_name, r.role_en, r.menus FROM iims_integral_admin a JOIN iims_integral_role r ON JSON_CONTAINS(a.role, CONCAT('\"', CAST(r.id AS CHAR), '\"')) WHERE a.id = #{userId} AND a.is_disable = 0;
+    </select>
+
+    <!--根据用户id查询菜单集合-->
+    <select id="getMenusByUserId" resultType="com.toryu.iims.integral.model.vo.admin.AdminMenuVO">
+        SELECT m.* FROM iims_integral_admin a JOIN iims_integral_role r
+            ON JSON_CONTAINS(a.role, CONCAT('\"', CAST(r.id AS CHAR), '\"')) JOIN iims_integral_menu m
+                ON JSON_CONTAINS(r.menus, CONCAT('\"', CAST(m.id AS CHAR), '\"'))
+                   WHERE a.id = #{userId} AND m.`status` = 1 ORDER BY parent_id, order_num;
+    </select>
+
+    <select id="getRoleNameByIds" resultType="string">
+        SELECT iims_integral_role.role_name FROM iims_integral_role WHERE id IN
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </select>
+
+    <select id="selectObjectByIds" resultType="com.toryu.iims.common.model.entity.integral.Admin">
+        SELECT * FROM iims_integral_admin WHERE id IN
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </select>
+</mapper>

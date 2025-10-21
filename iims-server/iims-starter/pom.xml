@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>com.toryu</groupId>
+        <artifactId>iims-server</artifactId>
+        <version>${revision}</version>
+    </parent>
+
+    <artifactId>iims-starter</artifactId>
+    <name>iims-starter</name>
+    <description>负责启动项目与打包项目</description>
+
+    <dependencies>
+        <!-- 模块启动依赖 -->
+        <dependency>
+            <groupId>com.toryu</groupId>
+            <artifactId>iims-module-subscriber</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.toryu</groupId>
+            <artifactId>iims-module-search</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.toryu</groupId>
+            <artifactId>iims-module-integral</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.toryu</groupId>
+            <artifactId>iims-module-common</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.toryu</groupId>
+            <artifactId>iims-module-ai</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.toryu</groupId>
+            <artifactId>iims-module-auth</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>com.toryu</groupId>
+            <artifactId>dms-module-archive</artifactId>
+        </dependency>
+
+        <!-- Web 依赖 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-autoconfigure</artifactId>
+        </dependency>
+
+        <!-- 免写冗余的 Java 样板式代码 -->
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <optional>true</optional>
+        </dependency>
+
+        <!-- 单元测试 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+</project>

@@ -1,0 +1,34 @@
+@import "tailwindcss";
+
+.customer-page-box {
+  padding: 15px 0;
+}
+
+.cus-btn-con {
+  width: calc(100% - 40px);
+  margin: 0 auto 13px auto;
+  text-align: end;
+}
+
+.info-form .el-form-item {
+  margin: 0 !important;
+}
+
+.iims-scrollbar::-webkit-scrollbar {
+  width: 8px;
+}
+
+.iims-scrollbar::-webkit-scrollbar-track {
+  background: #f8f9fa;
+  border-radius: 4px;
+}
+
+.iims-scrollbar::-webkit-scrollbar-thumb {
+  background: #dee2e6;
+  border-radius: 4px;
+  transition: all 0.3s ease;
+}
+
+.iims-scrollbar::-webkit-scrollbar-thumb:hover {
+  background: #adb5bd;
+}

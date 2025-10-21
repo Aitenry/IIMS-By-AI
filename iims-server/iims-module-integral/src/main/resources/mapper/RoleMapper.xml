@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.integral.mapper.RoleMapper">
+    <insert id="insert">
+        insert into iims_integral_role(id, role_name, role_en, menus, info, systemic, create_by, create_time, update_by, update_time)
+        VALUES (#{id}, #{roleName}, #{roleEn}, #{menus}, #{info}, #{systemic}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime})
+    </insert>
+
+    <update id="update">
+        update iims_integral_role
+        <set>
+            <if test="roleName != null and roleName != ''">role_name = #{roleName},</if>
+            <if test="roleEn != null and roleEn != ''">role_en = #{roleEn},</if>
+            <if test="menus != null and menus != ''">menus = #{menus},</if>
+            <if test="info">info = #{info},</if>
+            <if test="systemic != null">systemic = #{systemic},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="updateBy != null">update_by = #{updateBy}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="pageQuery" resultType="com.toryu.iims.integral.model.vo.role.RoleVO">
+        select * from iims_integral_role
+        <where>
+            <if test="roleName != null and roleName != ''">and role_name like concat('%', #{roleName}, '%')</if>
+            <if test="roleEn != null and roleEn != ''">and role_en like concat('%', #{roleEn}, '%')</if>
+        </where>
+    </select>
+</mapper>

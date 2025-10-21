@@ -1,0 +1,900 @@
+.el-header {
+  padding: 0 !important;
+}
+.wiki-radio {
+  width: 100%;
+  height: 100%;
+  padding: 10px;
+  display: flex;
+  align-items: center;
+}
+.wiki-radio .el-radio__label {
+  width: calc(100% - 40px) !important;
+  padding: 10px;
+}
+.talkNotification {
+  width: 217px;
+}
+.el-notification {
+  align-items: center;
+  right: 10px !important;
+}
+
+.chat-box {
+  margin: 0 4px 0 14px;
+  overflow-y: auto;
+  height: calc(100% - 105px);
+}
+
+.chat-box::-webkit-scrollbar {
+  width: 5px;
+}
+
+.chat-box::-webkit-scrollbar-track {
+  background-color: #ffffff60;
+  border-radius: 100px;
+}
+
+.chat-box::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 100px;
+}
+
+.chat-box:hover::-webkit-scrollbar-thumb {
+  background-color: #d3d3d38f;
+  border-radius: 100px;
+}
+
+.chat-empty {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-right: 12px;
+  height: 100%;
+}
+
+.el-divider--horizontal {
+  margin: 10px 0;
+}
+
+.chat-item {
+  width: 170px;
+  height: 39px;
+  margin-bottom: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  color: #409eff;
+  border: 1px solid #40a0ffa8;
+  border-radius: 10px;
+  overflow: hidden;
+  position: relative;
+  transition: all 0.6s ease;
+}
+
+.tips-tooltip {
+  max-width: 13.7% !important;
+  min-width: 151px;
+}
+
+.wiki-tooltip {
+  max-width: 13% !important;
+  min-width: 200px;
+}
+
+.chat-item .topic-more-btn {
+  color: #409eff;
+  transition: opacity 0.6s ease-in-out;
+  opacity: 0;
+}
+
+.chat-item:hover .topic-more-btn,
+.chat-item.active .topic-more-btn {
+  opacity: 1;
+}
+
+.chat-item:hover,
+.chat-item.active {
+  cursor: pointer;
+  box-shadow: 3px 3px 6px rgba(134, 203, 255, 0.3);
+}
+
+.chat-item > i:last-child {
+  margin-left: auto;
+  margin-right: 3px;
+}
+
+.chat-btn-box {
+  margin-top: 10px;
+  text-align: end;
+}
+
+.metadata-container {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column; /* 垂直排列 */
+  gap: 8px; /* 设置间距 */
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; /* 现代字体 */
+}
+
+.metadata-label {
+  font-size: 14px;
+  color: #555; /* 较浅的颜色，突出标签性质 */
+  font-weight: 600; /* 加粗，增强可读性 */
+}
+
+.chat-metadata-box {
+  display: flex;
+  flex-wrap: wrap; /* 自动换行，适应多数据 */
+  gap: 8px; /* 子元素之间的间距 */
+  padding: 8px;
+  background-color: #f9f9f9; /* 浅色背景 */
+  border-radius: 8px; /* 圆角 */
+  border: 1px solid #e0e0e0; /* 细边框 */
+}
+
+.metadata-item {
+  font-size: 14px;
+  color: #333; /* 深灰色文字 */
+  padding: 4px 8px; /* 内边距 */
+  background-color: #ffffff; /* 白色背景 */
+  border-radius: 4px; /* 小圆角 */
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* 轻微阴影 */
+}
+
+.metadata-item:hover {
+  background: rgb(228, 228, 228);
+  cursor: pointer;
+}
+
+.no-metadata {
+  font-size: 14px;
+  color: #999; /* 更浅的颜色，表示无数据状态 */
+  text-align: center; /* 居中对齐 */
+  padding: 8px;
+  background-color: #f9f9f9; /* 浅色背景 */
+  border-radius: 8px; /* 圆角 */
+  border: 1px solid #e0e0e0; /* 细边框 */
+}
+
+.chat-btn {
+  padding: 0;
+  font-size: 16px;
+  margin-right: 7px;
+  color: #83c1ff;
+  border: none;
+  background: none;
+}
+
+.chat-btn:hover {
+  color: #409eff;
+  border: none;
+  background: none;
+}
+
+.chat-btn:focus {
+  color: #409eff;
+  border: none;
+  background: none;
+}
+
+.btn-manage-chat {
+  padding: 0;
+  font-size: 14px;
+  font-weight: bold;
+  width: calc(100% - 30px);
+  margin: 0 15px;
+  color: #83c1ff;
+  border: none;
+  background: none;
+}
+
+.btn-manage-chat:hover {
+  color: #409eff;
+  border: none;
+  background: none;
+}
+
+.btn-manage-chat:focus {
+  color: #409eff;
+  border: none;
+  background: none;
+}
+
+.icon-star-btn span {
+  position: relative;
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+}
+
+.icon-star {
+  position: absolute;
+  top: 0;
+  left: 0;
+  font-size: 16px;
+}
+
+.chat-content {
+  width: 100%;
+  display: -webkit-box;
+  word-break: break-all;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+  box-orient: vertical;
+  overflow: hidden;
+  font-size: 12px;
+  line-height: 15px;
+  margin: 0 3px;
+}
+
+.chat-content p {
+  margin: 0;
+  text-align: justify;
+}
+
+.info {
+  max-width: calc(100% - 100px);
+  padding: 11px;
+  background-color: #ffffff;
+  border-radius: 7px;
+}
+
+.info-ai {
+  min-width: calc(100% - 100px);
+  margin-left: 10px; 
+}
+
+.info-user {
+  margin-right: 10px;
+}
+
+.messages {
+  width: calc(100% - 7px);
+  margin-left: 7px;
+}
+
+.el-radio .el-radio__label {
+  width: calc(100% - 17px);
+}
+
+.el-icon-news {
+  font-weight: bold;
+}
+
+.messages::-webkit-scrollbar {
+  width: 7px;
+}
+
+.messages::-webkit-scrollbar-track {
+  background-color: #ffffff60;
+  border-radius: 100px;
+}
+
+.messages::-webkit-scrollbar-thumb {
+  background-color: transparent;
+  border-radius: 100px;
+}
+
+.messages:hover::-webkit-scrollbar-thumb {
+  background-color: #bababa8f;
+  border-radius: 100px;
+}
+
+.submit-box {
+  height: 110px;
+  border-radius: 12px;
+  padding-right: 70px;
+  text-align: justify;
+  background-color: #ffffff60 !important;
+  border: 1px solid #98befa !important;
+  box-shadow: none;
+  transition: all 0.6s ease;
+}
+
+.submit-box:hover {
+  border-color: #88b6ff !important;
+  box-shadow: 3px 3px 6px rgba(134, 203, 255, 0.3);
+}
+
+.submit-box:focus {
+  border-color: #88b6ff !important;
+  box-shadow: 3px 3px 6px rgba(134, 203, 255, 0.3);
+}
+
+.wiki-drawer .el-drawer__header {
+  margin-bottom: 10px !important;
+}
+
+.wiki-drawer .el-drawer__body {
+  padding: 0 10px;
+}
+
+/* 定义旋转动画 */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* 按钮容器样式 */
+.loader {
+  position: relative; /* 为伪元素定位 */
+  overflow: hidden; /* 防止伪元素溢出 */
+}
+
+/* 旋转边框伪元素 */
+.loader::before {
+  content: '';
+  position: absolute;
+  top: 2px; /* 抵消边框宽度 */
+  left: 8px;
+  width: 24px;
+  height: 24px;
+  border: 2px dashed #40a0ffa8;
+  border-radius: 50%; /* 保持和按钮一致的圆角 */
+  animation: spin 1.2s linear infinite;
+  pointer-events: none; /* 确保不影响点击事件 */
+  z-index: 1; /* 确保在按钮内容下方 */
+}
+
+/* 样式化代码块头部 */
+.pre-code-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-bottom: 5px;
+  margin-bottom: 5px;
+  border-bottom: 1px solid #ddd;
+}
+
+/* 代码语言标签样式 */
+.code-block-header__lang {
+  font-size: 14px;
+  color: #555;
+  font-weight: bold;
+}
+
+/* 复制按钮样式 */
+.code-block-header__copy {
+  cursor: pointer;
+  color: #555;
+  font-size: 14px;
+  transition: color 0.3s;
+}
+
+/* 鼠标悬停时改变颜色 */
+.code-block-header__copy:hover {
+  color: #007bff;
+}
+
+.text {
+  font-size: 14px;
+}
+
+.clearfix:before,
+.clearfix:after {
+  display: table;
+  content: "";
+}
+.clearfix:after {
+  clear: both;
+}
+
+.box-card {
+  width: 50vw;
+  min-width: 600px;
+  border-radius: 10px;
+  background-color: #ffffff00;
+}
+
+.card-title {
+  font-size: 12px;
+  float: right;
+  padding: 2px 0;
+  color: transparent;
+  font-style: italic;
+  background-image: linear-gradient(120deg, #88b6ff 0%, #90dbfe 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+}
+
+.grid-content {
+  border-radius: 7px;
+  min-height: 320px;
+}
+
+.bg-purple-b1 {
+  padding: 10px;
+  background-image: linear-gradient(120deg, #9795f050 0%, #fbc8d450 100%);
+}
+
+.hot-title {
+  font-size: 12px;
+  color: rgb(88, 90, 115);
+  width: 100%;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
+
+.hot-title:hover {
+  cursor: pointer;
+}
+
+.hot-box {
+  display: flex;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.bg-purple-b2 {
+  padding: 10px;
+  background-image: linear-gradient(120deg, #ebbba750 0%, #cfc7f850 100%);
+}
+
+.bg-purple-b3 {
+  padding: 10px;
+  background-image: linear-gradient(120deg, #e0c3fc50 0%, #8ec5fc50 100%);
+}
+
+.agent-box,
+.tool-box {
+  display: flex;
+  align-items: center;
+  margin-bottom: 10px;
+  background-color: #ffffff;
+  border-radius: 7px;
+  padding: 9px;
+  transition: all 0.3s ease;
+}
+
+.agent-box:hover,
+.tool-box:hover {
+  cursor: pointer;
+  box-shadow: 2px 2px 5px rgba(0, 0, 0, 0.2);
+}
+
+.agent-content,
+.tool-content {
+  font-size: 11px;
+  color: #8f91a8;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  display: inline-block;
+}
+
+.red {
+  color: rgb(255, 0, 0);
+}
+
+.light-red {
+  color: rgb(255, 100, 100);
+}
+
+.medium-red {
+  color: rgb(255, 150, 150);
+}
+
+.gray {
+  color: rgb(185, 185, 185);
+}
+
+.el-drawer.rtl {
+  min-width: 240px;
+}
+
+.el-empty__description {
+  margin-top: -10px;
+}
+
+.hljs {
+    overflow-x: auto;
+}
+
+.hljs::-webkit-scrollbar {
+    width: 12px !important;
+    height: 12px !important;
+}
+
+.hljs::-webkit-scrollbar-thumb {
+    height: 30px !important;
+    background: #d1d8e6;
+    background-clip: content-box;
+    border: 2px solid transparent;
+    border-radius: 19px;
+    opacity: 0.8;
+}
+
+.hljs::-webkit-scrollbar-thumb:hover {
+    background: #a5b3cf;
+    background-clip: content-box;
+    border: 2px solid transparent;
+}
+
+.hljs::-webkit-scrollbar-track-piece {
+    width: 30px;
+    height: 30px;
+    background: #333;
+}
+
+/** markdown样式重新定义 **/
+
+.markdown-body pre code,
+.markdown-body pre tt {
+  display: block !important;
+}
+
+.markdown-body {
+  text-align: justify !important;
+}
+
+.markdown-body svg {
+  margin: 10px auto;
+  min-height: 366px;
+}
+
+.markdown-body h3 {
+    font-size: 1em !important;
+}
+
+.markdown-body h1,
+.markdown-body h2,
+.markdown-body h3,
+.markdown-body h4,
+.markdown-body h5,
+.markdown-body h6 {
+  margin-top: 20px !important;
+  margin-bottom: 10px !important;
+}
+
+.markdown-body hr {
+  height: 0.15em !important;
+}
+
+/* 无序列表（ul） */
+.markdown-body ul {
+  list-style-type: square;
+  padding-left: 20px;
+}
+
+/* 有序列表（ol） */
+.markdown-body ol {
+  list-style-type: decimal;
+  padding-left: 20px;
+}
+
+/* 嵌套列表 */
+.markdown-body ul ul, .markdown-body ol ol {
+  list-style-type: circle;
+  padding-left: 15px;
+}
+
+/* 列表项（li） */
+.markdown-body li {
+  margin: 5px 0;
+}
+
+.markdown-body .MathJax svg {
+  margin: 0 !important;
+  display: inline !important;
+}
+
+.ability-btn {
+  background-color: #ffffff60;
+  color: #88b6ff;
+  border-color: #88b6ff !important;
+}
+
+.max-submit-box {
+  color: #80b1ff !important;
+  background-color: transparent !important;
+  border: 0 solid transparent !important;
+  right: 16.66%;
+  font-size: 12px;
+  position: fixed;
+  font-weight: bolder;
+  z-index: 1;
+}
+
+.max-submit-box:hover {
+  color: #458dff !important;
+}
+
+.ability-submit-btn {
+  width: 40px;
+  position: fixed;
+  right: calc(16.66% + 30px);
+  top: calc(50% - 4px);
+  background-color: #ffffff60;
+  color: #88b6ff;
+  border-color: #88b6ff !important;
+}
+
+.ability-submit-btn:hover {
+  box-shadow: 0 0 6px rgba(134, 203, 255, 0.3);
+}
+
+.wiki-drawer .el-drawer__close-btn {
+  position: absolute;
+  top: 6px;
+  right: 3px;
+}
+
+.chat-think-box{
+  padding: 12px;
+  background: rgb(243, 247, 253);
+  border-radius: 10px;
+  margin-top: 7px;
+}
+
+/* 开始标签的外层容器 */
+.chat-think-container {
+  color: rgb(91, 172, 255);
+  display: flex;
+  align-items: center;
+  padding: 3px 7px;
+  border-radius: 10px;
+  background: rgb(232 243 255);
+  width: 132px;
+  transition: background 0.2s;
+}
+
+.chat-think-container:hover {
+  background: rgb(214, 232, 252);
+  cursor: pointer;
+}
+
+/* 默认隐藏内容 */
+.chat-think-box.collapsed {
+  display: none;
+}
+
+/* 平滑过渡动画（可选） */
+.chat-think-box {
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+  opacity: 1;
+}
+
+.chat-think-box.collapsed {
+  max-height: 0;
+  opacity: 0;
+}
+
+/* 图标旋转 */
+.collapse-icon.rotated {
+  transform: rotate(180deg);
+}
+
+.collapse-icon {
+  transition: transform 0.3s ease;
+}
+
+.collapse-content {
+  overflow: hidden;
+  transition: all 0.3s ease;
+}
+
+.collapse-icon {
+  font-size: 18px;
+  transition: transform 0.3s ease;
+  margin-left: auto; /* 将箭头放在右侧 */
+}
+
+/* 图标样式 */
+.chat-think-icon {
+  margin-right: 3px;
+  font-size: 26px;
+}
+
+/* 文本样式 */
+.chat-think-text {
+  margin: 0 !important;
+  height: 18px;
+}
+
+.upload-file .el-upload-list {
+  border: 3px #f1f1f1 solid;
+  padding: 10px;
+  border-radius: 10px;
+  margin-top: 7px;
+}
+
+.upload-file .el-upload-list__item {
+  padding: 3px;
+}
+
+.upload-file .el-upload-dragger {
+  margin: 14px 10px;
+  font-size: 32px;
+  color: #9d9d9d;
+}
+
+.upload-show-file {
+  display: flex;
+  align-items: center;
+  position: absolute;
+  left: 260px;
+  top: 7px;
+  background: #ffffff;
+  padding: 7px 12px;
+  border-radius: 6px;
+  box-shadow: #cdcdcd 0 0 7px 0;
+}
+
+.file-cards-container {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  margin-right: 50px;
+  margin-top: 6px;
+}
+
+.file-card {
+  display: flex;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 7px;
+  padding: 7px;
+  width: fit-content;
+  max-width: 300px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+}
+
+.file-icon {
+  font-size: 26px;
+  color: #8db9fb;
+  margin-right: 6px;
+}
+
+.file-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.file-name {
+  height: 17px;
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.file-details {
+    font-size: 10px;
+    color: #999;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+}
+
+.wiki-item {
+  width: 100%;
+}
+
+.wiki-item-badge-person {
+  border-radius: 4px;
+  background-color: rgba(147, 111, 253, 0.9);
+}
+
+.wiki-item-badge-enterprise {
+  border-radius: 4px;
+  background-color: rgb(255, 100, 100, 0.9);
+}
+
+.wiki-card {
+  padding: 26px 10px 10px;
+}
+
+.wiki-weight {
+  background-color: rgb(255, 150, 150);
+  height: 16px;
+  color: #f7f7f7;
+  border-radius: 3px;
+  position: absolute;
+  top: -22px;
+  right: 54px;
+}
+
+.show-doc-md h1 {
+  font-size: 20px;
+}
+
+.link-wiki-article {
+  width: 16px;
+  height: 16px;
+  position: absolute;
+  top: 7px;
+  right: 30px;
+}
+
+.link-wiki-article:hover {
+  cursor: pointer;
+  color: #409eff;
+}
+
+.custom-scrollbar {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+  background: transparent;
+
+  /* Webkit浏览器滚动条样式 */
+  &::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: transparent;
+    border-radius: 3px;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    background: #c5c5c5;
+    border-radius: 3px;
+    transition: background 0.3s ease;
+  }
+
+  &::-webkit-scrollbar-thumb:hover {
+    background: #a0a0a0;
+  }
+
+  /* Firefox浏览器滚动条样式 */
+  scrollbar-width: thin;
+  scrollbar-color: #c5c5c5 transparent;
+}
+
+.custom-scrollbar:focus {
+  border: none !important;
+  outline: none !important;
+  box-shadow: none !important;
+}
+
+/* 确保在不同状态下滚动条都保持精美 */
+.custom-scrollbar:hover::-webkit-scrollbar-thumb {
+  background: #a0a0a0;
+}
+
+.custom-scrollbar:active::-webkit-scrollbar-thumb {
+  background: #808080;
+}
+
+/* 发送按钮统一样式 */
+.send-button {
+  background: #dbeafe !important; /* 浅蓝色背景 */
+  border: 1px solid #bfdbfe !important; /* 浅蓝色边框 */
+  color: #8da6ef !important; /* 深蓝色文字/图标 */
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.send-button:hover {
+  background: #bfdbfe !important; /* 稍深的浅蓝色 */
+  border-color: #93c5fd !important;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.send-button:active {
+  background: #93c5fd !important;
+  transform: translateY(0);
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.send-button:focus {
+  outline: none !important;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2) !important;
+}
+
+/* 按钮图标样式 */
+.send-button i {
+  font-size: 18px;
+  font-weight: 600;
+}

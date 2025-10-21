@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.integral.mapper.MenuMapper">
+    <insert id="insert">
+        insert into iims_integral_menu(id, title, parent_id, order_num, path, name, component, icon, menu_type, perms, redirect, create_by, create_time, update_by, update_time, status, visible, is_frame)
+        VALUES (#{id}, #{title}, #{parentId}, #{orderNum}, #{path}, #{name}, #{component}, #{icon}, #{menuType}, #{perms},
+                #{redirect}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime}, #{status}, #{visible}, #{isFrame})
+    </insert>
+
+    <update id="update">
+        update iims_integral_menu
+        <set>
+            <if test="title != null and title != ''">title = #{title},</if>
+            <if test="parentId != null">parent_id = #{parentId},</if>
+            <if test="orderNum != null">order_num = #{orderNum},</if>
+            <if test="path != null">path = #{path},</if>
+            <if test="name != null">name = #{name},</if>
+            <if test="component != null">component = #{component},</if>
+            <if test="icon != null">icon = #{icon},</if>
+            <if test="menuType != null">menu_type = #{menuType},</if>
+            <if test="perms != null">perms = #{perms},</if>
+            <if test="visible != null">visible = #{visible},</if>
+            <if test="redirect != null">redirect = #{redirect},</if>
+            <if test="status != null">status = #{status},</if>
+            <if test="isFrame != null">is_frame = #{isFrame},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+            <if test="createBy != null">update_by = #{createBy}</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <select id="pageQuery" resultType="com.toryu.iims.integral.model.vo.menu.MenuVO">
+        select * from iims_integral_menu
+        <where>
+            <if test="title != null and title != ''">and title like concat('%', #{title}, '%')</if>
+            <if test="status != null and status != ''">and status = #{status}</if>
+        </where>
+        order by order_num asc , create_time desc;
+    </select>
+
+    <select id="list" resultType="com.toryu.iims.integral.model.vo.menu.MenuVO">
+        SELECT m.* FROM iims_integral_admin a JOIN iims_integral_role r ON JSON_CONTAINS(a.role, CAST(r.id AS CHAR)) JOIN iims_integral_menu m ON JSON_CONTAINS(r.menus, CAST(m.id AS CHAR))
+        WHERE a.id = #{userId} AND a.is_disable = 1 order by m.parent_id, m.order_num;
+    </select>
+
+    <select id="all" resultType="com.toryu.iims.integral.model.vo.menu.MenuVO">
+        select * from iims_integral_menu order by order_num;
+    </select>
+</mapper>

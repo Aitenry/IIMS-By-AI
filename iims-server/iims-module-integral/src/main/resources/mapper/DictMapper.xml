@@ -1,0 +1,105 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.integral.mapper.DictMapper">
+
+    <insert id="insertDict">
+        INSERT INTO iims_integral_dict
+            (id, name, remark, is_disable, is_deleted, is_can_change,
+             create_by, create_time, update_by, update_time )
+        VALUES (#{id}, #{name}, #{remark}, #{isDisable}, #{isDeleted}, #{isCanChange},
+                #{createBy}, #{createTime}, #{updateBy}, #{updateTime} )
+    </insert>
+
+    <insert id="insertDictValue">
+        INSERT INTO iims_integral_dict_value
+        (id, dict_id, value, remark, is_deleted, create_by, create_time, update_by, update_time )
+        VALUES (#{id}, #{dictId}, #{value}, #{remark}, #{isDeleted}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime} )
+    </insert>
+
+    <update id="updateDictValue" parameterType="com.toryu.iims.common.model.entity.integral.DictValue">
+        UPDATE iims_integral_dict_value
+        <set>
+            <if test="value != null">
+                value = #{value},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime}
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <update id="updateDictDeleted">
+        update iims_integral_dict
+        <set>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateDictValueDeleted">
+        update iims_integral_dict_value
+        <set>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateDict" parameterType="com.toryu.iims.common.model.entity.integral.Dict">
+        UPDATE iims_integral_dict
+        <set>
+            <if test="name != null">
+                name = #{name},
+            </if>
+            <if test="remark != null">
+                remark = #{remark},
+            </if>
+            <if test="isCanChange != null">
+                is_can_change = #{isCanChange},
+            </if>
+            <if test="updateBy != null">
+                update_by = #{updateBy},
+            </if>
+            <if test="updateTime != null">
+                update_time = #{updateTime}
+            </if>
+        </set>
+        WHERE id = #{id}
+    </update>
+
+    <select id="dictPageQuery" resultType="com.toryu.iims.integral.model.vo.dict.DictVO">
+        SELECT * FROM iims_integral_dict
+        <where>
+            is_deleted = 0
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+        </where>
+    </select>
+
+    <select id="dictValuePageQuery" resultType="com.toryu.iims.integral.model.vo.dict.DictValueVO">
+        SELECT * FROM iims_integral_dict_value WHERE is_deleted = 0 and dict_id = #{dictId}
+    </select>
+
+    <update id="disableDict" parameterType="com.toryu.iims.common.model.entity.status.DisableStatus">
+        UPDATE iims_integral_dict SET is_disable = #{isDisable}, update_by = #{updateBy}, update_time = #{updateTime} WHERE id = #{id}
+    </update>
+
+</mapper>

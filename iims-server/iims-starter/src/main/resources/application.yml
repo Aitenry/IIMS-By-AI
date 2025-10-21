@@ -1,0 +1,107 @@
+server:
+  port: 8090
+spring:
+  servlet:
+    multipart:
+      max-file-size: 150MB
+  application:
+    name: iims-starter
+  profiles:
+    active: dev
+  main:
+    allow-circular-references: true
+    banner-mode: off
+  datasource:
+    druid:
+      driver-class-name: ${iims.datasource.driver-class-name}
+      url: jdbc:mysql://${iims.datasource.host}:${iims.datasource.port}/${iims.datasource.database}?allowPublicKeyRetrieval=true&useUnicode=true&characterEncoding=UTF-8&serverTimezone=Asia/Shanghai&autoReconnect=true&useSSL=false&zeroDateTimeBehavior=convertToNull
+      username: ${iims.datasource.username}
+      password: ${iims.datasource.password}
+      connection-properties: config.decrypt=true;config.decrypt.key=${iims.datasource.publicKey}
+      filter:
+        config:
+          enabled: true
+  data:
+    redis:
+      database: 0 #默认第一个数据库
+      host: localhost #ip地址
+      port: 6379 #端口号
+#      username:
+#      password: aitenry6791 #redis密码
+      jedis:
+        pool:
+          #连接超时的最大时间
+          max-active: 1000
+          #等待空闲连接的最大等待时间（负数代表一直等待）
+          max-wait: -1ms
+          max-idle: 16
+          min-idle: 8
+  ai:
+    openai:
+      api-key: xxx
+
+mybatis:
+  #mapper配置文件
+  mapper-locations: classpath*:mapper/*.xml
+  type-aliases-package: com.toryu.iims.common.model.entity
+  configuration:
+    #开启驼峰命名
+    map-underscore-to-camel-case: true
+
+#MyBatis分页工具
+pagehelper:
+  helper-dialect: mysql
+  reasonable: true
+  support-methods-arguments: true
+  params: count=countSql
+
+logging:
+  #配置文件日志路径
+  config: classpath:logback-iims.xml
+  level:
+    com:
+      toryu:
+        mapper: debug
+        service: debug
+        controller: debug
+
+iims:
+  jwt:
+    # 设置jwt签名加密时使用的秘钥
+    admin-secret-key: ${iims.jwt.admin-secret-key}
+    # 设置jwt过期时间
+    admin-ttl: 72000000
+    # 设置前端传递过来的令牌名称
+    admin-token-name: token
+  minio:
+    endpoint: ${iims.minio.endpoint}
+    accessKey: ${iims.minio.accessKey}
+    secretKey: ${iims.minio.secretKey}
+    bucketName: ${iims.minio.bucketName}
+  setting:
+    comment:
+      examine: true
+      sensitive: true
+
+sa-token:
+  #HTTP请求头中哪个属性用来上传令牌
+  token-name: token
+  #过期时间（秒），设置为30天
+  timeout: 2592000
+  #在多人登陆相同账号的时候，是否使用相同的Token
+  is-share: false
+  token-style: uuid
+  #是否读取Cookie中的令牌
+  isReadCookie: false
+  #不允许相同账号同时在线，新登陆的账号会挤掉原来登陆的账号
+  isConcurrent: false
+  #SaToken缓存令牌用其他的逻辑库，避免业务数据和令牌数据共用相同的Redis逻辑库
+  is-print: false
+
+# mybatis-plus日志控制台输出
+mybatis-plus:
+  configuration:
+#    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
+    default-enum-type-handler: org.apache.ibatis.type.EnumOrdinalTypeHandler
+  global-config:
+    banner: off

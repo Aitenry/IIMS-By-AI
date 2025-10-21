@@ -1,0 +1,1 @@
+package com.toryu.iims.common.model;

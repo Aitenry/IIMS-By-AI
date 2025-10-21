@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.common.mapper.LogsMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO iims_integral_logs (
+            id, level, thread_name, message, logger_name, create_time
+        )
+        VALUES (
+                   #{id}, #{level}, #{threadName}, #{message}, #{loggerName}, #{createTime}
+               )
+    </insert>
+
+</mapper>

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.integral.mapper.ArticleContentMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into iims_integral_article_content(id, article_id, content, create_by, create_time, update_by, update_time)
+        values (#{id}, #{articleId}, #{content}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime})
+    </insert>
+
+    <update id="updateByArticleId">
+        update iims_integral_article_content
+        <set>
+            <if test="content != null">content = #{content},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where article_id = #{articleId}
+    </update>
+
+</mapper>

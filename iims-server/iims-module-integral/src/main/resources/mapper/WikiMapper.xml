@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.integral.mapper.WikiMapper">
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into iims_integral_wiki(id, title, cover, summary, weight, type, is_publish, is_deleted, create_by, create_time, update_by, update_time)
+        values (#{id}, #{title}, #{cover}, #{summary}, #{weight}, #{type}, #{isPublish}, #{isDeleted}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime})
+    </insert>
+
+    <select id="pageQuery" resultType="com.toryu.iims.common.model.entity.integral.Wiki">
+        SELECT *
+        FROM iims_integral_wiki
+        <where>
+            is_deleted = 0
+            <if test="dto.title != null and dto.title.trim() != ''">
+                AND title LIKE CONCAT('%', #{dto.title}, '%')
+            </if>
+            <if test="openPublish != null and openPublish == true">
+                AND is_publish = 1
+            </if>
+        </where>
+        ORDER BY weight DESC, create_time DESC
+    </select>
+
+    <update id="deleteById">
+        update iims_integral_wiki
+        <set>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+    <update id="updateById">
+        update iims_integral_wiki
+        <set>
+            <if test="title != null">title = #{title},</if>
+            <if test="cover != null">cover = #{cover},</if>
+            <if test="summary != null">summary = #{summary},</if>
+            <if test="weight != null">weight = #{weight},</if>
+            <if test="type != null">type = #{type},</if>
+            <if test="isPublish != null">is_publish = #{isPublish},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+</mapper>

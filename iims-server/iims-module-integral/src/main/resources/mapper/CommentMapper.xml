@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.integral.mapper.CommentMapper">
+    <insert id="insert" parameterType="map">
+        INSERT INTO iims_integral_comment (
+            id, content, router_url, reply_comment_id, parent_comment_id,
+            reason, status, create_by, update_by, create_time, update_time
+        ) VALUES (
+            #{id}, #{content}, #{routerUrl}, #{replyCommentId}, #{parentCommentId},
+            #{reason}, #{status}, #{createBy}, #{updateBy}, #{createTime}, #{updateTime}
+        )
+    </insert>
+</mapper>

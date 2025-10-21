@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.ai.chat.mapper.AiChatDialogueMapper">
+
+    <resultMap id="ChatDialogueMap" type="com.toryu.iims.ai.chat.model.entity.ChatDialogue">
+        <id property="id" column="id"/>
+        <result property="lastId" column="last_id"/>
+        <result property="sender" column="sender"/>
+        <result property="content" column="content"/>
+        <result property="fileIds" column="file_ids"
+                typeHandler="com.toryu.iims.common.handler.JsonToListTypeHandler"/>
+        <result property="metadata" column="metadata"/>
+        <result property="isStar" column="is_star"/>
+    </resultMap>
+
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into iims_ai_chat_dialogue(id, last_id, topic_id, sender, content, metadata, file_ids,
+                                       is_deleted, is_star, create_by, create_time, update_by, update_time)
+        values (#{id}, #{lastId}, #{topicId}, #{sender}, #{content}, #{metadata},
+                #{fileIds, typeHandler=com.toryu.iims.common.handler.JsonToListTypeHandler},
+                #{isDeleted}, #{isStar}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime})
+    </insert>
+
+    <select id="pageQuery" resultMap="ChatDialogueMap">
+        select * from iims_ai_chat_dialogue
+        <where>
+            <if test="topicId != null">
+                topic_id = #{topicId}
+            </if>
+            <if test="isDeleted != null">
+                and is_deleted = #{isDeleted}
+            </if>
+            <if test="createBy != null">
+                and create_by = #{createBy}
+            </if>
+        </where>
+        order by create_time desc
+    </select>
+
+    <select id="getHistoryByTopicId" resultMap="ChatDialogueMap">
+        SELECT *
+        FROM (
+                 SELECT *
+                 FROM iims_ai_chat_dialogue
+                 WHERE topic_id = #{topicId}
+                   AND is_deleted = 0
+                 ORDER BY create_time DESC
+                 LIMIT #{size}
+             ) AS query
+        ORDER BY create_time;
+    </select>
+
+    <update id="update">
+        update iims_ai_chat_dialogue
+        <set>
+            <if test="content != null">content = #{content},</if>
+            <if test="isDeleted != null">is_deleted = #{isDeleted},</if>
+            <if test="isStar != null">is_star = #{isStar},</if>
+            <if test="feedbackStatus != null">feedback_status = #{feedbackStatus},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
+
+    <update id="del">
+        update iims_ai_chat_dialogue set is_deleted = 1, update_by = #{updateBy}, update_time = #{updateTime}
+        where id = #{lastId} or last_id = #{lastId};
+    </update>
+
+        <update id="updateDeletedByTopicIds">
+        update iims_ai_chat_dialogue
+        set is_deleted = #{isDeleted}, update_by = #{updateBy}, update_time = #{updateTime}
+        where topic_id in
+        <foreach collection="ids" item="id" separator="," open="(" close=")">
+            #{id}
+        </foreach>
+    </update>
+
+</mapper>
