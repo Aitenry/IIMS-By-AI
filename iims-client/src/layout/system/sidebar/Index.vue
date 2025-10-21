@@ -11,7 +11,6 @@
           :active-text-color="variables.menuActiveText"
           :collapse-transition="true"
           class="iims-menu"
-          background-color="#283443"
           mode="vertical"
       >
         <sidebar-item v-for="(item, i) in routes" :key="i" :item="item" :base-path="item.path" />

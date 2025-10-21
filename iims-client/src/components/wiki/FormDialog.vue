@@ -30,7 +30,7 @@ const showBtnLoading = () => btnLoading.value = true
 const closeBtnLoading = () => btnLoading.value = false
 
 // 对外暴露属性
-const props = defineProps({
+defineProps({
     title: String,
     width: {
         type: String,

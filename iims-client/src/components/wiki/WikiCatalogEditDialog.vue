@@ -176,6 +176,7 @@ import FormDialog from '@/components/wiki/FormDialog.vue'
 import {getArticlesList} from '@/api/articles.js'
 import {RefreshRight, Search} from '@element-plus/icons-vue'
 import {getWikiCatalogs, updateWikiCatalogs} from '@/api/wiki.js'
+import moment from 'moment'
 
 // 定义目录项类型
 interface CatalogItem {
@@ -208,7 +209,7 @@ interface CommandItem {
 // 目录数据
 const catalogs = ref<CatalogItem[]>([])
 
-const oldTitle = ref<string>(null)
+const oldTitle = ref<string>('')
 
 // 一级目录: 操作按钮下拉菜单
 const handleCommand = (command: CommandItem) => {
@@ -241,7 +242,7 @@ const editTitle = (catalogId: number) => {
 }
 
 // 查找对应的目录
-function findCatalogById(catalogs: CatalogItem[], targetId: number): CatalogItem {
+function findCatalogById(catalogs: CatalogItem[], targetId: number): CatalogItem | null {
   for (const catalog of catalogs) {
     if (catalog.id === targetId) {
       return catalog;  // 找到目标目录，返回它
@@ -331,7 +332,7 @@ function catalogMove(catalogId: number, sort: number, action: string) {
 }
 
 // 根据排序规则，得到其需要互换位置的目录
-function getCatalogBySort(sort: number, action: string): CatalogItem {
+function getCatalogBySort(sort: number, action: string): CatalogItem | null {
   if (action == 'up') { // 上移
     // 复制一份临时数组，防止等会使用 reverse() 方法后，影响原数组的顺序
     const tmpCatalogs = [...catalogs.value]
@@ -420,11 +421,11 @@ const addArticle2CatalogDialogRef = ref<any>(null)
 // 模糊搜索的文章标题
 const searchArticleTitle = ref<string>('')
 // 日期
-const pickDate = ref<string>(null)
+const pickDate = ref<string | null>(null)
 
 // 查询条件：开始结束时间
-const startDate = reactive<{value: string}>({value: null})
-const endDate = reactive<{value: string}>({value: null})
+const startDate = reactive<{value: string | null}>({value: null})
+const endDate = reactive<{value: string | null}>({value: null})
 
 // 监听日期组件改变事件，并将开始结束时间设置到变量中
 const datepickerChange = (e: [Date, Date]) => {
@@ -521,7 +522,7 @@ const handleSelectionChange = (articles: ArticleItem[]) => {
 }
 
 // 当前被编辑的目录 ID
-const currCatalogId = ref<number>(null)
+const currCatalogId = ref<number | null>(null)
 
 // 添加文章到目录下
 const onAddArticleCatalogSubmit = () => {
@@ -543,13 +544,14 @@ const onAddArticleCatalogSubmit = () => {
           id: tmpId.value,
           docId: selectionArticle.id,
           type: 0,
+          sort: 0,
           title: articleTitle,
           editing: false,
           isEmbedding: false,
           level: 2,
         }
         // 添加到目录数组中
-        catalog.children.push(newCatalog)
+        catalog.children?.push(newCatalog)
         tmpId.value -= 1
       }
     }
@@ -562,28 +564,26 @@ const onAddArticleCatalogSubmit = () => {
 }
 
 // 当前知识库 ID
-const currWikiId = ref<number>(null)
+const currWikiId = ref<number | null>(null)
 // 获取当前知识库的目录数据
-function getCatalogs() {
-  getWikiCatalogs({id: currWikiId.value}).then(res => {
-    if (res.success) {
-      catalogs.value = res.data
-    }
-  })
+async function getCatalogs() {
+  const res = await getWikiCatalogs({id: currWikiId.value})
+  if (res.success) {
+    catalogs.value = res.data
+  }
 }
 
 // 更新知识库目录数据
-function updateWikiCatalogsData() {
-  updateWikiCatalogs({id: currWikiId.value, catalogs: catalogs.value}).then(res => {
-    // 响参失败，提示错误消息
-    if (res.success == false) {
-      let message = res.message
-      showMessage(message, 'error')
-    }
+async function updateWikiCatalogsData() {
+  const res = await updateWikiCatalogs({id: currWikiId.value, catalogs: catalogs.value})
+  // 响参失败，提示错误消息
+  if (res.success == false) {
+    let message = res.message
+    showMessage(message, 'error')
+  }
 
-    // 重新渲染目录数据
-    getCatalogs()
-  })
+  // 重新渲染目录数据
+  await getCatalogs()
 }
 
 // 拖拽结束事件

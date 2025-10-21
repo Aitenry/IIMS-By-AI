@@ -35,7 +35,7 @@ interface TocItem {
   level: number;
   text: string;
   offsetTop: number;
-  children: TocItem[];
+  children?: TocItem[];
 }
 
 // 是否是暗黑模式
@@ -122,7 +122,7 @@ function scrollToView(offsetTop: number) {
 function initTocData(container: Element) {
   // 只提取二级、三级标题
   let levels = ['h2', 'h3']
-  let headings = container.querySelectorAll(levels)
+  let headings = container.querySelectorAll(levels.join(', '))
 
   // 存放组装后的目录标题数据
   let titlesArr: TocItem[] = []
@@ -131,11 +131,13 @@ function initTocData(container: Element) {
   let index = 1
   headings.forEach(heading => {
     // 标题等级， h2 -> 级别 2 ； h3 -> 级别3
+    const headingElement = heading as HTMLElement
+
     let headingLevel = parseInt(heading.tagName.substring(1))
     // 标题文字
     let headingText = heading.textContent || ''
     // 标题的位置（距离顶部的距离）
-    let offsetTop = heading.offsetTop - 95
+    let offsetTop = headingElement.offsetTop - 95
 
     if (headingLevel === 2) { // 二级标题
       titlesArr.push({
@@ -151,7 +153,7 @@ function initTocData(container: Element) {
 
       // 设置父级标题的 children
       if (parentHeading) {
-        parentHeading.children.push({
+        parentHeading?.children?.push({
           index,
           level: headingLevel,
           text: headingText,
