@@ -175,8 +175,15 @@
       <el-table-column
         label="操作"
         align="center"
+        width="200"
       >
         <template #default="{ row }">
+
+          <el-tooltip class="box-item" effect="dark" content="预览文章" placement="bottom">
+            <el-button size="small" plain type="primary" @click="goArticleDetailPage(row.id)"
+                       :icon="View">
+            </el-button>
+          </el-tooltip>
 
           <el-tooltip
             class="item"
@@ -419,7 +426,8 @@ import InfoCard from '@/layout/user/InfoCard.vue'
 import { getStorage } from '@/utils/auth'
 import VditorEdit from '@/components/v-md-editor/Index.vue'
 import type { FormInstance, FormRules } from 'element-plus'
-import {Plus} from "@element-plus/icons-vue";
+import {Plus, View} from "@element-plus/icons-vue";
+import {useRouter} from "vue-router";
 
 // 类型定义
 interface PageParams {
@@ -464,6 +472,7 @@ interface CategoryItem {
 
 // Refs
 const activeName = ref('content')
+const router = useRouter()
 const editorVisible = ref(false)
 const addOrUpdateVisible = ref(false)
 const loadingModel = ref(false)
@@ -725,6 +734,14 @@ const beforeAvatarUpload = (file: File) => {
     ElMessage.error('上传头像图片大小不能超过 3MB!')
   }
   return isLt3M
+}
+
+// 跳转文章详情页
+const goArticleDetailPage = (articleId: string) => {
+  const url = router.resolve({
+    path: `/article/${articleId}`
+  }).href
+  window.open(url, '_blank')
 }
 
 // 生命周期

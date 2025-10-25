@@ -172,7 +172,7 @@
 import {reactive, ref} from 'vue'
 import {showMessage, showModel} from '@/composables/utils.ts'
 import {VueDraggable} from 'vue-draggable-plus'
-import FormDialog from '@/components/wiki/FormDialog.vue'
+import FormDialog from '@/components/information/FormDialog.vue'
 import {getArticlesList} from '@/api/articles.js'
 import {RefreshRight, Search} from '@element-plus/icons-vue'
 import {getWikiCatalogs, updateWikiCatalogs} from '@/api/wiki.js'

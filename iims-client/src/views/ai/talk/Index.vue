@@ -1,6 +1,6 @@
 <template>
   <div v-loading="isLoadDialogueMore">
-    <el-container style="height: 100vh; width: 100vw">
+    <el-container style="height: 100vh; width: 100vw;">
       <chat-sidebar
           v-show="isOpenChatList"
           :chat-items="chatItems"
@@ -10,7 +10,7 @@
           @del-chat="delChat"
           @init-chat-topic="initChatTopic"
       />
-      <el-container style="background-color: aliceblue">
+      <el-container style="background-color: aliceblue;">
         <el-header>
           <chat-header
               :is-open-chat-list="isOpenChatList"
@@ -29,8 +29,7 @@
             display: flex;
             align-items: center;
             margin: 0 auto;
-            overflow-x: hidden;
-            overflow-y: hidden;
+            overflow: hidden;
           ">
           <chat-welcome
               :hot-topics="hotTopics"

@@ -1,15 +1,17 @@
 package com.toryu.iims.integral.controller;
 
+import com.toryu.iims.ai.chat.service.ModelToolService;
+import com.toryu.iims.ai.rag.model.entity.DocumentType;
+import com.toryu.iims.common.enums.DocumentTypeEnum;
+import com.toryu.iims.common.result.PageResult;
+import com.toryu.iims.common.result.Result;
+import com.toryu.iims.integral.model.dto.article.FindArticleDetailDTO;
 import com.toryu.iims.integral.model.dto.article.FindArticlePageListDTO;
 import com.toryu.iims.integral.model.dto.article.PublishArticleDTO;
 import com.toryu.iims.integral.model.dto.article.UpdateArticleDTO;
 import com.toryu.iims.integral.model.vo.article.FindArticleDetailVO;
+import com.toryu.iims.integral.model.vo.article.FindArticleInfoDetailVO;
 import com.toryu.iims.integral.service.ArticleService;
-import com.toryu.iims.ai.rag.model.entity.DocumentType;
-import com.toryu.iims.ai.chat.service.ModelToolService;
-import com.toryu.iims.common.enums.DocumentTypeEnum;
-import com.toryu.iims.common.result.PageResult;
-import com.toryu.iims.common.result.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
@@ -91,6 +93,12 @@ public class ArticleController {
     public Result<String> generateSummary(@PathVariable Long id) {
         DocumentType build = DocumentType.builder().id(id).type(DocumentTypeEnum.ARTICLE).build();
         return Result.success(modelToolService.generateSummaryByModel(build));
+    }
+
+    @PostMapping("/detail/info")
+    @ApiOperation(value = "获取文章详情")
+    public Result<FindArticleInfoDetailVO> findArticleInfoDetail(@RequestBody FindArticleDetailDTO dto) {
+        return Result.success(articleService.findArticleInfoDetail(dto));
     }
 
 }

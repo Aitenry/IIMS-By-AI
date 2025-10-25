@@ -198,7 +198,7 @@
 import { ref, reactive, onMounted, nextTick, watch, computed } from 'vue'
 import { initTooltips, initPopovers } from 'flowbite'
 import { showMessage } from '@/composables/utils.ts'
-import { publishComment, findComments } from '@/api/comment.js'
+import { publishComment, findComments } from '@/api/comment.ts'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex';
 

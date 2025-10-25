@@ -1,11 +1,15 @@
 package com.toryu.iims.integral.service;
 
-import com.toryu.iims.integral.model.dto.article.*;
-import com.toryu.iims.integral.model.vo.article.FindArticleDetailVO;
 import com.toryu.iims.common.model.entity.integral.Article;
 import com.toryu.iims.common.model.entity.integral.ArticleContent;
 import com.toryu.iims.common.model.entity.integral.DictValue;
 import com.toryu.iims.common.result.PageResult;
+import com.toryu.iims.integral.model.dto.article.FindArticleDetailDTO;
+import com.toryu.iims.integral.model.dto.article.FindArticlePageListDTO;
+import com.toryu.iims.integral.model.dto.article.PublishArticleDTO;
+import com.toryu.iims.integral.model.dto.article.UpdateArticleDTO;
+import com.toryu.iims.integral.model.vo.article.FindArticleDetailVO;
+import com.toryu.iims.integral.model.vo.article.FindArticleInfoDetailVO;
 
 import java.util.List;
 
@@ -55,4 +59,6 @@ public interface ArticleService {
     Article selectPreArticle(Long articleId);
 
     void buildArticleByFileId(Long fileId);
+
+    FindArticleInfoDetailVO findArticleInfoDetail(FindArticleDetailDTO dto);
 }

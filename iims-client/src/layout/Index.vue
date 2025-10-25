@@ -49,11 +49,8 @@ const route = useRoute()
 
 // 计算属性
 const theme = computed(() => store.state.settings.theme)
-const sideTheme = computed(() => store.state.settings.sideTheme)
 const sidebar = computed(() => store.state.app.sidebar)
 const device = computed(() => store.state.app.device)
-const showSettings = computed(() => store.state.settings.showSettings)
-const needTagsView = computed(() => store.state.settings.tagsView)
 const fixedHeader = computed(() => store.state.settings.fixedHeader)
 
 const classObj = computed(() => ({

@@ -1,66 +1,11 @@
 <template>
   <div class="main min-h-screen flex flex-col">
     <main class="grow container max-w-screen-7xl mx-auto px-4 sm:px-6 md:px-8 py-4">
-      <!-- 左边栏 -->
-      <div v-show="!loading" class="transition-all duration-300 hidden lg:block fixed inset-0 top-[5.5rem]
-                 right-auto w-[19rem] pb-10 pr-6 overflow-y-auto"
-           :class="[isExpand ? 'left-[max(0px,calc(50%-45rem))] w-[20rem] pl-8' : 'left-0 w-0 pl-0 2xl:left-[max(0px,calc(50%-45rem))] 2xl:w-[19rem] 2xl:pl-8']"
-      >
-
-        <div class="flex">
-          <!-- 知识库目录 -->
-          <div class="grow transition-all duration-300" :class="[isExpand ? 'block' : 'hidden 2xl:block']">
-            <h2 class="p-3">知识库目录</h2>
-            <div id="accordion-flush" data-accordion="collapse"
-                 data-active-classes="bg-white dark:bg-[#0d1117] dark:text-gray-300" data-inactive-classes=""
-                 class="last:pb-[170px]">
-              <div v-for="(catalog, index) in catalogs" :key="index">
-                <h2 :id="'accordion-flush-heading-' + catalog.id">
-                  <button type="button" class="hover:bg-gray-100 flex items-center justify-between w-full py-3 px-3 rounded-lg
-                            font-medium rtl:text-right text-gray-600 dark:text-gray-400 gap-3 dark:hover:bg-gray-800"
-                          :data-accordion-target="'#accordion-flush-body-' + catalog.id"
-                          :aria-expanded="catalog.children.some(item => item.docId === route.query.articleId)"
-                          :aria-controls="'accordion-flush-body-' + catalog.id">
-                    <!-- 一级目录标题 -->
-                    <span class="flex items-center" v-html="catalog.title"></span>
-                    <!-- 箭头 -->
-                    <svg data-accordion-icon class="w-3 h-3 rotate-90 transition-all shrink-0"
-                         aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="none"
-                         viewBox="0 0 10 6">
-                      <path stroke="currentColor" stroke-linecap="round" stroke-linejoin="round"
-                            stroke-width="2" d="M9 5 5 1 1 5"/>
-                    </svg>
-                  </button>
-                </h2>
-                <!-- 二级目录 -->
-                <ul :id="'accordion-flush-body-' + catalog.id" class="hidden"
-                    :aria-labelledby="'accordion-flush-heading-' + catalog.id">
-                  <!-- 二级目录标题 -->
-                  <li v-for="(childCatalog, index2) in catalog.children" :key="index2" class="flex items-center ps-10 py-2 pe-3 rounded-lg cursor-pointer
-                                    dark:text-gray-400 mt-1 mb-1"
-                      :class="[childCatalog.docId === route.query.articleId ? 'bg-sky-50 text-sky-600 dark:bg-sky-950 dark:text-sky-500' : 'hover:bg-gray-100 dark:hover:bg-gray-800']"
-                      @click="goWikiArticleDetailPage(childCatalog.docId)" v-html="childCatalog.title">
-                  </li>
-                </ul>
-              </div>
-            </div>
-          </div>
-          <!-- 点击收缩、展开 -->
-          <div class="hidden md:inline-block 2xl:hidden transition-all duration-300" @click="shrinkAndExpand">
-            <div id="left-toc-sidebar" class="left-toc-sidebar top-[5.5rem]">
-                            <span id="left-toc-sidebar-arrow"
-                                  class="arrow start flex items-center justify-center -rotate-90"
-                                  :class="[isExpand ? '-rotate-90' : 'rotate-90']">
-                            </span>
-            </div>
-          </div>
-        </div>
-      </div>
       <!-- 中间栏 -->
-      <div class="transition-all duration-300" :class="[isExpand ? 'lg:pl-[22.5rem]' : 'lg:pl-0 2xl:pl-[22.5rem]']">
-        <div class="max-w-3xl mx-auto xl:max-w-none xl:ml-0 xl:mr-[15.5rem] xl:pr-16">
+      <div class="transition-all duration-300 pr-[30em]">
+        <div class="max-w-3xl mx-auto">
           <!-- 文章 -->
-          <article>
+          <article class="w-[917px]">
             <!-- 文章标题、Meta 信息 -->
             <div v-show="!loading" class="mt-5">
               <h1 class="font-bold text-3xl md:text-4xl mb-5 dark:text-gray-400">{{ article.title }}</h1>
@@ -222,12 +167,12 @@
           <Comment v-show="!loading"></Comment>
         </div>
       </div>
-      <!-- 右边栏 -->
-      <div v-show="!loading" class="fixed top-[3.8125rem] bottom-0 right-[max(0px,calc(50%-50rem))]
-                w-[19rem] py-10 overflow-y-auto hidden xl:block">
-        <WikiToc></WikiToc>
-      </div>
     </main>
+    <!-- 右边栏 -->
+    <div v-show="!loading" class="fixed top-[3.8125rem] bottom-0 right-[10em]
+                w-[19rem] py-10 overflow-y-auto hidden xl:block">
+      <Toc></Toc>
+    </div>
 
     <!-- 返回顶部 -->
     <ScrollToTopButton></ScrollToTopButton>
@@ -237,24 +182,15 @@
 <script lang="ts" setup>
 import { ref, watch, onMounted, nextTick } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
-import WikiToc from '@/components/information/Toc.vue'
+import Toc from '@/components/information/Toc.vue'
 import { useDark } from '@vueuse/core'
-import { getWikiArticlePreNext, getWikiCatalogs, getWikiArticleDetailById } from '@/api/wiki.ts'
+import { getArticleDetailById } from '@/api/articles.ts'
 import Comment from '@/components/information/Comment.vue'
 import hljs from 'highlight.js/lib/common'
 import 'highlight.js/styles/tokyo-night-dark.css'
 import ScrollToTopButton from '@/components/information/ScrollToTopButton.vue'
 import { initAccordions } from 'flowbite'
 import mermaid from 'mermaid'
-
-interface CatalogItem {
-  id: string
-  title: string
-  children: Array<{
-    docId: string
-    title: string
-  }>
-}
 
 interface ArticleData {
   title: string
@@ -282,11 +218,6 @@ const loading = ref<boolean>(true)
 const route = useRoute()
 const router = useRouter()
 
-const catalogs = ref<CatalogItem[]>([])
-
-// 目录是否展开，默认为 true
-const isExpand = ref<boolean>(true)
-
 // 是否为暗黑模式
 const isDark = useDark()
 // 文章数据
@@ -304,16 +235,16 @@ const refreshArticleDetail = async (articleId: string) => {
   article.value = {} as ArticleData
   loading.value = true
   // 文章详情
-  const wikiArticleDetail = await getWikiArticleDetailById({ articleId: articleId })
+  const articleDetail = await getArticleDetailById({ articleId: articleId })
   // 该文章不存在(错误码为 20010)
-  if (!wikiArticleDetail.success && wikiArticleDetail.errorCode === '20010') {
+  if (!articleDetail.success && articleDetail.errorCode === '20010') {
     // 手动跳转 404 页面
     loading.value = false
     await router.push({name: 'NotFound'})
     return
   }
 
-  article.value = wikiArticleDetail.data
+  article.value = articleDetail.data
 
   await nextTick(async () => {
     // 获取所有 pre code 节点
@@ -352,11 +283,6 @@ const refreshArticleDetail = async (articleId: string) => {
     await mermaid.run({ querySelector: '.language-mermaid' })
   })
   loading.value = false
-  // 上下页
-  const res = await getWikiArticlePreNext({ id: route.params.wikiId, articleId: articleId })
-  if (res.success) {
-    preNext.value = res.data
-  }
 }
 
 const handleMouseEnter = (event: MouseEvent) => {
@@ -390,22 +316,13 @@ watch(route, (newRoute, _oldRoute) => {
   // 重新渲染文章详情
   refreshArticleDetail(newRoute.query.articleId as string)
 })
-// 点击收缩、展开
-const shrinkAndExpand = () => {
-  isExpand.value = !isExpand.value
-}
+
 const goCategoryArticleListPage = (categoryId: string, categoryName: string) => {
   console.log(categoryId, categoryName)
 }
 
 onMounted(async () => {
-  // 获取当前知识库的目录数据
-  const wikiCatalogs = await getWikiCatalogs({ id: route.params.wikiId })
-  if (wikiCatalogs.success) {
-    catalogs.value = wikiCatalogs.data
-  }
-
-  await refreshArticleDetail(route.query.articleId as string)
+  await refreshArticleDetail(route.params.articleId as string)
   await nextTick(() => initAccordions())
 })
 </script>

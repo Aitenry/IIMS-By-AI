@@ -66,6 +66,19 @@ export function getArticleById(id: string) {
   }) as any
 }
 
+/**
+ * 根据Id查询文章详情
+ * @param {*} data
+ * @returns
+ */
+export function getArticleDetailById(data: any) {
+  return request({
+    url: `/article/detail/info`,
+    method: 'post',
+    data
+  }) as any
+}
+
 
 export function getGenerateSummary(id: string) {
   return request({

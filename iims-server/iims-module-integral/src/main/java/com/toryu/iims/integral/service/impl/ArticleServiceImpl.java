@@ -7,24 +7,31 @@ import com.toryu.iims.common.enums.DocumentTypeEnum;
 import com.toryu.iims.common.enums.FileStatusEnum;
 import com.toryu.iims.common.enums.ResponseCodeEnum;
 import com.toryu.iims.common.exception.BizException;
+import com.toryu.iims.common.markdown.MarkdownHelper;
 import com.toryu.iims.common.model.entity.base.BaseAdminInfo;
 import com.toryu.iims.common.model.entity.file.FileWarehouse;
 import com.toryu.iims.common.model.entity.integral.Article;
 import com.toryu.iims.common.model.entity.integral.ArticleContent;
 import com.toryu.iims.common.model.entity.integral.DictValue;
+import com.toryu.iims.common.model.entity.integral.Tag;
 import com.toryu.iims.common.model.entity.status.DeletedStatus;
 import com.toryu.iims.common.model.entity.status.TypeStatus;
 import com.toryu.iims.common.result.PageResult;
 import com.toryu.iims.common.service.FileStorageService;
 import com.toryu.iims.common.service.MinioService;
+import com.toryu.iims.common.utils.MarkdownStatsUtil;
+import com.toryu.iims.integral.event.ReadArticleEvent;
 import com.toryu.iims.integral.event.WriteWikiDocEvent;
 import com.toryu.iims.integral.mapper.ArticleContentMapper;
 import com.toryu.iims.integral.mapper.ArticleMapper;
+import com.toryu.iims.integral.model.dto.article.FindArticleDetailDTO;
 import com.toryu.iims.integral.model.dto.article.FindArticlePageListDTO;
 import com.toryu.iims.integral.model.dto.article.PublishArticleDTO;
 import com.toryu.iims.integral.model.dto.article.UpdateArticleDTO;
 import com.toryu.iims.integral.model.vo.article.FindArticleDetailVO;
+import com.toryu.iims.integral.model.vo.article.FindArticleInfoDetailVO;
 import com.toryu.iims.integral.model.vo.article.FindArticlePageListVO;
+import com.toryu.iims.integral.model.vo.article.FindPreNextArticleVO;
 import com.toryu.iims.integral.service.AdminService;
 import com.toryu.iims.integral.service.ArticleService;
 import com.toryu.iims.integral.service.DictService;
@@ -283,6 +290,77 @@ public class ArticleServiceImpl implements ArticleService {
         if (articleContentMapper.insert(articleContent) > 0) {
             fileStorageService.updateFileStatus(fileId, FileStatusEnum.USED);
         }
+    }
+
+    @Override
+    public FindArticleInfoDetailVO findArticleInfoDetail(FindArticleDetailDTO dto) {
+        Long articleId = dto.getArticleId();
+
+        Article articleDO = articleMapper.selectById(articleId);
+
+        // 判断文章是否存在
+        if (Objects.isNull(articleDO)) {
+            log.warn("进行文章查询 ==> 该文章不存在, articleId: {}", articleId);
+            throw new BizException(ResponseCodeEnum.ARTICLE_NOT_FOUND);
+        }
+
+        // 查询正文
+        ArticleContent articleContentDO = articleContentMapper.selectByArticleId(articleId);
+        String content = articleContentDO.getContent();
+
+        // 计算 md 正文字数
+        int totalWords = MarkdownStatsUtil.calculateWordCount(content);
+
+        // DO 转 VO
+        FindArticleInfoDetailVO vo = FindArticleInfoDetailVO.builder()
+                .title(articleDO.getTitle())
+                .content(MarkdownHelper.convertMarkdown2Html(content))
+                .readNum(articleDO.getReadNum())
+                .totalWords(totalWords)
+                .readTime(MarkdownStatsUtil.calculateReadingTime(totalWords))
+                .build();
+
+        vo.setCreateTime(articleDO.getCreateTime());
+        vo.setUpdateTime(articleDO.getUpdateTime());
+
+        // 查询所属分类
+        DictValue dictValue = this.selectCategoryByArticleId(articleId);
+        vo.setCategoryId(dictValue.getId());
+        vo.setCategoryName(dictValue.getValue());
+
+        // 查询标签
+        List<DictValue> dictValues = this.selectTagsByArticleId(articleId);
+        List<Tag> tags = new ArrayList<>();
+        dictValues.forEach(value -> tags.add(Tag.builder()
+                .id(value.getId()).name(value.getValue())
+                .createTime(value.getCreateTime()).updateTime(value.getUpdateTime())
+                .isDeleted(value.getIsDeleted()).build()));
+        vo.setTags(tags);
+
+        // 上一篇
+        Article preArticleDO = this.selectPreArticle(articleId);
+        if (Objects.nonNull(preArticleDO)) {
+            FindPreNextArticleVO preArticleVO = FindPreNextArticleVO.builder()
+                    .articleId(preArticleDO.getId())
+                    .articleTitle(preArticleDO.getTitle())
+                    .build();
+            vo.setPreArticle(preArticleVO);
+        }
+
+        // 下一篇
+        Article nextArticleDO = this.selectNextArticle(articleId);
+        if (Objects.nonNull(nextArticleDO)) {
+            FindPreNextArticleVO nextArticleVO = FindPreNextArticleVO.builder()
+                    .articleId(nextArticleDO.getId())
+                    .articleTitle(nextArticleDO.getTitle())
+                    .build();
+            vo.setNextArticle(nextArticleVO);
+        }
+
+        // 发布文章阅读事件
+        eventPublisher.publishEvent(new ReadArticleEvent(this, articleId));
+
+        return vo;
     }
 
 }

@@ -158,7 +158,7 @@
 import { ref, reactive } from 'vue'
 import { Check, Close, Delete, Edit, Tickets, View, Plus } from '@element-plus/icons-vue'
 import { getWikiPageList, addWiki, updateWikiIsTop, updateWikiIsPublish, deleteWiki, updateWiki } from '@/api/wiki'
-import FormDialog from '@/components/wiki/FormDialog.vue'
+import FormDialog from '@/components/information/FormDialog.vue'
 import WikiCatalogEditDialog from '@/components/wiki/WikiCatalogEditDialog.vue'
 import { showMessage, showModel } from '@/composables/utils'
 import { uploadFile } from '@/api/common.js'

@@ -1,0 +1,441 @@
+.main {
+    background-color: #fff;
+}
+
+.language-mermaid svg {
+    margin: 0 auto;
+    padding: 20px 10px;
+}
+
+/* 暗黑主题的背景色 */
+.dark .main {
+    background-color: #0d1117;
+}
+
+/* h1, h2, h3, h4, h5, h6 标题样式 */
+::v-deep(.article-content h1,
+    .article-content h2,
+    .article-content h3,
+    .article-content h4,
+    .article-content h5,
+    .article-content h6) {
+    color: #292525;
+    line-height: 150%;
+    font-family: PingFang SC, Helvetica Neue, Helvetica, Hiragino Sans GB, Microsoft YaHei, "\5FAE\8F6F\96C5\9ED1", Arial, sans-serif;
+}
+
+::v-deep(.article-content h1) {
+    font-weight: 700;
+    font-synthesis: style;
+    font-size: 24px;
+    margin-top: 40px;
+    margin-bottom: 26px;
+    line-height: 140%;
+    border-bottom: 1px solid rgb(241 245 249);
+    padding-bottom: 15px;
+}
+
+::v-deep(.dark .article-content h1) {
+    --tw-text-opacity: 1;
+    color: rgb(156 163 175 / var(--tw-text-opacity));
+    border-bottom: 1px solid;
+    border-color: rgb(31 41 55 / 1);
+}
+
+::v-deep(.article-content h2) {
+    font-size: 22px;
+    margin-top: 40px;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+::v-deep(.dark .article-content h2) {
+    --tw-text-opacity: 1;
+    color: rgb(156 163 175 / var(--tw-text-opacity));
+}
+
+::v-deep(.article-content h3) {
+    font-size: 20px;
+    margin-top: 40px;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+::v-deep(.dark .article-content h3) {
+    --tw-text-opacity: 1;
+    color: rgb(156 163 175 / var(--tw-text-opacity));
+}
+
+::v-deep(.article-content h4) {
+    font-size: 18px;
+    margin-top: 30px;
+    margin-bottom: 16px;
+    font-weight: 600;
+}
+
+::v-deep(.dark .article-content h4) {
+    --tw-text-opacity: 1;
+    color: rgb(156 163 175 / var(--tw-text-opacity));
+}
+
+::v-deep(.article-content h5) {
+    font-size: 16px;
+    margin-top: 30px;
+    margin-bottom: 14px;
+    font-weight: 600;
+}
+
+::v-deep(.dark .article-content h5) {
+    --tw-text-opacity: 1;
+    color: rgb(156 163 175 / var(--tw-text-opacity));
+}
+
+::v-deep(.article-content h6) {
+    font-size: 16px;
+    margin-top: 30px;
+    margin-bottom: 14px;
+    font-weight: 600;
+}
+
+::v-deep(.dark .article-content h6) {
+    --tw-text-opacity: 1;
+    color: rgb(156 163 175 / var(--tw-text-opacity));
+}
+
+/* p 段落样式 */
+::v-deep(.article-content p) {
+    letter-spacing: 1px;
+    margin: 0 0 20px;
+    line-height: 30px;
+    color: #4c4e4d;
+    font-weight: 400;
+    word-break: normal;
+    word-wrap: break-word;
+    font-family: -apple-system, BlinkMacSystemFont, PingFang SC, Hiragino Sans GB, Microsoft Yahei, Arial, sans-serif;
+}
+
+::v-deep(.dark .article-content p) {
+    color: #9e9e9e;
+}
+
+/* blockquote 引用样式 */
+::v-deep(.article-content blockquote) {
+    border-left: 2px solid rgb(52, 152, 219);
+    quotes: none;
+    background: rgb(236, 240, 241);
+    color: #777;
+    font-size: 16px;
+    margin-bottom: 20px;
+    padding: 24px;
+}
+
+::v-deep(.dark .article-content blockquote) {
+    quotes: none;
+    --tw-bg-opacity: 1;
+    background-color: #0d1117;
+    border-left: 2px solid #555;
+    color: #666;
+    font-size: 16px;
+    margin-bottom: 20px;
+    padding: 0.25rem 0 0.25rem 1rem;
+}
+
+/* 设置 blockquote 中最后一个 p 标签的 margin-bottom 为 0 */
+::v-deep(.article-content blockquote p:last-child) {
+    margin-bottom: 0;
+}
+
+/* 斜体样式 */
+::v-deep(.article-content em) {
+    color: #c849ff;
+}
+
+/* 超链接样式 */
+::v-deep(.article-content a) {
+    color: #2980b9;
+}
+
+::v-deep(.article-content a:hover) {
+    text-decoration: underline;
+}
+
+/* ul 样式 */
+::v-deep(.article-content ul) {
+    padding-left: 2rem;
+}
+
+::v-deep(.dark .article-content ul) {
+    padding-left: 2rem;
+    color: #9e9e9e;
+}
+
+::v-deep(.article-content ul) {
+    margin-bottom: 20px;
+}
+
+::v-deep(.article-content ul li) {
+    list-style-type: disc;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    font-size: 16px;
+}
+
+::v-deep(.article-content ul li p) {
+    margin-bottom: 0 !important;
+}
+
+::v-deep(.article-content ul ul li) {
+    list-style-type: square;
+}
+
+/* ol 样式 */
+::v-deep(.article-content ol) {
+    list-style-type: decimal;
+    padding-left: 2rem;
+}
+
+::v-deep(.dark .article-content ol) {
+    color: #9e9e9e;
+}
+
+/* 图片样式 */
+::v-deep(.article-content img) {
+    max-width: 100%;
+    overflow: hidden;
+    display: block;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+::v-deep(.article-content img:hover,
+    img:focus) {
+    box-shadow: 2px 2px 10px 0 rgba(0, 0, 0, .15);
+}
+
+/* 图片描述文字 */
+::v-deep(.image-caption) {
+    min-width: 20%;
+    max-width: 80%;
+    min-height: 43px;
+    display: block;
+    padding: 10px;
+    margin: 0 auto;
+    font-size: 13px;
+    color: #999;
+    text-align: center;
+}
+
+/* code 样式 */
+::v-deep(.article-content code:not(pre code)) {
+    padding: 2px 4px;
+    margin: 0 2px;
+    font-size: 95% !important;
+    border-radius: 4px;
+    color: rgb(41, 128, 185);
+    background-color: #fcfdff;
+    font-family: Operator Mono, Consolas, Monaco, Menlo, monospace;
+}
+
+::v-deep(.dark .article-content code:not(pre code)) {
+    padding: 2px 4px;
+    margin: 0 2px;
+    font-size: .85em;
+    border-radius: 5px;
+    color: #abb2bf;
+    background: #fcfdff;
+    font-family: Operator Mono, Consolas, Monaco, Menlo, monospace;
+}
+
+::v-deep(code) {
+    font-size: 98%;
+}
+
+/* pre 样式 - 现代简约风格 */
+::v-deep(pre) {
+    margin: 20px 0;
+    padding-top: 30px;
+    background: linear-gradient(135deg, #1a1a1a 0%, #0d0d0d 100%);
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    position: relative;
+    box-shadow:
+            0 10px 25px rgba(0, 0, 0, 0.5),
+            0 0 0 1px rgba(255, 255, 255, 0.05);
+    overflow: hidden;
+    transition: all 0.3s ease;
+}
+
+::v-deep(pre:hover) {
+    transform: translateY(-2px);
+    box-shadow:
+            0 15px 35px rgba(0, 0, 0, 0.6),
+            0 0 0 1px rgba(255, 255, 255, 0.08);
+}
+
+::v-deep(pre code.hljs) {
+    padding: 1rem 1.2rem;
+    border-bottom-left-radius: 12px;
+    border-bottom-right-radius: 12px;
+    background: transparent;
+    font-size: 0.95rem;
+    line-height: 1.5;
+    /* 滚动条样式 */
+    &::-webkit-scrollbar {
+        width: 12px;
+        height: 12px;
+    }
+
+    &::-webkit-scrollbar-track {
+        background: rgba(255, 255, 255, 0.05);
+        border-radius: 6px;
+        margin: 2px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+        background: linear-gradient(135deg, #707379 0%, #606064 100%);
+        border-radius: 6px;
+        border: 2px solid transparent;
+        background-clip: content-box;
+    }
+
+    &::-webkit-scrollbar-corner {
+        background: transparent;
+    }
+}
+
+::v-deep(pre:before) {
+    background: #ff5f56;
+    border-radius: 50%;
+    box-shadow:
+            14px 0 #ffbd2e,
+            28px 0 #27c93f;
+    content: ' ';
+    height: 12px;
+    width: 12px;
+    margin-top: -20px;
+    margin-left: 12px;
+    position: absolute;
+    display: flex;
+    align-items: center;
+}
+
+/* 表格样式 */
+::v-deep(table) {
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+::v-deep(table tr) {
+    background-color: #fff;
+    border-top: 1px solid #c6cbd1;
+}
+
+::v-deep(table th) {
+    padding: 6px 13px;
+    border: 1px solid #dfe2e5;
+}
+
+::v-deep(table td) {
+    padding: 6px 13px;
+    border: 1px solid #dfe2e5;
+}
+
+::v-deep(table tr:nth-child(2n)) {
+    background-color: #f6f8fa;
+}
+
+::v-deep(.dark table tr) {
+    background-color: rgb(31 41 55 / 1);
+}
+
+::v-deep(.dark table) {
+    color: #9e9e9e;
+}
+
+::v-deep(.dark table th) {
+    border: 1px solid #394048;
+}
+
+::v-deep(.dark table td) {
+    border: 1px solid #394048;
+}
+
+::v-deep(.dark table tr:nth-child(2n)) {
+    background-color: rgb(21 41 55 / 1);
+}
+
+/* hr 横线 */
+::v-deep(hr) {
+    margin-bottom: 20px;
+}
+
+::v-deep(.dark hr) {
+    --tw-border-opacity: 1;
+    border-color: rgb(55 65 81 / var(--tw-border-opacity));
+}
+
+::v-deep(.copy-code-btn) {
+    border-width: 0;
+    cursor: pointer;
+    position: absolute;
+    top: 0.5em;
+    right: 0.5em;
+    z-index: 5;
+    width: 2.5rem;
+    height: 2.5rem;
+    padding: 0;
+    border-radius: 0.5rem;
+    transition: opacity .4s;
+    opacity: 1
+}
+
+::v-deep(.copy-code-btn:hover) {
+    background: #2f3542;
+}
+
+::v-deep(.copy-icon) {
+    --copy-icon: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' height='20' width='20' stroke='rgba(128,128,128,1)' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2'/%3E%3C/svg%3E");
+    background: currentcolor;
+    -webkit-mask-image: var(--copy-icon);
+    mask-image: var(--copy-icon);
+    -webkit-mask-position: 50%;
+    mask-position: 50%;
+    -webkit-mask-repeat: no-repeat;
+    mask-repeat: no-repeat;
+    -webkit-mask-size: 1em;
+    mask-size: 1em;
+    width: 1.25rem;
+    height: 1.25rem;
+    padding: 0.625rem;
+    color: #9e9e9e;
+    font-size: 1.25rem;
+}
+
+::v-deep(.copied) {
+    display: flex;
+    background: #2f3542;
+}
+
+::v-deep(.copied:after) {
+    content: "已复制";
+    position: absolute;
+    top: 0;
+    right: calc(100% + .25rem);
+    display: block;
+    height: 2.5rem;
+    padding: .625rem;
+    border-radius: .5rem;
+    background: #2f3542;
+    color: #9e9e9e;
+    font-weight: 500;
+    line-height: 1.25rem;
+    white-space: nowrap;
+    font-size: 14px;
+    font-family: -apple-system, BlinkMacSystemFont, PingFang SC, Hiragino Sans GB, Microsoft Yahei, Arial, sans-serif;
+}
+
+::v-deep(.copied .copy-icon) {
+    --copied-icon: url("data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' height='20' width='20' stroke='rgba(128,128,128,1)' stroke-width='2'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' d='M9 5H7a2 2 0 0 0-2 2v12a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-2M9 5a2 2 0 0 0 2 2h2a2 2 0 0 0 2-2M9 5a2 2 0 0 1 2-2h2a2 2 0 0 1 2 2m-6 9 2 2 4-4'/%3E%3C/svg%3E");
+    -webkit-mask-image: var(--copied-icon);
+    mask-image: var(--copied-icon);
+}
