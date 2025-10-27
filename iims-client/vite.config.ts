@@ -21,7 +21,7 @@ export default defineConfig(({ command }) => {
     server: {
       port: 8089,
       open: true,
-      host: 'localhost'
+      host: '0.0.0.0'
     },
     resolve: {
       extensions: ['.mjs', '.js', '.ts', '.jsx', '.tsx', '.json', '.vue'],
