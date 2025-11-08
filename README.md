@@ -19,18 +19,24 @@ IIMS is an integrated platform with multiple professional management systems bui
 
 | Function Module                 | Status | Description                                              |
 | ------------------------------- | ------ | -------------------------------------------------------- |
-| Student Record Management       | 🧑🏽‍💻    | Student information entry, modification, query           |
-| Teacher Record Management       | 🧑🏽‍💻    | Teacher information management                           |
-| Financial Management            | 🐞      | Student payment, arrears management, Excel report export |
-| Class Management                | 🐞      | Class information addition, modification, deletion       |
-| Course Management               | 🐞      | Course information management, duplicate number checking |
-| Grade Management                | 🐞      | Multi-level permission management, grade entry and query |
-| Scheduling Management           | 🐞      | Automatic scheduling algorithm                           |
-| Class Hour Management           | 🐞      | Automatic class hour statistics, SMS reminders           |
-| Comprehensive Information Query | 🐞      | Support for fuzzy query                                  |
+| Student Record Management       | 🐳      | Student information entry, modification, query           |
+| Teacher Record Management       | 🐳      | Teacher information management                           |
+| Financial Management            | 🐳      | Student payment, arrears management, Excel report export |
+| Class Management                | 🐳      | Class information addition, modification, deletion       |
+| Course Management               | 🐳      | Course information management, duplicate number checking |
+| Grade Management                | 🐳      | Multi-level permission management, grade entry and query |
+| Scheduling Management           | 🐳      | Automatic scheduling algorithm                           |
+| Class Hour Management           | 🐳      | Automatic class hour statistics, SMS reminders           |
+| Comprehensive Information Query | 🐳      | Support for fuzzy query                                  |
 
 #### 1.2 Document Management System (DMS)
-- Function module under development
+
+| Function Module | Status | Description |
+|-----------------|--------|-------------|
+| Archive Fond Tree Construction | ✅ | Establish complete archive classification system, support multi-level archive directory structure, implement hierarchical management of archive categories |
+| Archive Form Construction | ✅ | Design standardized archive information entry forms, support form configuration for multiple archive types, implement standardized management of archive metadata |
+| Archive File Upload | 🐳 | Support upload of archive files in multiple formats, include file format validation and security checks, provide batch upload functionality |
+| Archive File Preview | 🐳 | Multi-format file online preview, support common formats like PDF, images, documents, enable viewing archive content without download |
 
 ### 2. AI Advanced System Functions
 
@@ -136,6 +142,10 @@ The system is under active development, with some core functions completed and o
 
 
 ![](/resources/image/chat-message.png)
+
+
+
+![](/resources/image/chat-message-used-literatrue.png)
 
 
 
