@@ -46,7 +46,7 @@ public class PromptHandlerContext {
         if (handler != null) {
             return handler.handle(file);
         }
-        log.warn("No handler found for file type: " + fileType);
+        log.warn("No handler found for file type: {}", fileType);
         return ModelUseInfo.builder().type(FileModelTypeEnum.TEXT).build();
     }
 

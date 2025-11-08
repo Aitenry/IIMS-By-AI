@@ -193,7 +193,7 @@
           >
             <el-button
               plain
-              type="primary"
+              type="warning"
               size="small"
               icon="edit"
               @click="showEditDialog(row)"
