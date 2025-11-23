@@ -4,6 +4,7 @@ import com.toryu.iims.ai.chat.mapper.AiChatModelsMapper;
 import com.toryu.iims.ai.chat.model.entity.ChatApi;
 import com.toryu.iims.ai.chat.model.entity.ModelChatOptions;
 import com.toryu.iims.ai.chat.service.ModelWarehouseService;
+import com.toryu.iims.ai.rag.utils.AESEncryptionUtil;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.document.MetadataMode;
 import org.springframework.ai.embedding.EmbeddingModel;
@@ -50,7 +51,7 @@ public class ModelWarehouseServiceImpl implements ModelWarehouseService {
                     .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
                     .numCtx(options.getMaxTokens()).presencePenalty(options.getPresencePenalty()).build());
             case OPENAI -> getOpenAIChatModel(OpenAiApi.builder()
-                    .apiKey(chatApi.getKey())
+                    .apiKey(AESEncryptionUtil.decrypt(chatApi.getKey()))
                     .baseUrl(chatApi.getUrl()).build(),
                     OpenAiChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
                             .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
@@ -80,7 +81,7 @@ public class ModelWarehouseServiceImpl implements ModelWarehouseService {
                     .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
                     .numCtx(options.getMaxTokens()).presencePenalty(options.getPresencePenalty()).build());
             case OPENAI -> getOpenAiEmbeddingModel(OpenAiApi.builder()
-                    .apiKey(chatApi.getKey())
+                    .apiKey(AESEncryptionUtil.decrypt(chatApi.getKey()))
                     .baseUrl(chatApi.getUrl()).build(), metadataMode, OpenAiEmbeddingOptions.builder()
                     .model(chatApi.getName()).build());
         };

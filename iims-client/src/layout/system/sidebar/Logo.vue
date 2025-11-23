@@ -16,7 +16,6 @@
 </template>
 
 <script setup lang="ts">
-import { defineProps } from 'vue'
 import url from '@/assets/icons/iims.png'
 
 // 使用 withDefaults 处理 props

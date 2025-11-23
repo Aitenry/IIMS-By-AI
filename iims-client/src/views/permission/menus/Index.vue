@@ -15,6 +15,7 @@
         max-height="calc(100vh - 200px)"
         :data="menuList"
         stripe
+        border
         row-key="id"
         :tree-props="{ children: 'children', hasChildren: 'hasChildren' }"
         empty-text="暂无数据"

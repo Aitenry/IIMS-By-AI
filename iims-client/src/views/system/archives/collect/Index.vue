@@ -23,7 +23,7 @@
           >
             <template #default="{ data }">
               <span>
-                <i :class="data.icon" />
+                <i :class="formatTreeType(data.type)" />
                 {{ `${data.label}` }}
               </span>
             </template>
@@ -315,6 +315,19 @@
     </el-container>
     <el-dialog
         :title="titleOperateType + archiveTypeLabel"
+        v-model="dialogDetailArchive"
+        width="1170px"
+        height="calc(100vh - 305px)"
+    >
+      <DetailArchiveMetadata
+          v-if="dialogDetailArchive"
+          :id="archiveId"
+          ref="detail"
+          :name="detailComponent"
+      />
+    </el-dialog>
+    <el-dialog
+        :title="titleOperateType + archiveTypeLabel"
         v-model="dialogOperateArchive"
         width="1170px"
         height="calc(100vh - 305px)"
@@ -353,6 +366,7 @@ import { getMenuTree, getArchiveList, editArchiveMetadata, addArchiveMetadata, d
 import type { TableInstance } from 'element-plus'
 import {OfficeBuilding, Promotion} from "@element-plus/icons-vue";
 import OperateArchiveMetadata from "@/views/system/layout/components/archive/OperateArchiveMetadata.vue";
+import DetailArchiveMetadata from "@/views/system/layout/components/archive/DetailArchiveMetadata.vue";
 import InfoCard from "@/layout/user/InfoCard.vue";
 import {parseTime} from "@/utils/common.ts";
 
@@ -382,10 +396,12 @@ const userId = ref('')
 const listLoading = ref(true)
 const titleOperateType = ref('')
 const dialogOperateArchive = ref(false)
+const dialogDetailArchive = ref(false)
 const dialogOperateUserInfo = ref(false)
 const popoverVisible = ref(false)
 const archiveTypeLabel = ref('')
 const operateComponent = ref('')
+const detailComponent = ref('')
 const queryForm = ref()
 
 const defaultProps = {
@@ -421,6 +437,17 @@ const getMenus = async () => {
     console.log(error)
   }
 }
+
+const formatTreeType = (type: number) => {
+  switch (type) {
+    case 0:
+      return 'ri-building-fill';
+    case 1:
+      return 'ri-group-fill';
+    default:
+      return 'ri-archive-fill';
+  }
+};
 
 // 重置查询
 const resetQuery = () => {
@@ -514,7 +541,9 @@ const doSubmitToOperateArchive = async () => {
 
 // 显示档案详情
 const showArchiveDetail = async (id: string) => {
-  console.log(id)
+  dialogDetailArchive.value = true
+  titleOperateType.value = '预览'
+  archiveId.value = id
 }
 
 // 显示新增档案
@@ -552,6 +581,7 @@ const handleNodeClick = async (data: any, node: any) => {
     if (pages.id !== data.id) {
       pages.id = data.id
       operateComponent.value = data.operateComponent
+      detailComponent.value = data.detailComponent
       archiveTypeLabel.value = data.typeLabel
       pages.page = 1
       pages.pageSize = 15

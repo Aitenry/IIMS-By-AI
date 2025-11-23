@@ -140,7 +140,7 @@
 
         <dependency>
             <groupId>com.toryu</groupId>
-            <artifactId>dms-module-archive</artifactId>
+            <artifactId>iims-module-archive</artifactId>
         </dependency>
 
         <dependency>

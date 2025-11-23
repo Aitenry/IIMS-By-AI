@@ -6,14 +6,6 @@ import com.alibaba.fastjson.JSONArray;
 import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
-import com.toryu.iims.integral.mapper.AdminMapper;
-import com.toryu.iims.integral.model.dto.admin.*;
-import com.toryu.iims.integral.model.entity.PublicKey;
-import com.toryu.iims.common.model.dto.BaseAdminInfoQueryDTO;
-import com.toryu.iims.common.model.vo.BaseAdminInfoVO;
-import com.toryu.iims.integral.model.vo.admin.AdminMenuVO;
-import com.toryu.iims.integral.model.vo.admin.AdminVO;
-import com.toryu.iims.integral.service.AdminService;
 import com.toryu.iims.common.constant.MessageConstant;
 import com.toryu.iims.common.constant.PasswordConstant;
 import com.toryu.iims.common.enums.FileStatusEnum;
@@ -21,13 +13,26 @@ import com.toryu.iims.common.exception.AccountLockedException;
 import com.toryu.iims.common.exception.AccountNotFoundException;
 import com.toryu.iims.common.exception.NotFoundException;
 import com.toryu.iims.common.exception.PasswordErrorException;
-import com.toryu.iims.common.model.entity.integral.Admin;
+import com.toryu.iims.common.model.dto.BaseAdminInfoQueryDTO;
 import com.toryu.iims.common.model.entity.base.BaseAdminInfo;
+import com.toryu.iims.common.model.entity.integral.Admin;
+import com.toryu.iims.common.model.entity.integral.Organization;
+import com.toryu.iims.common.model.vo.BaseAdminInfoVO;
 import com.toryu.iims.common.result.PageResult;
 import com.toryu.iims.common.service.FileStorageService;
 import com.toryu.iims.common.service.MinioService;
 import com.toryu.iims.common.utils.RSAUtil;
 import com.toryu.iims.common.utils.RegexUtil;
+import com.toryu.iims.integral.mapper.AdminMapper;
+import com.toryu.iims.integral.model.dto.admin.AdminDTO;
+import com.toryu.iims.integral.model.dto.admin.AdminLoginDTO;
+import com.toryu.iims.integral.model.dto.admin.AdminPageQueryDTO;
+import com.toryu.iims.integral.model.dto.admin.AdminPasswordDTO;
+import com.toryu.iims.integral.model.entity.PublicKey;
+import com.toryu.iims.integral.model.vo.admin.AdminMenuVO;
+import com.toryu.iims.integral.model.vo.admin.AdminVO;
+import com.toryu.iims.integral.service.AdminService;
+import com.toryu.iims.integral.service.OrganizationService;
 import io.micrometer.common.util.StringUtils;
 import jakarta.servlet.ServletOutputStream;
 import jakarta.servlet.http.HttpServletResponse;
@@ -48,11 +53,9 @@ import java.security.NoSuchAlgorithmException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDateTime;
 import java.time.ZoneId;
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
+import java.util.*;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 /**
  * 管理员业务层
@@ -68,14 +71,17 @@ public class AdminServiceImpl implements AdminService {
 
     private final FileStorageService storageService;
 
+    private final OrganizationService organizationService;
+
     private final StringRedisTemplate redisTemplate;
 
     public AdminServiceImpl(
             AdminMapper adminMapper, MinioService minioService,
-            FileStorageService storageService, StringRedisTemplate redisTemplate) {
+            FileStorageService storageService, OrganizationService organizationService, StringRedisTemplate redisTemplate) {
         this.adminMapper = adminMapper;
         this.minioService = minioService;
         this.storageService = storageService;
+        this.organizationService = organizationService;
         this.redisTemplate = redisTemplate;
     }
 
@@ -344,26 +350,59 @@ public class AdminServiceImpl implements AdminService {
     @Override
     public BaseAdminInfoVO getAdminBaseInfoById(Long id) {
         Admin admin = adminMapper.selectObjectById(id);
+        Long organization = admin.getOrganization();
+        Organization department = organizationService.getDepartmentByJobId(organization);
         return BaseAdminInfoVO.builder().id(admin.getId()).username(admin.getUsername())
                 .email(admin.getEmail()).phone(admin.getPhone())
                 .imageUrl(minioService.getPreviewUrl(admin.getAvatar()))
-                .department("").introduction(admin.getIntroduction()).build();
+                .department(department.getName()).introduction(admin.getIntroduction()).build();
     }
 
     @Override
     public List<BaseAdminInfoVO> getAdminBaseInfoByIds(List<Long> ids) {
+        if (ids == null || ids.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        // 批量查询管理员信息
         List<Admin> admins = adminMapper.selectObjectByIds(ids);
-        List<BaseAdminInfoVO> vos = new ArrayList<>();
-        admins.forEach(admin -> vos.add(BaseAdminInfoVO.builder().id(admin.getId()).username(admin.getUsername())
-                .email(admin.getEmail()).phone(admin.getPhone())
-                .imageUrl(minioService.getPreviewUrl(admin.getAvatar()))
-                .department("").introduction(admin.getIntroduction()).build()));
-        return vos;
+
+        // 提取所有组织ID
+        Set<Long> organizationIds = admins.stream()
+                .map(Admin::getOrganization)
+                .filter(Objects::nonNull)
+                .collect(Collectors.toSet());
+
+        // 批量查询组织信息
+        Map<Long, Organization> organizationMap;
+        if (!organizationIds.isEmpty()) {
+            List<Organization> departments = organizationService.getDepartmentsByJobIds(new ArrayList<>(organizationIds));
+            organizationMap = departments.stream()
+                    .collect(Collectors.toMap(Organization::getJobId, department -> department));
+        } else {
+            organizationMap = new HashMap<>();
+        }
+
+        // 构建结果
+        return admins.stream()
+                .map(admin -> {
+                    Organization department = organizationMap.get(admin.getOrganization());
+                    return BaseAdminInfoVO.builder()
+                            .id(admin.getId())
+                            .username(admin.getUsername())
+                            .email(admin.getEmail())
+                            .phone(admin.getPhone())
+                            .imageUrl(minioService.getPreviewUrl(admin.getAvatar()))
+                            .department(department != null ? department.getName() : null)
+                            .introduction(admin.getIntroduction())
+                            .build();
+                })
+                .collect(Collectors.toList());
     }
 
     @Override
     public HashMap<Long, BaseAdminInfoVO> getAdminBaseHashInfoByIds(List<Long> ids) {
-        List<BaseAdminInfoVO> adminBaseInfoByIds = getAdminBaseInfoByIds(ids);
+        List<BaseAdminInfoVO> adminBaseInfoByIds = this.getAdminBaseInfoByIds(ids);
         HashMap<Long, BaseAdminInfoVO> hash = new HashMap<>();
         adminBaseInfoByIds.forEach(baseAdminInfoVO -> hash.put(baseAdminInfoVO.getId(), baseAdminInfoVO));
         return hash;

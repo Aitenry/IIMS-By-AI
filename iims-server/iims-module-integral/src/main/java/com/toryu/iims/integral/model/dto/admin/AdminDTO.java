@@ -8,7 +8,6 @@ import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;
 
 import java.io.Serializable;
-import java.util.List;
 
 @Data
 @ApiModel(description = "管理员登录时传递的数据模型")
@@ -58,7 +57,7 @@ public class AdminDTO implements Serializable {
     @ApiModelProperty("是否是超级管理员")
     private Integer root;
 
-    private List<Long> organization;
+    private Long organization;
 
     private String introduction;
 

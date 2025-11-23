@@ -181,10 +181,10 @@
           <el-descriptions-item>
             <template #label>
               <i class="ri-building-4-line"></i>
-              部门
+              职位
             </template>
             <el-form-item prop="organization">
-              <el-tree-select v-model="form.organization" :data="organizations" :render-after-expand="false"
+              <el-tree-select v-model="form.organization" show-checkbox :data="organizations" :render-after-expand="false" :disable-branch-nodes="true"
                               style="width: 190px;" />
             </el-form-item>
           </el-descriptions-item>
@@ -214,6 +214,7 @@
 import { ref, reactive, onMounted, nextTick } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import { getAdminList, startOrStop, updateAdmin, resetPassword, addAdmin, getAdmin, excelUser, deleteAdmin } from '@/api/admin'
+import { getAllMenuTree } from '@/api/organization'
 import { getRoleList } from '@/api/role'
 import { getNowFormatDate, download } from '@/utils/tool'
 import { getStorage } from '@/utils/auth'
@@ -232,76 +233,7 @@ const queryForm = ref()
 const formRef = ref()
 
 // 部门树数据
-const organizations = ref([
-  {
-    value: '1',
-    label: 'Level one 1',
-    children: [
-      {
-        value: '1-1',
-        label: 'Level two 1-1',
-        children: [
-          {
-            value: '1-1-1',
-            label: 'Level three 1-1-1',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    value: '2',
-    label: 'Level one 2',
-    children: [
-      {
-        value: '2-1',
-        label: 'Level two 2-1',
-        children: [
-          {
-            value: '2-1-1',
-            label: 'Level three 2-1-1',
-          },
-        ],
-      },
-      {
-        value: '2-2',
-        label: 'Level two 2-2',
-        children: [
-          {
-            value: '2-2-1',
-            label: 'Level three 2-2-1',
-          },
-        ],
-      },
-    ],
-  },
-  {
-    value: '3',
-    label: 'Level one 3',
-    children: [
-      {
-        value: '3-1',
-        label: 'Level two 3-1',
-        children: [
-          {
-            value: '3-1-1',
-            label: 'Level three 3-1-1',
-          },
-        ],
-      },
-      {
-        value: '3-2',
-        label: 'Level two 3-2',
-        children: [
-          {
-            value: '3-2-1',
-            label: 'Level three 3-2-1',
-          },
-        ],
-      },
-    ],
-  },
-])
+const organizations = ref([])
 
 const pages = reactive({
   page: 1,
@@ -557,9 +489,13 @@ const deleteAdminHandle = async (row: any) => {
 }
 
 // 组件挂载后执行
-onMounted(() => {
-  fetchData()
-  roleData()
+onMounted(async () => {
+  await fetchData()
+  await roleData()
+  const res = await getAllMenuTree()
+  if (res.code === 1) {
+    organizations.value = res.data
+  }
   token.value = getStorage('token') || ''
 })
 </script>

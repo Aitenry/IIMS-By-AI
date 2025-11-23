@@ -9,7 +9,6 @@ import lombok.*;
 
 import java.io.Serial;
 import java.io.Serializable;
-import java.util.List;
 
 /**
  * 管理员
@@ -62,7 +61,9 @@ public class Admin extends BaseTable implements Serializable {
     @JSONField(serializeUsing = ToStringSerializer.class)
     private Long avatar;
 
-    private List<Long> organization;
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JSONField(serializeUsing = ToStringSerializer.class)
+    private Long organization;
 
     private String introduction;
 

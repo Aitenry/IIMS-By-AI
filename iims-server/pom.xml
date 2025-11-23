@@ -28,7 +28,7 @@
         <module>iims-module-common</module>
         <module>iims-module-auth</module>
         <module>iims-module-ai</module>
-        <module>dms-module-archive</module>
+        <module>iims-module-archive</module>
         <module>iims-module-search</module>
     </modules>
 
@@ -123,7 +123,7 @@
 
             <dependency>
                 <groupId>com.toryu</groupId>
-                <artifactId>dms-module-archive</artifactId>
+                <artifactId>iims-module-archive</artifactId>
                 <version>${revision}</version>
             </dependency>
 

@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.integral.mapper.LogMapper">
+
+    <select id="pageQuery" resultType="com.toryu.iims.integral.model.vo.log.LogVO">
+        select * from iims_integral_logs
+        <where>
+            and is_deleted = 0
+            <if test="level != null and level != ''">
+                and `level` = #{level}
+            </if>
+            <if test="loggerName != null and loggerName != ''">
+                and logger_name like concat('%', #{loggerName}, '%')
+            </if>
+        </where>
+    </select>
+
+</mapper>

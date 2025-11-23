@@ -144,7 +144,8 @@ public class MinioServiceImpl implements MinioService {
                     .method(Method.GET)
                     .build());
         } catch (Exception e) {
-            throw new RuntimeException("获取预览链接失败：" + e.getMessage());
+            log.error("Error while getting file from MinIO and converting to PreviewUrl", e);
+            return null;
         }
     }
 
@@ -168,8 +169,8 @@ public class MinioServiceImpl implements MinioService {
         } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException
                  | InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException
                  | XmlParserException e) {
-            log.error("Error while getting file from MinIO and converting to Base64");
-            throw new RuntimeException("Error while getting file from MinIO and converting to Base64", e);
+            log.error("Error while getting file from MinIO and converting to Base64", e);
+            return null;
         }
     }
 
@@ -185,8 +186,8 @@ public class MinioServiceImpl implements MinioService {
         } catch (ErrorResponseException | InsufficientDataException | InternalException | InvalidKeyException
                  | InvalidResponseException | IOException | NoSuchAlgorithmException | ServerException
                  | XmlParserException e) {
-            log.error("Error while getting file from MinIO and converting to Base64");
-            throw new RuntimeException("Error while getting file from MinIO and converting to Base64", e);
+            log.error("Error while getting file from MinIO and converting to InputStream", e);
+            return null;
         }
     }
 

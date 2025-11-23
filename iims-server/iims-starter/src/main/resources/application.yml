@@ -82,7 +82,8 @@ iims:
     comment:
       examine: true
       sensitive: true
-
+  encryption:
+    master-key: ptXIeklOWJeYOTKJfS4Fk/kCLJVwy+4S2mI0D91GxmA=
 sa-token:
   #HTTP请求头中哪个属性用来上传令牌
   token-name: token

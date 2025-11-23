@@ -26,7 +26,11 @@
       <el-dropdown class="avatar-container">
         <div style="display: flex; align-items: center;">
           <div class="avatar-wrapper">
-            <img :src="avatar" class="user-avatar" alt="user-avatar">
+            <el-image class="user-avatar" alt="user-avatar" :src="avatar">
+              <template #error>
+                <el-image class="user-avatar" style="border: 1px solid #e7e7e7; border-radius: 11px;" alt="logo-avatar" :src="url" />
+              </template>
+            </el-image>
           </div>
           <div style="margin-left: 6px;">
             <p class="les-name">{{ username }}</p>
@@ -81,6 +85,7 @@ import { updatePassword } from '@/api/admin.js'
 import screenfull from "screenfull"
 import Breadcrumb from '@/components/breadcrumb/Index.vue'
 import Hamburger from '@/components/hamburger/Index.vue'
+import url from '@/assets/icons/iims.png'
 
 // 定义类型接口
 interface PasswordForm {
@@ -157,8 +162,7 @@ const submitPasswordForm = async () => {
           ElMessage({
             message: '密码修改成功，请重新登录',
             type: 'success',
-            duration: 1500,
-            center: true
+            duration: 1500
           })
           updatePasswordVisible.value = false
           setTimeout(async () => {

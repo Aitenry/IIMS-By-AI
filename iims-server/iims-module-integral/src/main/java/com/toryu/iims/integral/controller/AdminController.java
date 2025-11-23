@@ -100,7 +100,7 @@ public class AdminController implements Serializable {
         assert uid != null;
         List<Long> roleIds = JSONArray.parseArray(admin.getRole(), Long.class);
         String roleName = null;
-        if (Objects.nonNull(roleIds) && roleIds.size() > 0) {
+        if (Objects.nonNull(roleIds) && !roleIds.isEmpty()) {
             RoleVO roleVo = roleService.getById(roleIds.get(0));
             roleName = roleVo.getRoleName();
         }

@@ -2,7 +2,7 @@
   <div class="app-container customer-page-box">
     <div class="cus-btn-con">
       <el-button type="primary" plain @click="addWikiBtnClick()"><i style="margin-right: 3px;"
-                                                                    class="ri-menu-add-fill"></i>新增</el-button>
+                                                                    class="ri-menu-add-fill"></i>添加知识库</el-button>
     </div>
 
     <!-- 分页列表 -->

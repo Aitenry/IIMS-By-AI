@@ -40,7 +40,7 @@ interface RouteRecord {
 }
 
 // 响应式数据
-const levelList = ref<RouteRecord[] | null>(null)
+const levelList = ref<RouteRecord[]>([])
 const route = useRoute()
 const router = useRouter()
 

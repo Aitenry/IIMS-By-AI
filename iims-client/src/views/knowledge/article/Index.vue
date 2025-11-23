@@ -5,7 +5,12 @@
         plain
         type="primary"
         @click="showEditDialog()"
-      ><i style="margin-right: 3px;" class="ri-menu-add-fill"></i>新增</el-button>
+      ><i style="margin-right: 3px;" class="ri-menu-add-fill"></i>添加文章</el-button>
+      <el-button
+          plain
+          type="success"
+          @click="showUploadFileDialog()"
+      ><i style="margin-right: 3px;" class="ri-exchange-line"></i>文件转换</el-button>
       <el-popover
         placement="bottom-start"
         width="930"
@@ -609,6 +614,10 @@ const handleQuery = () => {
   fetchData()
 }
 
+const showUploadFileDialog = () => {
+
+}
+
 const showEditDialog = async (row?: ArticleItem) => {
   if (formRef.value) {
     formRef.value.resetFields()
@@ -753,13 +762,13 @@ onMounted(() => {
 })
 </script>
 
-<style scoped>
+<style>
 .cover {
   width: 360px;
   height: 100%;
 }
 
-.el-image-viewer__img {
+.cover-uploader .el-image-viewer__img {
   height: 50%;
 }
 

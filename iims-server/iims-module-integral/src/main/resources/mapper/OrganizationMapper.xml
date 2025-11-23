@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.integral.mapper.OrganizationMapper">
+
+    <select id="getCompanyOrgStructure" resultType="com.toryu.iims.integral.model.vo.organization.OrganizationMenuVO">
+        WITH RECURSIVE OrgTree AS (
+            -- 查询出指定ID的组织记录（可能是公司、部门或职位，取决于传入的ID）
+            SELECT id, parent_id, name, type, description, is_deleted, create_by, create_time, update_by, update_time
+            FROM iims_integral_organization
+            WHERE id = #{companyId} AND is_deleted = 0 AND type = 0
+            --
+
+            UNION ALL
+
+            -- 递归部分：查询该组织的直接子组织，但只包含部门和职位(type != 0)，然后是它们的子组织...
+            SELECT o.id, o.parent_id, o.name, o.type, o.description, o.is_deleted, o.create_by, o.create_time, o.update_by, o.update_time
+            FROM iims_integral_organization o
+                     INNER JOIN OrgTree ot ON o.parent_id = ot.id -- 子组织的parent_id等于父组织的id
+            WHERE o.is_deleted = 0 -- 确保子组织也未被删除
+              AND o.type != 0
+        )
+        SELECT * FROM OrgTree
+        ORDER BY parent_id, id; -- 按层级和ID排序，便于前端构建树形结构
+    </select>
+
+    <select id="getDepartmentByJobId" resultType="com.toryu.iims.common.model.entity.integral.Organization">
+        SELECT o.*
+        FROM iims_integral_organization o
+        WHERE o.id = (
+            SELECT parent_id
+            FROM iims_integral_organization
+            WHERE id = #{id}
+              AND type = 2  -- 确保传入的ID确实是一个职位
+              AND is_deleted = 0
+        )
+          AND o.is_deleted = 0  -- 确保找到的部门也未被删除
+    </select>
+
+    <select id="getDepartmentByJobIds" resultType="com.toryu.iims.common.model.entity.integral.Organization">
+        SELECT jo.id as jobId, o.*
+        FROM iims_integral_organization o
+        INNER JOIN (
+        SELECT id, parent_id
+        FROM iims_integral_organization
+        WHERE id IN
+        <foreach collection="ids" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND type = 2
+        AND is_deleted = 0
+        ) jo ON o.id = jo.parent_id
+        WHERE o.is_deleted = 0
+    </select>
+
+    <select id="getOrganizationByIds" parameterType="list" resultType="com.toryu.iims.common.model.entity.integral.Organization">
+        SELECT
+        id,
+        parent_id,
+        name,
+        type,
+        code,
+        description,
+        is_deleted,
+        create_by,
+        create_time,
+        update_by,
+        update_time
+        FROM iims_integral_organization
+        WHERE id IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+        AND is_deleted = 0 -- 确保只查询未被删除的组织
+    </select>
+
+</mapper>

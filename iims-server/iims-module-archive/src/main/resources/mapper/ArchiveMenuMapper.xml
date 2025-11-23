@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.dms.archive.mapper.ArchiveMenuMapper">
+
+    <select id="allMenu" parameterType="map" resultType="com.toryu.dms.archive.model.vo.ArchiveMenuVO">
+        SELECT o.id, o.parent_id, o.type AS type, o.name AS label, o.description AS label_code,
+        t.name AS type_label, t.operate_component, t.detail_component   -- 档案详情页组件名
+        FROM iims_integral_organization o INNER JOIN
+        iims_archive_type t WHERE o.is_deleted = 0 AND o.id IN
+        <foreach collection="organizationIds" item="orgId" open="(" separator="," close=")">
+            #{orgId}
+        </foreach>
+        AND t.id IN
+        <foreach collection="archiveTypeIds" item="typeId" open="(" separator="," close=")">
+            #{typeId}
+        </foreach>
+        ORDER BY
+        o.parent_id, o.id; -- 根据需要排序
+    </select>
+
+</mapper>

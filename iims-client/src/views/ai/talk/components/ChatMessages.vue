@@ -104,7 +104,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, defineExpose } from 'vue';
+import { ref, computed } from 'vue';
 import { Loading } from '@element-plus/icons-vue';
 import { useStore } from 'vuex';
 import logoAvatar from '@/assets/icons/QJingTalk-logo-avatar.png';
