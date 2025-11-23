@@ -1,4 +1,4 @@
-package com.toryu.iims.integral.model.dto.llm;
+package com.toryu.iims.ai.chat.model.dto;
 
 import io.swagger.annotations.ApiModelProperty;
 import lombok.Data;

@@ -6,7 +6,7 @@ import com.toryu.iims.ai.chat.model.vo.DocMetadataVO;
 import com.toryu.iims.ai.chat.service.DialogueManageService;
 import com.toryu.iims.ai.rag.model.entity.RagMessage;
 import com.toryu.iims.ai.rag.service.MilvusStoreService;
-import com.toryu.iims.ai.chat.service.ModelSettingService;
+import com.toryu.iims.ai.chat.service.AiChatSettingService;
 import com.toryu.iims.ai.chat.service.ModelWarehouseService;
 import com.toryu.iims.ai.rag.utils.DocMetadataUtil;
 import com.toryu.iims.ai.rag.utils.PromptTemplateUtil;
@@ -41,10 +41,11 @@ public class ChatUtil {
     private final ModelWarehouseService modelWarehouseService;
     private final FileStorageService fileStorageService;
 
-    private final ModelSettingService settingService;
+    private final AiChatSettingService settingService;
 
     public ChatUtil(DialogueManageService dialogueManageService, MilvusStoreService milvusStoreService,
-                    DocMetadataUtil docMetadataUtil, ModelWarehouseService modelWarehouseService, FileStorageService fileStorageService, ModelSettingService settingService) {
+                    DocMetadataUtil docMetadataUtil, ModelWarehouseService modelWarehouseService,
+                    FileStorageService fileStorageService, AiChatSettingService settingService) {
         this.dialogueManageService = dialogueManageService;
         this.milvusStoreService = milvusStoreService;
         this.docMetadataUtil = docMetadataUtil;

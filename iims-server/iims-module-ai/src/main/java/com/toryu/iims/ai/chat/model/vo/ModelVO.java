@@ -1,4 +1,4 @@
-package com.toryu.iims.integral.model.vo.llm;
+package com.toryu.iims.ai.chat.model.vo;
 
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.ToStringSerializer;

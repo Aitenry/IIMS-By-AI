@@ -5,7 +5,7 @@ import com.toryu.iims.ai.graph.context.PromptTemplateContext;
 import com.toryu.iims.ai.graph.model.entity.GraphEntity;
 import com.toryu.iims.ai.graph.model.entity.GraphRelationship;
 import com.toryu.iims.ai.chat.model.entity.ModelSetting;
-import com.toryu.iims.ai.chat.service.ModelSettingService;
+import com.toryu.iims.ai.chat.service.AiChatSettingService;
 import com.toryu.iims.ai.chat.service.ModelWarehouseService;
 import com.toryu.iims.ai.rag.utils.PromptTemplateUtil;
 import com.toryu.iims.ai.graph.service.GenerateGraphService;
@@ -26,10 +26,10 @@ public class GenerateGraphServiceImpl implements GenerateGraphService {
 
     private final SnowFlakeIdWorker aiSnowFlakeIdWorker;
     private final ModelWarehouseService modelWarehouseService;
-    private final ModelSettingService settingService;
+    private final AiChatSettingService settingService;
 
     public GenerateGraphServiceImpl(SnowFlakeIdWorker aiSnowFlakeIdWorker, ModelWarehouseService modelWarehouseService,
-                                    ModelSettingService settingService) {
+                                    AiChatSettingService settingService) {
         this.aiSnowFlakeIdWorker = aiSnowFlakeIdWorker;
         this.modelWarehouseService = modelWarehouseService;
         this.settingService = settingService;

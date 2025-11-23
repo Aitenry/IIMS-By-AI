@@ -36,13 +36,13 @@ public class ChatServiceImpl implements ChatService {
     private final TopicManageService topicManageService;
     private final DialogueManageService dialogueManageService;
     private final FileStorageService fileStorageService;
-    private final ModelSettingService settingService;
+    private final AiChatSettingService settingService;
     private final PromptHandlerContext promptHandlerContext;
     private final ChatUtil chatUtil;
 
     public ChatServiceImpl(ModelWarehouseService modelWarehouseService, TopicManageService topicManageService,
                            DialogueManageService dialogueManageService, FileStorageService fileStorageService,
-                           ModelSettingService settingService, PromptHandlerContext promptHandlerContext, ChatUtil chatUtil) {
+                           AiChatSettingService settingService, PromptHandlerContext promptHandlerContext, ChatUtil chatUtil) {
         this.modelWarehouseService = modelWarehouseService;
         this.topicManageService = topicManageService;
         this.dialogueManageService = dialogueManageService;

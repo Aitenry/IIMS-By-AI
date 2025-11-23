@@ -1,8 +1,8 @@
 package com.toryu.iims.ai.chat.service.impl;
 
-import com.toryu.iims.ai.chat.mapper.AiChatModelsMapper;
 import com.toryu.iims.ai.chat.model.entity.ChatApi;
 import com.toryu.iims.ai.chat.model.entity.ModelChatOptions;
+import com.toryu.iims.ai.chat.service.AiChatModelsService;
 import com.toryu.iims.ai.chat.service.ModelWarehouseService;
 import com.toryu.iims.ai.rag.utils.AESEncryptionUtil;
 import org.springframework.ai.chat.model.ChatModel;
@@ -22,11 +22,12 @@ import org.springframework.stereotype.Service;
 @Service
 public class ModelWarehouseServiceImpl implements ModelWarehouseService {
 
-    private final AiChatModelsMapper modelsMapper;
+    public final AiChatModelsService aiChatModelsService;
 
-    public ModelWarehouseServiceImpl(AiChatModelsMapper modelsMapper) {
-        this.modelsMapper = modelsMapper;
+    public ModelWarehouseServiceImpl(AiChatModelsService aiChatModelsService) {
+        this.aiChatModelsService = aiChatModelsService;
     }
+
 
     @Override
     public OllamaChatModel getOllamaChatModel(OllamaApi ollamaApi, OllamaOptions ollamaOptions) {
@@ -44,7 +45,7 @@ public class ModelWarehouseServiceImpl implements ModelWarehouseService {
 
     @Override
     public ChatModel getChatModel(Long modelId, ModelChatOptions options) {
-        ChatApi chatApi = modelsMapper.selectModelById(modelId);
+        ChatApi chatApi = aiChatModelsService.selectModelById(modelId);
         return switch (chatApi.getType()) {
             case OLLAMA -> getOllamaChatModel(OllamaApi.builder()
                     .baseUrl(chatApi.getUrl()).build() , OllamaOptions.builder().model(chatApi.getName()).topP(options.getTopP())
@@ -74,7 +75,7 @@ public class ModelWarehouseServiceImpl implements ModelWarehouseService {
 
     @Override
     public EmbeddingModel getEmbeddingModel(Long modelId, MetadataMode metadataMode, ModelChatOptions options) {
-        ChatApi chatApi = modelsMapper.selectModelById(modelId);
+        ChatApi chatApi = aiChatModelsService.selectModelById(modelId);
         return switch (chatApi.getType()) {
             case OLLAMA -> getOllamaEmbeddingModel(OllamaApi.builder()
                     .baseUrl(chatApi.getUrl()).build() , OllamaOptions.builder().model(chatApi.getName()).topP(options.getTopP())

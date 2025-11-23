@@ -6,7 +6,7 @@ import com.toryu.iims.ai.rag.factory.DocTypeService;
 import com.toryu.iims.ai.rag.factory.impl.DocTypeServiceFactory;
 import com.toryu.iims.ai.rag.model.entity.DocumentType;
 import com.toryu.iims.ai.chat.model.entity.ModelSetting;
-import com.toryu.iims.ai.chat.service.ModelSettingService;
+import com.toryu.iims.ai.chat.service.AiChatSettingService;
 import com.toryu.iims.ai.chat.service.ModelToolService;
 import com.toryu.iims.ai.chat.service.ModelWarehouseService;
 import com.toryu.iims.ai.rag.utils.PromptTemplateUtil;
@@ -44,11 +44,11 @@ public class ModelToolServiceImpl implements ModelToolService {
 
     private final DocTypeServiceFactory docTypeServiceFactory;
 
-    private final ModelSettingService settingService;
+    private final AiChatSettingService settingService;
 
     public ModelToolServiceImpl (ModelWarehouseService modelWarehouseService, MinioService minioService,
                                  ApplicationEventPublisher eventPublisher, DocTypeServiceFactory docTypeServiceFactory,
-                                 ModelSettingService settingService) {
+                                 AiChatSettingService settingService) {
         this.modelWarehouseService = modelWarehouseService;
         this.minioService = minioService;
         this.eventPublisher = eventPublisher;

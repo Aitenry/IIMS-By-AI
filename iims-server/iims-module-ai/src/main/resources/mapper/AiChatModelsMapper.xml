@@ -3,4 +3,14 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.toryu.iims.ai.chat.mapper.AiChatModelsMapper">
 
+    <select id="pageQuery" resultType="com.toryu.iims.ai.chat.model.vo.ModelVO">
+        select * from iims_ai_chat_models
+        <where>
+            and is_deleted = 0
+            <if test="name != null and name != ''">
+                and name like concat('%', #{name}, '%')
+            </if>
+        </where>
+    </select>
+
 </mapper>

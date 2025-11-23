@@ -1,7 +1,7 @@
 package com.toryu.iims.integral.service;
 
 import com.toryu.iims.common.result.PageResult;
-import com.toryu.iims.integral.model.dto.llm.ModelPageQueryDTO;
+import com.toryu.iims.ai.chat.model.dto.ModelPageQueryDTO;
 
 /**
  * @Author: Aitenry

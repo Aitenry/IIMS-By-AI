@@ -2,7 +2,7 @@ package com.toryu.iims.integral.controller;
 
 import com.toryu.iims.common.result.PageResult;
 import com.toryu.iims.common.result.Result;
-import com.toryu.iims.integral.model.dto.llm.ModelPageQueryDTO;
+import com.toryu.iims.ai.chat.model.dto.ModelPageQueryDTO;
 import com.toryu.iims.integral.service.AiModelService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
