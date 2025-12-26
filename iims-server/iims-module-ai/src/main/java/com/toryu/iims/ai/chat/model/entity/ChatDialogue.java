@@ -37,6 +37,8 @@ public class ChatDialogue implements Serializable {
 
     private String metadata;
 
+    private String tools;
+
     private Boolean isStar;
 
     private Integer feedbackStatus;

@@ -10,6 +10,7 @@ import com.toryu.iims.ai.agent.react.prompt.FixedSystemPromptProvider;
 import com.toryu.iims.ai.agent.react.prompt.SystemPromptProvider;
 import com.toryu.iims.ai.agent.react.utils.ChatOptionUtils;
 import com.toryu.iims.ai.agent.react.utils.IdGenerator;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.ai.chat.client.ChatClient;
 import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
@@ -39,7 +40,7 @@ class DefaultReActAgent implements ReActAgent {
     private final ToolCallingManager toolCallingManager = ToolCallingManager.builder().build();
 
     private DefaultReActAgent(ChatClient chatClient, BranchMessageSaver branchMessageSaver,
-            SystemPromptProvider systemPromptProvider) {
+                              SystemPromptProvider systemPromptProvider) {
         this.chatClient = chatClient;
         this.branchMessageSaver = branchMessageSaver;
         this.systemPromptProvider = systemPromptProvider;
@@ -111,14 +112,22 @@ class DefaultReActAgent implements ReActAgent {
                 firstMessage = chatResponse.getResult().getOutput();
             }
             iterationLeft--;
+            List<AssistantMessage.ToolCall> toolCalls = firstMessage.getToolCalls();
+            List<AssistantMessage.ToolCall> list = toolCalls.stream().filter(
+                    toolCall -> StringUtils.isNoneBlank(toolCall.name())
+                            && StringUtils.isNoneBlank(toolCall.arguments())).toList();
+            firstMessage.getToolCalls().clear();
+            firstMessage.getToolCalls().addAll(list);
             previousMessageId = saveAndSinkMessage(options.getThreadId(), firstMessage, previousMessageId, sink);
             ChatResponse chatResponse = buildResponseFromAssistantMessage(firstMessage);
             while (chatResponse.hasToolCalls()) {
+                this.filterValidToolCalls(chatResponse);
                 int toolCallCount = chatResponse.getResult().getOutput().getToolCalls().size();
                 ToolExecutionResult toolExecutionResult = toolCallingManager.executeToolCalls(prompt, chatResponse);
                 List<Message> conversationHistory = toolExecutionResult.conversationHistory();
-                List<Message> toolCallResults = conversationHistory
-                        .subList(conversationHistory.size() - toolCallCount, conversationHistory.size());
+                int historySize = conversationHistory.size();
+                int startIndex = Math.max(historySize - 1, historySize - toolCallCount);
+                List<Message> toolCallResults = conversationHistory.subList(startIndex, historySize);
                 for (Message toolCallResult : toolCallResults) {
                     previousMessageId = saveAndSinkMessage(options.getThreadId(), toolCallResult, previousMessageId,
                             sink);
@@ -149,13 +158,29 @@ class DefaultReActAgent implements ReActAgent {
         });
     }
 
+    /**
+     * 过滤掉名称或参数为空的工具调用
+     */
+    private void filterValidToolCalls(ChatResponse chatResponse) {
+        List<AssistantMessage.ToolCall> toolCalls = chatResponse.getResult().getOutput().getToolCalls();
+        List<AssistantMessage.ToolCall> validToolCalls = toolCalls.stream()
+                .filter(toolCall -> StringUtils.isNoneBlank(toolCall.name())
+                        && StringUtils.isNoneBlank(toolCall.arguments()))
+                .toList();
+
+        // 更新原始列表
+        List<AssistantMessage.ToolCall> mutableToolCalls = chatResponse.getResult().getOutput().getToolCalls();
+        mutableToolCalls.clear();
+        mutableToolCalls.addAll(validToolCalls);
+    }
+
     private static ChatResponse buildResponseFromAssistantMessage(AssistantMessage firstMessage) {
         return ChatResponse.builder()
                 .generations(List.of(new Generation(firstMessage))).build();
     }
 
     private static AssistantMessage iterateResponseParts(FluxSink<ReActAgentEvent> sink,
-            Flux<ChatResponse> chatResponseFlux) {
+                                                         Flux<ChatResponse> chatResponseFlux) {
         StringBuilder accumulatedText = new StringBuilder();
         List<AssistantMessage.ToolCall> toolCalls = new ArrayList<>();
         chatResponseFlux.doOnNext(partResponse -> {
@@ -170,7 +195,7 @@ class DefaultReActAgent implements ReActAgent {
             }
         }).blockLast();
         String text = accumulatedText.toString();
-        return new AssistantMessage(text, Map.of(), toolCalls);
+        return AssistantMessage.builder().content(text).toolCalls(toolCalls).build();
     }
 
     private ChatClient.ChatClientRequestSpec prepareChatClient(RunAgentOptions options, Prompt prompt) {
@@ -179,7 +204,7 @@ class DefaultReActAgent implements ReActAgent {
     }
 
     private String saveAndSinkMessage(String threadId, Message message, String previousMessageId,
-            FluxSink<ReActAgentEvent> sink) {
+                                      FluxSink<ReActAgentEvent> sink) {
         String id = IdGenerator.generateId();
         if (branchMessageSaver != null) {
             branchMessageSaver.save(threadId, new BranchMessageItem(message, id, previousMessageId, Map.of()));
@@ -189,7 +214,7 @@ class DefaultReActAgent implements ReActAgent {
     }
 
     private static List<Message> contactMessages(Message systemMessage, List<Message> messageHistory,
-            List<Message> newMessages) {
+                                                 List<Message> newMessages) {
         List<Message> result = new ArrayList<>();
         if (systemMessage != null) {
             result.add(systemMessage);

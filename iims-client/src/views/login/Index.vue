@@ -39,7 +39,7 @@
           />
         </el-form-item>
 
-        <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click="handleLogin">登录</el-button>
+        <el-button :loading="loading" type="primary" style="width:100%;margin-bottom:30px;" @click="handleLogin">{{loading ? '' : '登录'}}</el-button>
       </el-form>
     </div>
     <svg class="waves" viewBox="0 0 150 28" preserveAspectRatio="none">

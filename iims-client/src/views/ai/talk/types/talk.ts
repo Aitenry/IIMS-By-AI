@@ -38,6 +38,7 @@ export interface MsgParam {
     lastId: string | null
     fileId: string | null
     question: string
+    isUseAgent: boolean | null
     wikiIds: string[] | null
 }
 
@@ -80,6 +81,7 @@ export interface Message {
     sender: string
     fileInfos?: any[]
     view?: string
+    tools?: Tool[]
     isLoadingAnswer?: boolean
     isStar: boolean
     feedbackStatus: number
@@ -89,6 +91,14 @@ export interface Message {
     isComplete?: boolean
     isShowThink?: boolean
     isExpanded?: boolean
+}
+
+export interface Tool {
+    id: string | null
+    type: string | null
+    name: string | null
+    arguments: string | null
+    responseData: string | null
 }
 
 export interface StatusData {
@@ -107,13 +117,13 @@ export interface HotTopic {
     title: string;
 }
 
-export interface Tool {
+export interface ToolTopic {
     name: string;
     content: string;
     avatarSrc: string;
 }
 
-export interface Agent {
+export interface AgentTopic {
     name: string;
     content: string;
     avatarSrc: string;

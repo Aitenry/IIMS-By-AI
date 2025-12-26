@@ -5,14 +5,15 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.document.MetadataMode;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.ollama.api.OllamaApi;
-import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.ai.ollama.api.OllamaChatOptions;
+import org.springframework.ai.ollama.api.OllamaEmbeddingOptions;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.OpenAiEmbeddingOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
 
 public interface ModelWarehouseService {
 
-    ChatModel getOllamaChatModel(OllamaApi ollamaApi, OllamaOptions ollamaOptions);
+    ChatModel getOllamaChatModel(OllamaApi ollamaApi, OllamaChatOptions ollamaOptions);
 
     ChatModel getOpenAIChatModel(OpenAiApi openAiApi, OpenAiChatOptions openAiOptions);
 
@@ -22,7 +23,7 @@ public interface ModelWarehouseService {
         return getChatModel(modelId, ModelChatOptions.builder().build());
     }
 
-    EmbeddingModel getOllamaEmbeddingModel(OllamaApi ollamaApi, OllamaOptions ollamaOptions);
+    EmbeddingModel getOllamaEmbeddingModel(OllamaApi ollamaApi, OllamaEmbeddingOptions ollamaOptions);
 
     EmbeddingModel getOpenAiEmbeddingModel(OpenAiApi openAiApi, MetadataMode metadataMode, OpenAiEmbeddingOptions openAiOptions);
 

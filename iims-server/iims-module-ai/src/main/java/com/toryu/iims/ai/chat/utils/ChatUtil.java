@@ -134,6 +134,7 @@ public class ChatUtil {
         String _uuid = String.valueOf(uuid);
         MessageData messageData = msgMap.get(uuid);
         List<Document> documents = messageData.getDocuments();
+        List<ChatTool> tools = messageData.getTools();
         Long topicId = messageData.getTopicId();
         Long lastId = messageData.getLastId();
         StringBuffer aiContent = messageData.getAiContent();
@@ -141,10 +142,11 @@ public class ChatUtil {
         try {
             // 构建 AI 对话记录
             String metadata = Objects.isNull(documents) ? null : JSONArray.toJSONString(documents);
+            String toolsResult = Objects.isNull(tools) ? null : JSONArray.toJSONString(tools);
             String content = Objects.isNull(aiContent) ? "" : aiContent.toString();
             AiChatDialogue aiAiChatDialogue = AiChatDialogue.builder()
                     .topicId(topicId).lastId(lastId).sender("assistant")
-                    .content(content).isStar(false).metadata(metadata)
+                    .content(content).isStar(false).metadata(metadata).tools(toolsResult)
                     .isDeleted(false).build();
             Long userId = BaseContext.getCurrentId();
             // 异步保存 AI 对话记录，并等待完成

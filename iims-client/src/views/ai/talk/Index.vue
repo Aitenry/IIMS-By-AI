@@ -21,6 +21,7 @@
               @open-new-chat="openNewChat"
               @handle-wiki-click="handleWikiClick"
               @close-file-click="closeFileClick"
+              @toggle-agent="handleAgentToggle"
               @toggle-wiki-drawer="wikiDrawer = true"
           />
           <el-divider style="width: calc(100% - 30px); margin: 0 15px" />
@@ -131,11 +132,11 @@ import WikiDocumentDrawer from './components/WikiDocumentDrawer.vue'
 import FileUploadDialog from './components/FileUploadDialog.vue'
 import {ElMessageBox, ElNotification, type UploadFile} from "element-plus";
 import type {
-  Agent, DialoguePages,
+  AgentTopic, DialoguePages,
   HotTopic,
   Message,
   MsgParam,
-  Tool, TopicPages,
+  ToolTopic, TopicPages,
   UseFileParam,
   WikiItem,
   WikiMeta, WikiPages
@@ -181,6 +182,7 @@ const msgParam = ref<MsgParam>({
   topicId: null,
   lastId: null,
   fileId: null,
+  isUseAgent: false,
   question: '',
   wikiIds: null
 })
@@ -240,7 +242,7 @@ const hotTopics: HotTopic[] = [
   },
 ]
 
-const tools: Tool[] = [
+const tools: ToolTopic[] = [
   {
     name: '系统资料调度',
     content: '专注于系统中管理和控制数据流动与分析',
@@ -263,7 +265,7 @@ const tools: Tool[] = [
   },
 ]
 
-const agents: Agent[] = [
+const agents: AgentTopic[] = [
   {
     name: '报告生成助手',
     content: '根据需求自动生成各类报告',
@@ -482,7 +484,6 @@ const closeFileClick = () => {
 
 const handleCheckboxClick = (wikiIds: string[]) => {
   loadWikiTitles.value = wikis.value.filter(wiki => wikiIds.includes(wiki.id)).map(wiki => wiki.title) || []
-  msgParam.value.wikiIds = wikiIds
 }
 
 const loadMoreChatDialogue = async () => {
@@ -520,6 +521,7 @@ const loadMoreChatDialogue = async () => {
 const handleWikiClick = () => {
   if (wikiIds.value) {
     isFlashing.value = !isFlashing.value
+    msgParam.value.wikiIds = isFlashing.value ? wikiIds.value : null
   } else {
     wikiDrawer.value = true
   }
@@ -531,6 +533,7 @@ const openNewChat = () => {
     lastId: null,
     fileId: null,
     question: '',
+    isUseAgent: msgParam.value.isUseAgent,
     wikiIds: msgParam.value.wikiIds
   }
   dialoguePages.value = {
@@ -601,6 +604,10 @@ const limitLengthWithEllipsis = (question: string) => {
   }
 }
 
+const handleAgentToggle = (enabled: boolean) => {
+  msgParam.value.isUseAgent = enabled
+}
+
 const sendOut = async () => {
   if (isSendOut.value) {
     await stopAnswerNow()
@@ -635,6 +642,11 @@ const sendOut = async () => {
       if (['output', 'end'].includes(item.event) && message.isLoadingAnswer) {
         message.isLoadingAnswer = false
       }
+
+      if (['LlmMessageEvent', 'AssistantTextPartEvent'].includes(item.event) && _data.messageType !== 'USER' && message.isLoadingAnswer) {
+        message.isLoadingAnswer = false
+      }
+
       if (item.event === 'start') {
         if (dialoguePages.value.topicId === null) {
           dialoguePages.value.topicId = _data.topicId
@@ -642,6 +654,39 @@ const sendOut = async () => {
           chatItems.value.splice(0, 0, { id: _data.topicId, title: limitLengthWithEllipsis(msgParam.value.question) })
         }
         lastMessage.id = _data.lastId
+      } else if (item.event === 'LlmMessageEvent') {
+        if (!message.tools) {
+          message.tools = []
+        }
+        if (_data.messageType === 'ASSISTANT' && _data.toolCalls) {
+          for (const toolCall of _data.toolCalls) {
+            const tool = message.tools.find(item => item.id === toolCall.id)
+            if (!tool) {
+              message.tools.push(toolCall)
+            }
+          }
+        } else if (_data.messageType === 'TOOL' && _data.responses) {
+          for (const response of _data.responses) {
+            const tool = message.tools.find(item => item.id === response.id)
+            if (tool) {
+              tool.responseData = response.responseData
+            }
+          }
+        }
+      } else if (item.event === 'AssistantTextPartEvent') {
+        message.content += _data.replace(/^data:\s*/gm, '')
+        const result = extractThinkAndOther(message.content)
+        message.view = mdi.value.render(result.content)
+        if (result.isThink) {
+          message.think = mdi.value.render(result.think || '')
+          message.isComplete = result.isComplete
+          if (message.isShowThink === undefined) {
+            message.isShowThink = true
+            message.isExpanded = true
+          }
+        } else if (message.isShowThink !== undefined) {
+          message.isShowThink = false
+        }
       } else if (item.event === 'output') {
         message.content += _data.output.text
         const result = extractThinkAndOther(message.content)

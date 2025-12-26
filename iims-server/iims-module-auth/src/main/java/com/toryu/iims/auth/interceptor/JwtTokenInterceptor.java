@@ -58,11 +58,6 @@ public class JwtTokenInterceptor implements HandlerInterceptor {
                 throw new IsTokenException("账号锁定");
             if (admin.getIsDeleted())
                 throw new IsTokenException("账号已被移除");
-
-            HandlerMethod handlerMethod = (HandlerMethod) handler;
-            log.info("[{}] ({})  >> {}.{}", admin.getName(), id,
-                    handlerMethod.getBeanType().getSimpleName(),
-                    handlerMethod.getMethod().getName());
             // 将用户id存储到ThreadLocal
             BaseContext.setCurrentId(id);
             // 通过，放行

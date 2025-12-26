@@ -63,7 +63,31 @@
                     }}</span>
                 </div>
               </div>
+              <div v-if="message.tools && message.tools.length > 0" class="metadata-container">
+                <hr class="my-2 border-t border-gray-300 dark:border-gray-600" />
+                <div class="metadata-label">使用工具:</div>
+                <div class="flex flex-wrap gap-3 chat-metadata-box">
+                  <div v-for="(tool, index) in message.tools"
+                       :key="index"
+                       @click="showToolDetail(tool)"
+                       class="group relative inline-flex items-center px-2.5 py-1 rounded-xl bg-gradient-to-r from-blue-50/80 to-indigo-50/80 dark:from-gray-800/60 dark:to-gray-800/40 border border-blue-100/60 dark:border-gray-700/60 backdrop-blur-sm transition-all duration-300 hover:shadow-md cursor-pointer">
+                    <div class="flex items-center space-x-2">
+                          <span :class="[
+                             'inline-flex items-center px-2.5 py-0.5 rounded-full transition-all duration-300 ease-in-out',
+                             tool.responseData ? 'bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-200' :
+                             'bg-blue-100 text-blue-800 dark:bg-blue-900/30 dark:text-blue-200'
+                          ]">
+                             <i :class="[tool.responseData ? 'ri-check-double-line' : 'ri-loader-4-line animate-spin', 'text-xs']"></i>
+                          </span>
+                      <span class="font-sans text-sm font-medium text-gray-700 dark:text-gray-300">
+                            {{ tool.name || 'Unknown Tool' }}
+                          </span>
+                    </div>
+                  </div>
+                </div>
+              </div>
               <div v-if="message.docMetadata" class="metadata-container">
+                <hr class="my-2 border-t border-gray-300 dark:border-gray-600" />
                 <div class="metadata-label">参考文献:</div>
                 <div v-if="message.docMetadata.length > 0" class="chat-metadata-box">
                   <div v-for="(meta, index) in message.docMetadata" :key="index"
@@ -100,6 +124,54 @@
       </el-row>
       <el-backtop target=".messages" style="right: calc(13% - 20px); bottom: 130px" :visibility-height="300" />
     </div>
+    <!-- 工具详情弹窗 -->
+    <el-dialog
+        v-model="showToolDetailDialog"
+        :title="`工具详情 - ${selectedToolDetail?.name || '未知工具'}`"
+        width="39%"
+        :before-close="() => { showToolDetailDialog = false; }"
+        destroy-on-close
+    >
+      <div v-if="selectedToolDetail" class="tool-detail-content">
+        <el-descriptions :column="1" border>
+          <el-descriptions-item label="ID">
+            <code>{{ selectedToolDetail.id || 'N/A' }}</code>
+          </el-descriptions-item>
+          <el-descriptions-item label="类型">
+            <code>{{ selectedToolDetail.type || 'N/A' }}</code>
+          </el-descriptions-item>
+          <el-descriptions-item label="名称">
+            <code>{{ selectedToolDetail.name || 'N/A' }}</code>
+          </el-descriptions-item>
+          <el-descriptions-item label="状态">
+            <el-tag
+                :type="selectedToolDetail.responseData ? 'success' : 'warning'"
+                size="small"
+            >
+              {{ selectedToolDetail.responseData ? '已执行' : '等待执行' }}
+            </el-tag>
+          </el-descriptions-item>
+        </el-descriptions>
+
+        <!-- 参数 -->
+        <div class="detail-section" v-if="selectedToolDetail.arguments">
+          <h4>调用参数</h4>
+          <pre class="json-display">{{ formatJsonContent(selectedToolDetail.arguments) }}</pre>
+        </div>
+
+        <!-- 返回结果 -->
+        <div class="detail-section" v-if="selectedToolDetail.responseData">
+          <h4>返回结果</h4>
+          <pre class="json-display">{{ formatJsonContent(selectedToolDetail.responseData) }}</pre>
+        </div>
+
+        <!-- 如果没有返回结果但有参数 -->
+        <div class="detail-section" v-if="!selectedToolDetail.responseData && selectedToolDetail.arguments">
+          <h4>待执行参数</h4>
+          <pre class="json-display">{{ formatJsonContent(selectedToolDetail.arguments) }}</pre>
+        </div>
+      </div>
+    </el-dialog>
   </el-main>
 </template>
 
@@ -108,7 +180,7 @@ import { ref, computed } from 'vue';
 import { Loading } from '@element-plus/icons-vue';
 import { useStore } from 'vuex';
 import logoAvatar from '@/assets/icons/QJingTalk-logo-avatar.png';
-import type {Message, MetadataItem, StatusData} from "@/views/ai/talk/types/talk.ts";
+import type {Message, MetadataItem, StatusData, Tool} from "@/views/ai/talk/types/talk.ts";
 
 const props = withDefaults(defineProps<{
   messages: Message[];
@@ -129,7 +201,8 @@ const emit = defineEmits<{
   (e: 'show-wiki-doc-metadata', meta: MetadataItem): void;
   (e: 'toggle-think', message: Message): void;
 }>();
-
+const showToolDetailDialog = ref(false);
+const selectedToolDetail = ref<Tool | null>(null);
 const store = useStore();
 const mainContainerRef = ref<HTMLElement | null>(null);
 
@@ -143,6 +216,11 @@ const handleScroll = (event: Event) => {
   if (target.scrollTop < 3) {
     emit('load-more');
   }
+};
+
+const showToolDetail = (tool: Tool) => {
+  selectedToolDetail.value = tool;
+  showToolDetailDialog.value = true;
 };
 
 const loadHtml = (content: string) => {
@@ -181,11 +259,58 @@ const getFileType = (filename: string) => {
   return filename.split('.').pop()?.toUpperCase() || '';
 };
 
+const formatJsonContent = (content: string | null) => {
+  if (!content) return '';
+
+  try {
+    // 尝试解析 JSON 字符串并格式化
+    const parsed = JSON.parse(content);
+    return JSON.stringify(parsed, null, 2);
+  } catch (e) {
+    return content;
+  }
+};
+
 defineExpose({
   mainContainerRef
 });
 </script>
 
 <style scoped>
-/* Add scoped styles if needed, or move global ones from original */
+.detail-section {
+  margin-top: 20px;
+  padding: 15px;
+  background-color: #fafafa;
+  border-radius: 4px;
+  border: 1px solid #ebeef5;
+}
+
+.detail-section h4 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  font-weight: bold;
+  color: #333;
+  border-bottom: 1px solid #ebeef5;
+  padding-bottom: 5px;
+}
+
+.json-display {
+  background-color: #f5f5f5;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 10px;
+  overflow-x: auto;
+  font-family: 'Courier New', Consolas, Monaco, monospace;
+  font-size: 12px;
+  line-height: 1.4;
+  white-space: pre-wrap;
+  word-break: break-all;
+  max-height: 400px;
+  overflow-y: auto;
+}
+
+.tool-detail-content {
+  max-height: 70vh;
+  overflow-y: auto;
+}
 </style>

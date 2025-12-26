@@ -29,6 +29,8 @@ public class AiChatDialogue extends BaseTable implements Serializable {
 
     private String metadata;
 
+    private String tools;
+
     private List<Long> fileIds;
 
     private Boolean isDeleted;

@@ -22,6 +22,8 @@ public class MessageData implements Serializable {
 
     private Long fileId;
 
+    private Boolean isUseAgent;
+
     private List<Long> wikiIds;
 
     private String question;
@@ -31,5 +33,7 @@ public class MessageData implements Serializable {
     private StringBuffer aiContent;
 
     private List<Document> documents;
+
+    private List<ChatTool> tools;
 
 }

@@ -12,6 +12,8 @@ public class SendMessageDTO implements Serializable {
 
     private Long lastId;
 
+    private Boolean isUseAgent;
+
     private List<Long> wikiIds;
 
     private Long fileId;

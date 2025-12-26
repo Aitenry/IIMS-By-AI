@@ -15,9 +15,9 @@
     </resultMap>
 
     <insert id="insert" useGeneratedKeys="true" keyProperty="id">
-        insert into iims_ai_chat_dialogue(id, last_id, topic_id, sender, content, metadata, file_ids,
+        insert into iims_ai_chat_dialogue(id, last_id, topic_id, sender, content, metadata, tools, file_ids,
                                        is_deleted, is_star, create_by, create_time, update_by, update_time)
-        values (#{id}, #{lastId}, #{topicId}, #{sender}, #{content}, #{metadata},
+        values (#{id}, #{lastId}, #{topicId}, #{sender}, #{content}, #{metadata}, #{tools},
                 #{fileIds, typeHandler=com.toryu.iims.common.handler.JsonToListTypeHandler},
                 #{isDeleted}, #{isStar}, #{createBy}, #{createTime}, #{updateBy}, #{updateTime})
     </insert>

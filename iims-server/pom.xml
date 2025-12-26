@@ -69,11 +69,11 @@
         <jedis>5.2.0-beta4</jedis>
         <commonmark>0.24.0</commonmark>
         <!-- Spring AI 相关依赖 -->
-        <spring-ai-bom>1.0.0</spring-ai-bom>
-        <tika-document-reader>1.0.0</tika-document-reader>
-        <ai-ollama-starter>1.0.0</ai-ollama-starter>
-        <ai-openai-starter>1.0.0</ai-openai-starter>
-        <milvus-store>1.0.0</milvus-store>
+        <spring-ai-bom>1.1.0</spring-ai-bom>
+        <tika-document-reader>1.1.0</tika-document-reader>
+        <ai-ollama-starter>1.1.0</ai-ollama-starter>
+        <ai-openai-starter>1.1.0</ai-openai-starter>
+        <milvus-store>1.1.0</milvus-store>
 
         <!-- Maven 相关 -->
         <maven.compiler.source>${java.version}</maven.compiler.source>

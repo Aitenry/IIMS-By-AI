@@ -105,12 +105,12 @@
 
 <script setup lang="ts">
 
-import type {Agent, Tool, HotTopic} from "@/views/ai/talk/types/talk.ts";
+import type {AgentTopic, ToolTopic, HotTopic} from "@/views/ai/talk/types/talk.ts";
 
 defineProps<{
   hotTopics: HotTopic[];
-  tools: Tool[];
-  agents: Agent[];
+  tools: ToolTopic[];
+  agents: AgentTopic[];
 }>();
 
 const topicColorClass = (topic: HotTopic): string => {

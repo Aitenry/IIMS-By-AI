@@ -1,11 +1,12 @@
 package com.toryu.iims.ai.chat.service.impl;
 
-import com.toryu.iims.ai.rag.enums.FileModelTypeEnum;
-import com.toryu.iims.ai.rag.handle.PromptHandlerContext;
 import com.toryu.iims.ai.chat.model.dto.SendMessageDTO;
 import com.toryu.iims.ai.chat.model.entity.*;
 import com.toryu.iims.ai.chat.service.*;
+import com.toryu.iims.ai.chat.utils.AgentUtil;
 import com.toryu.iims.ai.chat.utils.ChatUtil;
+import com.toryu.iims.ai.rag.enums.FileModelTypeEnum;
+import com.toryu.iims.ai.rag.handle.PromptHandlerContext;
 import com.toryu.iims.ai.rag.model.entity.RagMessage;
 import com.toryu.iims.ai.rag.utils.PromptTemplateUtil;
 import com.toryu.iims.common.context.BaseContext;
@@ -20,6 +21,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -39,10 +41,11 @@ public class ChatServiceImpl implements ChatService {
     private final AiChatSettingService settingService;
     private final PromptHandlerContext promptHandlerContext;
     private final ChatUtil chatUtil;
+    private final AgentUtil agentUtil;
 
     public ChatServiceImpl(ModelWarehouseService modelWarehouseService, TopicManageService topicManageService,
                            DialogueManageService dialogueManageService, FileStorageService fileStorageService,
-                           AiChatSettingService settingService, PromptHandlerContext promptHandlerContext, ChatUtil chatUtil) {
+                           AiChatSettingService settingService, PromptHandlerContext promptHandlerContext, ChatUtil chatUtil, AgentUtil agentUtil) {
         this.modelWarehouseService = modelWarehouseService;
         this.topicManageService = topicManageService;
         this.dialogueManageService = dialogueManageService;
@@ -50,6 +53,7 @@ public class ChatServiceImpl implements ChatService {
         this.settingService = settingService;
         this.promptHandlerContext = promptHandlerContext;
         this.chatUtil = chatUtil;
+        this.agentUtil = agentUtil;
     }
 
     @Override
@@ -61,8 +65,8 @@ public class ChatServiceImpl implements ChatService {
         }
         MessageData messageData = MessageData.builder().sse(new SseEmitter(0L))
                 .fileId(messageDto.getFileId()).wikiIds(messageDto.getWikiIds())
-                .question(messageDto.getQuestion()).topicId(messageDto.getTopicId())
-                .lastId(messageDto.getLastId()).build();
+                .question(messageDto.getQuestion()).topicId(messageDto.getTopicId()).tools(new ArrayList<>())
+                .lastId(messageDto.getLastId()).isUseAgent(messageDto.getIsUseAgent()).build();
         Long userId = BaseContext.getCurrentId();
         // 提取必要信息
         SseEmitter emitter = messageData.getSse();
@@ -93,10 +97,6 @@ public class ChatServiceImpl implements ChatService {
                 Long lastId = userAiChatDialogue.getId();
                 messageData.setLastId(lastId);
 
-                // 发送开始事件
-                chatUtil.sendStartEvent(emitter, _uuid, topicId, lastId);
-
-                List<Document> documents = null;
                 List<String> fileContext = null;
                 FileModelTypeEnum type = FileModelTypeEnum.TEXT;
                 FileWarehouse object = fileStorageService.getObjectById(fileId);
@@ -105,6 +105,27 @@ public class ChatServiceImpl implements ChatService {
                     type = filePrompt.getType();
                     fileContext = filePrompt.getContext();
                 }
+
+                ModelSetting modelSetting = settingService.getUserModelSetting();
+                Long modelId;
+                switch (type) {
+                    case IMAGE -> modelId = modelSetting.getVisionModel();
+                    case AUDIO, VIDEO -> modelId = modelSetting.getMultimodalModel();
+                    default -> modelId = modelSetting.getLanguageModel();
+                }
+
+                // 发送开始事件
+                chatUtil.sendStartEvent(emitter, _uuid, topicId, lastId);
+
+                if (messageData.getIsUseAgent()) {
+                    PromptTemplateUtil.defineMessage(question, fileContext, messages);
+                    agentUtil.processStream(
+                            uuid, userId, modelId, new ArrayList<>(), messages,
+                            messageData, emitter, msgMap);
+                    return;
+                }
+
+                List<Document> documents = null;
                 if (Objects.nonNull(wikiIds) && !wikiIds.isEmpty()) {
                     RagMessage ragMessage = chatUtil.loadingWikiDoc(wikiIds, fileContext, question, emitter, _uuid);
                     messages.add(0, ragMessage.getSysMessage());
@@ -114,13 +135,6 @@ public class ChatServiceImpl implements ChatService {
                     PromptTemplateUtil.defineMessage(question, fileContext, messages);
                 }
                 // 订阅 AI 流并处理数据
-                ModelSetting modelSetting = settingService.getUserModelSetting();
-                Long modelId;
-                switch (type) {
-                    case IMAGE -> modelId = modelSetting.getVisionModel();
-                    case AUDIO, VIDEO -> modelId = modelSetting.getMultimodalModel();
-                    default -> modelId = modelSetting.getLanguageModel();
-                }
                 Flux<ChatResponse> stream = modelWarehouseService.getChatModel(modelId).stream(new Prompt(messages));
                 chatUtil.processStream(stream, documents, msgMap, emitter, uuid);
 

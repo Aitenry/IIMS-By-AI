@@ -11,13 +11,16 @@ import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.ollama.OllamaChatModel;
 import org.springframework.ai.ollama.OllamaEmbeddingModel;
 import org.springframework.ai.ollama.api.OllamaApi;
-import org.springframework.ai.ollama.api.OllamaOptions;
+import org.springframework.ai.ollama.api.OllamaChatOptions;
+import org.springframework.ai.ollama.api.OllamaEmbeddingOptions;
 import org.springframework.ai.openai.OpenAiChatModel;
 import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.OpenAiEmbeddingModel;
 import org.springframework.ai.openai.OpenAiEmbeddingOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
 import org.springframework.stereotype.Service;
+
+import java.util.Objects;
 
 @Service
 public class ModelWarehouseServiceImpl implements ModelWarehouseService {
@@ -30,7 +33,7 @@ public class ModelWarehouseServiceImpl implements ModelWarehouseService {
 
 
     @Override
-    public OllamaChatModel getOllamaChatModel(OllamaApi ollamaApi, OllamaOptions ollamaOptions) {
+    public OllamaChatModel getOllamaChatModel(OllamaApi ollamaApi, OllamaChatOptions ollamaOptions) {
         return OllamaChatModel.builder()
                 .ollamaApi(ollamaApi)
                 .defaultOptions(ollamaOptions).build();
@@ -48,11 +51,11 @@ public class ModelWarehouseServiceImpl implements ModelWarehouseService {
         ChatApi chatApi = aiChatModelsService.selectModelById(modelId);
         return switch (chatApi.getType()) {
             case OLLAMA -> getOllamaChatModel(OllamaApi.builder()
-                    .baseUrl(chatApi.getUrl()).build() , OllamaOptions.builder().model(chatApi.getName()).topP(options.getTopP())
+                    .baseUrl(chatApi.getUrl()).build() , OllamaChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
                     .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
                     .numCtx(options.getMaxTokens()).presencePenalty(options.getPresencePenalty()).build());
             case OPENAI -> getOpenAIChatModel(OpenAiApi.builder()
-                    .apiKey(AESEncryptionUtil.decrypt(chatApi.getKey()))
+                    .apiKey(Objects.requireNonNull(AESEncryptionUtil.decrypt(chatApi.getKey())))
                     .baseUrl(chatApi.getUrl()).build(),
                     OpenAiChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
                             .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
@@ -61,7 +64,7 @@ public class ModelWarehouseServiceImpl implements ModelWarehouseService {
     }
 
     @Override
-    public EmbeddingModel getOllamaEmbeddingModel(OllamaApi ollamaApi, OllamaOptions ollamaOptions) {
+    public EmbeddingModel getOllamaEmbeddingModel(OllamaApi ollamaApi, OllamaEmbeddingOptions ollamaOptions) {
         return OllamaEmbeddingModel.builder()
                 .ollamaApi(ollamaApi)
                 .defaultOptions(ollamaOptions).build();
@@ -78,11 +81,10 @@ public class ModelWarehouseServiceImpl implements ModelWarehouseService {
         ChatApi chatApi = aiChatModelsService.selectModelById(modelId);
         return switch (chatApi.getType()) {
             case OLLAMA -> getOllamaEmbeddingModel(OllamaApi.builder()
-                    .baseUrl(chatApi.getUrl()).build() , OllamaOptions.builder().model(chatApi.getName()).topP(options.getTopP())
-                    .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
-                    .numCtx(options.getMaxTokens()).presencePenalty(options.getPresencePenalty()).build());
+                    .baseUrl(chatApi.getUrl()).build() , OllamaEmbeddingOptions.builder()
+                    .model(chatApi.getName()).build());
             case OPENAI -> getOpenAiEmbeddingModel(OpenAiApi.builder()
-                    .apiKey(AESEncryptionUtil.decrypt(chatApi.getKey()))
+                    .apiKey(Objects.requireNonNull(AESEncryptionUtil.decrypt(chatApi.getKey())))
                     .baseUrl(chatApi.getUrl()).build(), metadataMode, OpenAiEmbeddingOptions.builder()
                     .model(chatApi.getName()).build());
         };

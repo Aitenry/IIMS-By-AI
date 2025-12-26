@@ -1,11 +1,13 @@
 package com.toryu.iims.ai.chat.service.impl;
 
+import com.alibaba.fastjson.JSONArray;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.toryu.iims.ai.chat.mapper.AiChatDialogueMapper;
 import com.toryu.iims.ai.chat.model.dto.ChatDialoguePageQueryDTO;
 import com.toryu.iims.ai.chat.model.entity.AiChatDialogue;
 import com.toryu.iims.ai.chat.model.entity.ChatDialogue;
+import com.toryu.iims.ai.chat.model.entity.ChatTool;
 import com.toryu.iims.ai.chat.model.vo.ChatDialogueVO;
 import com.toryu.iims.ai.chat.model.vo.DocMetadataVO;
 import com.toryu.iims.ai.chat.service.DialogueManageService;
@@ -84,6 +86,7 @@ public class DialogueManageServiceImpl implements DialogueManageService {
             }
             List<DocMetadataVO> docMetadata = docMetadataUtil.getDocMetadata(r.getMetadata());
             chatDialogueVo.setDocMetadata(docMetadata);
+            chatDialogueVo.setTools(JSONArray.parseArray(r.getTools(), ChatTool.class));
             records.add(chatDialogueVo);
         });
         Collections.reverse(records);
