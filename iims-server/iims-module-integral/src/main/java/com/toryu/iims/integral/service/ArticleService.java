@@ -24,6 +24,8 @@ public interface ArticleService {
      */
     void deleteArticle(List<Long> ids);
 
+    void updateChunkKeys(Long id, List<String> chunkKeys);
+
     /**
      * 查询文章分页数据
      */

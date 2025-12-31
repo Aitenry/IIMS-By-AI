@@ -15,7 +15,7 @@ public class CalculatorTool implements AITool {
 
     @Override
     public String getToolName() {
-        return "calculator";
+        return "calculator-tools";
     }
 
     @Tool(description = "计算两数之和")

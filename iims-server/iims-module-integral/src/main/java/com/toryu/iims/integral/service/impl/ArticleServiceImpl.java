@@ -113,6 +113,12 @@ public class ArticleServiceImpl implements ArticleService {
     }
 
     @Override
+    public void updateChunkKeys(Long id, List<String> chunkKeys) {
+        articleContentMapper.updateByArticleId(ArticleContent.builder()
+                .articleId(id).chunkKeys(JSONArray.toJSONString(chunkKeys)).build());
+    }
+
+    @Override
     public PageResult findArticlePageList(FindArticlePageListDTO findArticlePageListDto) {
         int page = findArticlePageListDto.getPage();
         int pageSize = findArticlePageListDto.getPageSize();
@@ -167,6 +173,7 @@ public class ArticleServiceImpl implements ArticleService {
                 .categoryId(article.getDictCategoryId())
                 .cover(cover).isTop(article.getWeight() > 0)
                 .content(articleContent.getContent())
+                .chunkKeys(JSONArray.parseArray(articleContent.getChunkKeys(), String.class))
                 .summary(article.getSummary()).build();
         detailVo.setImageUrl(minioService.getPreviewUrl(cover));
         detailVo.setTagIds(JSONArray.parseArray(article.getDictTagIds(), String.class));

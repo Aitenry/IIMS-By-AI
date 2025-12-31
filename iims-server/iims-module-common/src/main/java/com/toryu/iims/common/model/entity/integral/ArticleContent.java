@@ -22,4 +22,6 @@ public class ArticleContent extends BaseTable implements Serializable {
 
     private String content;
 
+    private String chunkKeys;
+
 }

@@ -540,6 +540,10 @@
     font-size: 1em !important;
 }
 
+.markdown-body img {
+  border-radius: 6px;
+}
+
 .markdown-body h1,
 .markdown-body h2,
 .markdown-body h3,

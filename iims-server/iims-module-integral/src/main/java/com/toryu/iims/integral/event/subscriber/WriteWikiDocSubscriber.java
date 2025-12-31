@@ -39,7 +39,6 @@ public class WriteWikiDocSubscriber implements ApplicationListener<WriteWikiDocE
         if (isEmbedding) {
             Long wikiId = wikiCatalog.getWikiId();
             wikiCatalogMapper.updateIsEmbedding(List.of(wikiCatalog.getId()), false);
-            milvusStoreService.delDocumentByDocId(docId, type);
             milvusStoreService.addDocumentByWiki(wikiId);
             log.info("==> 知识库文章更新向量库内容事件消费成功，wikiId: {}，docId: {}，type: {}", wikiId, docId, type);
         }

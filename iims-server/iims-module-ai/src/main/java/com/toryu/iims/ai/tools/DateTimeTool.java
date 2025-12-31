@@ -20,7 +20,7 @@ public class DateTimeTool implements AITool {
 
     @Override
     public String getToolName() {
-        return "datetime";
+        return "datetime-tools";
     }
 
     @Tool(description = "获取当前时间戳")

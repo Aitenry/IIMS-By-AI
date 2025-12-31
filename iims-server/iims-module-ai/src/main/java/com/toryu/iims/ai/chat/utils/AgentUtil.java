@@ -145,9 +145,7 @@ public class AgentUtil {
                 .build();
 
         return build.run(options)
-                .doOnError(error -> {
-                    log.error("AI Agent执行错误: {}", error.getMessage(), error);
-                });
+                .doOnError(error -> log.error("AI Agent执行错误: {}", error.getMessage(), error));
     }
 
     private List<Object> getEnabledToolInstances(List<Long> enabledToolIds) {
@@ -214,6 +212,7 @@ public class AgentUtil {
         4. 只有在确实需要工具帮助时才调用工具，否则直接回答用户问题。
         5. 当使用工具之后，必须要输出内容，解读和总结。
         6. 该换行必须换行，该缩进必须缩进，严格遵循markdown语法输出内容。
+        7. 工具返回的内容里面包含图片链接，必须构建markdown格式，显示图片
         """);
 
         return prompt.toString();

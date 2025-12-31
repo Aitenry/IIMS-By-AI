@@ -10,12 +10,10 @@ import com.toryu.iims.integral.model.vo.article.FindArticleDetailVO;
 import com.toryu.iims.integral.service.ArticleService;
 import com.toryu.iims.integral.service.WikiService;
 import org.springframework.ai.document.Document;
+import org.springframework.ai.vectorstore.filter.FilterExpressionBuilder;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 public class WikiDocumentFactory implements DocumentService {
@@ -54,9 +52,43 @@ public class WikiDocumentFactory implements DocumentService {
             String content = articleDetail.getContent();
             List<Document> documents = MarkdownSplitter.splitByHeadersWithHierarchy(
                     content, Map.of("wikiId", wikiIdStr, "docId", docIdStr, "type", type));
+            List<String> newChunkKeys = documents.stream().map(Document::getMetadata)
+                    .map(item -> item.get("chunk_key").toString()).toList();
+            articleService.updateChunkKeys(docId, newChunkKeys);
+            List<String> oldChunkKeys = articleDetail.getChunkKeys();
+            if (oldChunkKeys == null) {
+                oldChunkKeys = new ArrayList<>();
+            }
+            Set<String> newChunkKeySet = new LinkedHashSet<>(newChunkKeys);
+            Set<String> oldChunkKeySet = new LinkedHashSet<>(oldChunkKeys);
+
+            List<String> addChunk = new ArrayList<>();
+            List<String> delChunk = new ArrayList<>();
+
+            for (String newKey : newChunkKeySet) {
+                if (!oldChunkKeySet.contains(newKey)) addChunk.add(newKey);
+            }
+            for (String oldKey : oldChunkKeySet) {
+                if (!newChunkKeySet.contains(oldKey)) delChunk.add(oldKey);
+            }
+            FilterExpressionBuilder filter = new FilterExpressionBuilder();
+            if (!delChunk.isEmpty()) {
+                for (String delKey : delChunk) {
+                    storeService.loadMilvusVectorStore("iims", "wiki")
+                            .delete(filter.and(filter.and(
+                                    filter.eq("docId", String.valueOf(docId)),
+                                    filter.eq("type", type.name())),
+                                    filter.eq("chunk_key", delKey)).build());
+                }
+            }
             if (!documents.isEmpty()) {
+                List<Document> documentsToAdd = documents.stream()
+                        .filter(doc -> {
+                            Object chunkKey = doc.getMetadata().get("chunk_key");
+                            return chunkKey != null && addChunk.contains(chunkKey.toString());
+                        }).toList();
                 storeService.loadMilvusVectorStore("iims", "wiki")
-                        .add(documents);
+                        .add(documentsToAdd);
                 ids.add(wikiCatalog.getId());
             }
         }

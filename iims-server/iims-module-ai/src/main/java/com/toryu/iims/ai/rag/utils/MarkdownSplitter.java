@@ -1,5 +1,6 @@
 package com.toryu.iims.ai.rag.utils;
 
+import org.apache.commons.codec.digest.DigestUtils;
 import org.springframework.ai.document.Document;
 
 import java.util.ArrayList;
@@ -34,6 +35,8 @@ public class MarkdownSplitter {
             codeBlockRanges.add(new int[]{codeBlockMatcher.start(), codeBlockMatcher.end()});
         }
 
+        int documentIndex = 0; // 位置索引
+
         while (matcher.find()) {
             // 检查当前匹配是否在代码块范围内
             boolean isInCodeBlock = false;
@@ -56,7 +59,12 @@ public class MarkdownSplitter {
                 // 创建并添加文档块
                 String fullContent = "# " + String.join(" > ", headerStack) + "\n\n" + currentContent.toString().trim();
                 if (!bodyContent.isEmpty()) {
-                    documents.add(new Document(fullContent.trim(), new HashMap<>(metadata)));
+                    Map<String, Object> docMetadata = new HashMap<>(metadata);
+                    docMetadata.put("chunk_index", documentIndex++);
+                    String content = fullContent.trim();
+                    String contentKey = DigestUtils.md5Hex(content);
+                    docMetadata.put("chunk_key", contentKey);
+                    documents.add(new Document(content, docMetadata));
                 }
                 currentContent.setLength(0); // 清空内容
             }
@@ -84,7 +92,12 @@ public class MarkdownSplitter {
         }
         if (!headerStack.isEmpty()) {
             String fullContent = "# " + String.join(" > ", headerStack) + "\n\n" + currentContent.toString().trim();
-            documents.add(new Document(fullContent.trim(), new HashMap<>(metadata)));
+            Map<String, Object> docMetadata = new HashMap<>(metadata);
+            docMetadata.put("chunk_index", ++documentIndex);
+            String content = fullContent.trim();
+            String contentKey = DigestUtils.md5Hex(content);
+            docMetadata.put("chunk_key", contentKey);
+            documents.add(new Document(content, docMetadata));
         }
 
         return documents;

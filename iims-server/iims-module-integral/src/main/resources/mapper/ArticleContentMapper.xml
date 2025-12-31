@@ -12,6 +12,7 @@
         update iims_integral_article_content
         <set>
             <if test="content != null">content = #{content},</if>
+            <if test="chunkKeys != null">chunk_keys = #{chunkKeys},</if>
             <if test="updateBy != null">update_by = #{updateBy},</if>
             <if test="updateTime != null">update_time = #{updateTime},</if>
         </set>

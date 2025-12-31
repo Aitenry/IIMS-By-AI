@@ -55,6 +55,8 @@ public class FindArticleDetailVO {
     @JSONField(serializeUsing = ToStringSerializer.class)
     private Long categoryId;
 
+    private List<String> chunkKeys;
+
     /**
      * 标签 ID 集合
      */
