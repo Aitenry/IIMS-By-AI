@@ -90,7 +90,7 @@ export function getWikiArticlePreNext(data: any) {
 }
 
 /**
- * 根据Id查询文章详情
+ * 根据Id查询文档详情
  * @param {*} data
  * @returns
  */

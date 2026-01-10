@@ -9,7 +9,7 @@ export function getArticlesList(data: any) {
 }
 
 /**
- * 更新文章
+ * 更新文档
  * @param {*} data
  * @returns
  */
@@ -29,7 +29,7 @@ export function updateArticleIsTop(data: any) {
 }
 
 /**
- * 新增文章
+ * 新增文档
  * @param {*} data
  * @returns
  */
@@ -42,7 +42,7 @@ export function addArticles(data: any) {
 }
 
 /**
- * 删除文章
+ * 删除文档
  * @param {*} data
  * @returns
  */
@@ -55,7 +55,7 @@ export function deleteArticles(data: any) {
 }
 
 /**
- * 根据Id查询文章详情
+ * 根据Id查询文档详情
  * @param {*} id
  * @returns
  */
@@ -67,7 +67,7 @@ export function getArticleById(id: string) {
 }
 
 /**
- * 根据Id查询文章详情
+ * 根据Id查询文档详情
  * @param {*} data
  * @returns
  */

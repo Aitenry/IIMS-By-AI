@@ -165,7 +165,7 @@ public class AdminServiceImpl implements AdminService {
             throw new AccountLockedException(MessageConstant.ACCOUNT_REMOVE);
         }
 
-        admin.setImageUrl(minioService.getPreviewUrl(admin.getAvatar()));
+        admin.setImageUrl(minioService.generateShortLink(admin.getAvatar()));
 
         //返回实体对象
         return admin;
@@ -192,7 +192,7 @@ public class AdminServiceImpl implements AdminService {
                     JSON.parseArray(admin.getRole()).toJSONString(), String.class
             );
             List<String> roleNameByIds = adminMapper.getRoleNameByIds(list);
-            admin.setImageUrl(minioService.getPreviewUrl(admin.getAvatar()));
+            admin.setImageUrl(minioService.generateShortLink(admin.getAvatar()));
             admin.setRole(JSONArray.toJSONString(list));
             admin.setRoles(roleNameByIds);
         }
@@ -354,7 +354,7 @@ public class AdminServiceImpl implements AdminService {
         Organization department = organizationService.getDepartmentByJobId(organization);
         return BaseAdminInfoVO.builder().id(admin.getId()).username(admin.getUsername())
                 .email(admin.getEmail()).phone(admin.getPhone())
-                .imageUrl(minioService.getPreviewUrl(admin.getAvatar()))
+                .imageUrl(minioService.generateShortLink(admin.getAvatar()))
                 .department(department.getName()).introduction(admin.getIntroduction()).build();
     }
 
@@ -392,7 +392,7 @@ public class AdminServiceImpl implements AdminService {
                             .username(admin.getUsername())
                             .email(admin.getEmail())
                             .phone(admin.getPhone())
-                            .imageUrl(minioService.getPreviewUrl(admin.getAvatar()))
+                            .imageUrl(minioService.generateShortLink(admin.getAvatar()))
                             .department(department != null ? department.getName() : null)
                             .introduction(admin.getIntroduction())
                             .build();

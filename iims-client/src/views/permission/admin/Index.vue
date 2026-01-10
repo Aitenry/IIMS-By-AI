@@ -41,7 +41,7 @@
       </el-table-column>
       <el-table-column label="头像" align="center" width="65">
         <template #default="scope">
-          <el-image style="width: 40px;height: 40px;border-radius: 10px;margin-top: 7px;" :src="scope.row.imageUrl" />
+          <image-with-token style="width: 40px;height: 40px;border-radius: 10px;margin-top: 7px;" :src="scope.row.imageUrl" />
         </template>
       </el-table-column>
       <el-table-column label="用户名" align="center" prop="username" />
@@ -221,6 +221,7 @@ import { getStorage } from '@/utils/auth'
 import type { UploadProps } from 'element-plus'
 import {Plus} from "@element-plus/icons-vue";
 import Authority from "@/layout/system/Authority.vue";
+import ImageWithToken from "@/components/information/ImageWithToken.vue";
 
 // 数据模型
 const baseUrl = import.meta.env.VITE_APP_API_URL

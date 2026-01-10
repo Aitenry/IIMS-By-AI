@@ -15,6 +15,7 @@ import io.minio.http.Method;
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.digest.DigestUtils;
 import org.apache.commons.lang.StringUtils;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -37,6 +38,9 @@ public class MinioServiceImpl implements MinioService {
     private final MinioProperties minioProperties;
     private final MinioClient minioClient;
     private final FileStorageMapper fileStorageMapper;
+
+    @Value("${iims.short-link}")
+    private String shortLink;
 
     public MinioServiceImpl(
             MinioProperties minioProperties, MinioClient minioClient,
@@ -147,6 +151,11 @@ public class MinioServiceImpl implements MinioService {
             log.error("Error while getting file from MinIO and converting to PreviewUrl", e);
             return null;
         }
+    }
+
+    @Override
+    public String generateShortLink(Long fileId) {
+        return shortLink + fileId;
     }
 
     @Override

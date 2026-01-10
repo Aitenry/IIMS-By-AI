@@ -49,7 +49,7 @@
                     <el-icon>
                       <i class="ri-add-line"></i>
                     </el-icon>
-                    添加文章
+                    添加文档
                   </el-dropdown-item>
                   <el-dropdown-item :command="{ id: catalog.id, sort: catalog.sort, action: 'moveUp' }"
                                     divided v-if="(index + 1) > 1">
@@ -121,14 +121,14 @@
     </el-form>
   </FormDialog>
 
-  <!-- 添加文章到目录 -->
-  <FormDialog ref="addArticle2CatalogDialogRef" title="添加文章" width="80%" confirmText="添加" @submit="onAddArticleCatalogSubmit">
+  <!-- 添加文档到目录 -->
+  <FormDialog ref="addArticle2CatalogDialogRef" title="添加文档" width="80%" confirmText="添加" @submit="onAddArticleCatalogSubmit">
     <div>
       <!-- 表头分页查询条件， shadow="never" 指定 card 卡片组件没有阴影 -->
       <el-card shadow="never" class="mb-5">
         <!-- flex 布局，内容垂直居中 -->
         <div class="flex items-center">
-          <el-text>文章标题</el-text>
+          <el-text>文档标题</el-text>
           <div class="ml-3 w-52 mr-5"><el-input v-model="searchArticleTitle" placeholder="请输入（模糊查询）" clearable/></div>
 
           <el-text>创建日期</el-text>
@@ -151,7 +151,7 @@
           <el-table-column prop="title" label="标题" width="380" />
           <el-table-column prop="cover" label="封面" width="180">
             <template #default="scope">
-              <el-image style="width: 100px;" :src="scope.row.imageUrl" />
+              <image-with-token style="width: 100px;" :src="scope.row.imageUrl" />
             </template>
           </el-table-column>
           <el-table-column prop="createTime" label="发布时间" />
@@ -177,6 +177,7 @@ import {getArticlesList} from '@/api/articles.js'
 import {RefreshRight, Search} from '@element-plus/icons-vue'
 import {getWikiCatalogs, updateWikiCatalogs} from '@/api/wiki.js'
 import moment from 'moment'
+import ImageWithToken from "@/components/information/ImageWithToken.vue";
 
 // 定义目录项类型
 interface CatalogItem {
@@ -191,7 +192,7 @@ interface CatalogItem {
   type?: number;
 }
 
-// 定义文章类型
+// 定义文档类型
 interface ArticleItem {
   id: number;
   title: string;
@@ -282,9 +283,9 @@ const removeCatalog = (catalogId: number) => {
   })
 }
 
-// 移出二级目录中的文章
+// 移出二级目录中的文档
 const removeArticleFromCatalog = (catalogId: number) => {
-  showModel('是否确定移除该篇文章？').then(() => {
+  showModel('是否确定移除该篇文档？').then(() => {
     deleteCatalog(catalogs.value, catalogId)
     updateWikiCatalogsData()
   })
@@ -415,10 +416,10 @@ const onAddCatalogSubmit = () => {
   })
 }
 
-// 添加文章到目录对话框引用
+// 添加文档到目录对话框引用
 const addArticle2CatalogDialogRef = ref<any>(null)
 
-// 模糊搜索的文章标题
+// 模糊搜索的文档标题
 const searchArticleTitle = ref<string>('')
 // 日期
 const pickDate = ref<string | null>(null)
@@ -514,7 +515,7 @@ const handleSizeChange = (chooseSize: number) => {
   getTableData()
 }
 
-// 被选择的文章
+// 被选择的文档
 const selectionArticles = ref<ArticleItem[]>([])
 // 表格选择事件
 const handleSelectionChange = (articles: ArticleItem[]) => {
@@ -524,20 +525,20 @@ const handleSelectionChange = (articles: ArticleItem[]) => {
 // 当前被编辑的目录 ID
 const currCatalogId = ref<number | null>(null)
 
-// 添加文章到目录下
+// 添加文档到目录下
 const onAddArticleCatalogSubmit = () => {
-  // 校验是否选中文章
+  // 校验是否选中文档
   if (!selectionArticles.value || selectionArticles.value.length === 0) {
-    showMessage('请勾选需要添加的文章', 'warning')
+    showMessage('请勾选需要添加的文档', 'warning')
     return
   }
 
   for (const catalog of catalogs.value) {
     // 找到当前被编辑的目录
     if (catalog.id === currCatalogId.value) {
-      // 循环添加被选中的文章
+      // 循环添加被选中的文档
       for (const selectionArticle of selectionArticles.value) {
-        // 文章标题
+        // 文档标题
         let articleTitle = selectionArticle.title
         // 构建新的二级目录
         let newCatalog: CatalogItem = {
@@ -558,7 +559,7 @@ const onAddArticleCatalogSubmit = () => {
   }
   // 关闭对话框
   addArticle2CatalogDialogRef.value.close()
-  // 置空被选择的文章
+  // 置空被选择的文档
   selectionArticles.value = []
   updateWikiCatalogsData()
 }

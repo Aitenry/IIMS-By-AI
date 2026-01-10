@@ -11,6 +11,8 @@ public interface MinioService {
 
     String getPreviewUrl(Long fileId);
 
+    String generateShortLink(Long fileId);
+
     String getBase64EncodedFile(String objectName);
 
     InputStream getInputStream(Long fileId);

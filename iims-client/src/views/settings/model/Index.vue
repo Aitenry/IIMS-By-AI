@@ -10,7 +10,7 @@
             <el-table :data="props.row.users" border>
               <el-table-column label="头像" align="center" width="65">
                 <template #default="scope">
-                  <el-image style="width: 40px;height: 40px;border-radius: 10px;margin-top: 7px;" :src="scope.row.imageUrl" />
+                  <image-with-token style="width: 40px;height: 40px;border-radius: 10px;margin-top: 7px;" :src="scope.row.imageUrl" />
                 </template>
               </el-table-column>
               <el-table-column label="用户名"  align="center" width="200" prop="username" />
@@ -87,6 +87,7 @@
 import { ref, reactive, onMounted } from 'vue'
 import { ElMessage, ElMessageBox } from 'element-plus'
 import {getModelPage, deleteModel} from '@/api/settings/model.ts'
+import ImageWithToken from "@/components/information/ImageWithToken.vue";
 
 const list = ref<any[]>([])
 const listLoading = ref(true)

@@ -12,7 +12,7 @@
       <el-table-column align="center" prop="title" label="标题" />
       <el-table-column align="center" prop="imgUrl" label="封面">
         <template #default="scope">
-          <el-image style="width: 100px; border-radius: 7px;" :src="scope.row.imgUrl"
+          <image-with-token style="width: 100px; border-radius: 7px;" :src="scope.row.imgUrl"
                     :initial-index="scope.$index"
                     :preview-teleported="true"
                     :show-progress="true"
@@ -164,6 +164,7 @@ import { showMessage, showModel } from '@/composables/utils'
 import { uploadFile } from '@/api/common.js'
 import { documentEmbedding } from '@/api/wiki.js'
 import { useRouter } from 'vue-router'
+import ImageWithToken from "@/components/information/ImageWithToken.vue";
 
 // 定义 WikiItem 类型
 interface WikiItem {
@@ -349,7 +350,7 @@ const handleIsPublishChange = (row: WikiItem) => {
   })
 }
 
-// 跳转文章详情页
+// 跳转文档详情页
 const goWikiArticleDetailPage = (wikiId: string, articleId: string) => {
   const url = router.resolve({
     path: `/wiki/${wikiId}`,

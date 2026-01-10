@@ -26,11 +26,11 @@
       <el-dropdown class="avatar-container">
         <div style="display: flex; align-items: center;">
           <div class="avatar-wrapper">
-            <el-image class="user-avatar" alt="user-avatar" :src="avatar">
+            <image-with-token class="user-avatar" alt="user-avatar" :src="avatar">
               <template #error>
                 <el-image class="user-avatar" style="border: 1px solid #e7e7e7; border-radius: 11px;" alt="logo-avatar" :src="url" />
               </template>
-            </el-image>
+            </image-with-token>
           </div>
           <div style="margin-left: 6px;">
             <p class="les-name">{{ username }}</p>
@@ -86,6 +86,7 @@ import screenfull from "screenfull"
 import Breadcrumb from '@/components/breadcrumb/Index.vue'
 import Hamburger from '@/components/hamburger/Index.vue'
 import url from '@/assets/icons/iims.png'
+import ImageWithToken from "@/components/information/ImageWithToken.vue";
 
 // 定义类型接口
 interface PasswordForm {

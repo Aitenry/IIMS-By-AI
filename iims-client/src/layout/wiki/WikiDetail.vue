@@ -59,9 +59,9 @@
       <!-- 中间栏 -->
       <div class="transition-all duration-300" :class="[isExpand ? 'lg:pl-[22.5rem]' : 'lg:pl-0 2xl:pl-[22.5rem]']">
         <div class="max-w-3xl mx-auto xl:max-w-none xl:ml-0 xl:mr-[15.5rem] xl:pr-16">
-          <!-- 文章 -->
+          <!-- 文档 -->
           <article>
-            <!-- 文章标题、Meta 信息 -->
+            <!-- 文档标题、Meta 信息 -->
             <div v-show="!loading" class="mt-5">
               <h1 class="font-bold text-3xl md:text-4xl mb-5 dark:text-gray-400">{{ article.title }}</h1>
               <div class="flex gap-3 md:gap-6 text-gray-400 items-center text-sm pb-3
@@ -289,23 +289,23 @@ const isExpand = ref<boolean>(true)
 
 // 是否为暗黑模式
 const isDark = useDark()
-// 文章数据
+// 文档数据
 const article = ref<ArticleData>({} as ArticleData)
 // 上下页
 const preNext = ref<PreNextData | null>(null)
 
-// 获取文章详情
+// 获取文档详情
 const refreshArticleDetail = async (articleId: string) => {
   if (!articleId) {
-    // 该知识库下暂未添加文章
+    // 该知识库下暂未添加文档
     loading.value = false
     return
   }
   article.value = {} as ArticleData
   loading.value = true
-  // 文章详情
+  // 文档详情
   const wikiArticleDetail = await getWikiArticleDetailById({ articleId: articleId })
-  // 该文章不存在(错误码为 20010)
+  // 该文档不存在(错误码为 20010)
   if (!wikiArticleDetail.success && wikiArticleDetail.errorCode === '20010') {
     // 手动跳转 404 页面
     loading.value = false
@@ -380,14 +380,14 @@ const copyToClipboard = (text: string) => {
   navigator.clipboard.writeText(text)
 }
 
-// 跳转文章详情页
+// 跳转文档详情页
 const goWikiArticleDetailPage = (articleId: string) => {
   router.push({ path: '/wiki/' + route.params.wikiId, query: { articleId } })
 }
 
 // 监听路由
 watch(route, (newRoute, _oldRoute) => {
-  // 重新渲染文章详情
+  // 重新渲染文档详情
   refreshArticleDetail(newRoute.query.articleId as string)
 })
 // 点击收缩、展开

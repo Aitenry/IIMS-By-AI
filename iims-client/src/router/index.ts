@@ -31,7 +31,7 @@ const constantRoutes = [
         path: '/article/:articleId', // 知识库详情页
         component: () => import('@/layout/article/ArticleDetail.vue'),
         meta: {
-            title: '文章'
+            title: '文档'
         },
         hidden: true
     }

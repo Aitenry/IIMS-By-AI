@@ -321,7 +321,7 @@ watch(route, () => {
 })
 
 function initComments() {
-  // 通过路由 query 中的 articleId 是否为空，来判断是文章详情页，还是 wiki 详情页，从而设置不同的路由地址
+  // 通过路由 query 中的 articleId 是否为空，来判断是文档详情页，还是 wiki 详情页，从而设置不同的路由地址
   let path = route.query.articleId ? (route.path + '?articleId=' + route.query.articleId) : route.path
   // 获取当前路由下的所有评论
   findComments({ routerUrl: path }).then((res: any) => {

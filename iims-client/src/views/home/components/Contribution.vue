@@ -99,7 +99,7 @@ const initSectorChart = async () => {
 
   if (res.code === 1) {
     option.series[0].data = [
-      { value: res.data.articleCount || 0, name: '文章' },
+      { value: res.data.articleCount || 0, name: '文档' },
       { value: res.data.fileCount || 0, name: '文件' },
       { value: res.data.logCount || 0, name: '日志' },
       { value: res.data.userCount || 0, name: '人员' },
@@ -126,7 +126,7 @@ const initLineChart = async () => {
       trigger: 'axis'
     },
     legend: {
-      data: ['文章', '文件', '日志', '人员', '字典', '知识库']
+      data: ['文档', '文件', '日志', '人员', '字典', '知识库']
     },
     grid: {
       left: '3%',
@@ -149,7 +149,7 @@ const initLineChart = async () => {
   if (res.code === 1) {
     option.xAxis.data = res.data.statisticsDays
     option.series = [
-      { data: res.data.articleCounts, smooth: true, type: 'line', name: '文章' },
+      { data: res.data.articleCounts, smooth: true, type: 'line', name: '文档' },
       { data: res.data.fileCounts, smooth: true, type: 'line', name: '文件' },
       { data: res.data.logCounts, smooth: true, type: 'line', name: '日志' },
       { data: res.data.userCounts, smooth: true, type: 'line', name: '人员' },

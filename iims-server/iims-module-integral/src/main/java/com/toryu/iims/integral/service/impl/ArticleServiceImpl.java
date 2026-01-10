@@ -133,7 +133,7 @@ public class ArticleServiceImpl implements ArticleService {
         long total = articlePageVos.getTotal();
         List<FindArticlePageListVO> records = articlePageVos.getResult();
         records.forEach(item -> {
-            item.setImageUrl(minioService.getPreviewUrl(item.getCover()));
+            item.setImageUrl(minioService.generateShortLink(item.getCover()));
             item.setIsTop(item.getWeight() > 0);
             BaseAdminInfo userInfo = item.getUserInfo();
             userInfo.setUsername(adminService.getById(userInfo.getId()).getUsername());
@@ -175,7 +175,7 @@ public class ArticleServiceImpl implements ArticleService {
                 .content(articleContent.getContent())
                 .chunkKeys(JSONArray.parseArray(articleContent.getChunkKeys(), String.class))
                 .summary(article.getSummary()).build();
-        detailVo.setImageUrl(minioService.getPreviewUrl(cover));
+        detailVo.setImageUrl(minioService.generateShortLink(cover));
         detailVo.setTagIds(JSONArray.parseArray(article.getDictTagIds(), String.class));
         return detailVo;
     }

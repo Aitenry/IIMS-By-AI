@@ -77,7 +77,7 @@ public class DialogueManageServiceImpl implements DialogueManageService {
                 List<FileWarehouse> objects = storageService.getObjectByIds(ids);
                 List<FileInfo> fileInfos = new ArrayList<>();
                 objects.forEach(object -> {
-                    String previewUrl = minioService.getPreviewUrl(object.getId());
+                    String previewUrl = minioService.generateShortLink(object.getId());
                     fileInfos.add(FileInfo.builder()
                             .id(object.getId()).fileSize(object.getFileSize())
                             .url(previewUrl).filename(object.getFileName()).build());

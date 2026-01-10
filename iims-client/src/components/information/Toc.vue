@@ -6,7 +6,7 @@
   >
     <!-- 目录标题 -->
     <h2 class="flex items-center mb-2 font-bold text-gray-900 uppercase dark:text-gray-400">
-      文章目录
+      文档目录
     </h2>
     <div class="toc-wrapper iims-scrollbar" :class="[isDark ? 'dark' : '']">
       <ul class="toc">

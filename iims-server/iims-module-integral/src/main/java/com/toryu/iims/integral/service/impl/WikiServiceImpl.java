@@ -150,7 +150,7 @@ public class WikiServiceImpl implements WikiService {
                 Long embeddingCount = embeddingCounts.getCount();
                 Long embeddingTotal = embeddingCounts.getTotal();
                 vo.setTaskStatus(TaskStatusEnum.fromCounts(embeddingCount, embeddingTotal));
-                vo.setImgUrl(minioService.getPreviewUrl(vo.getCover()));
+                vo.setImgUrl(minioService.generateShortLink(vo.getCover()));
                 vo.setFirstArticleId(Objects.nonNull(wikiCatalogDO) ? wikiCatalogDO.getDocId() : null);
             });
         }

@@ -7,11 +7,9 @@ import com.toryu.iims.common.result.Result;
 import com.toryu.iims.common.service.MinioService;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -56,4 +54,21 @@ public class CommonController {
 
         return Result.error(MessageConstant.UPLOAD_FAILED, ErrorCodeConstant.UPLOAD_FAILED);
     }
+
+    @GetMapping("/file/{fileId}")
+    @ApiOperation("根据短链获取文件")
+    public void fileByShortLink(@PathVariable Long fileId, HttpServletResponse response) {         response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+        try {
+            response.sendRedirect(minioService.getPreviewUrl(fileId));
+        } catch (Exception e) {
+            log.error("下载文件失败，文件ID: {}", fileId, e);
+            response.setStatus(HttpServletResponse.SC_NOT_FOUND);
+            try {
+                response.getWriter().write("File not found or access denied.");
+            } catch (IOException ioException) {
+                log.error("Failed to write error message to response.", ioException);
+            }
+        }
+    }
+
 }

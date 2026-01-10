@@ -54,7 +54,7 @@
           >
             <template #default>
               <div style="display: flex; align-items: center">
-                <el-image
+                <image-with-token
                     :src="item.imgUrl"
                     fit="cover"
                     style="
@@ -122,6 +122,7 @@ import { ref, computed, watch } from 'vue'
 import empty from '@/assets/images/empty.png'
 import type {WikiItem} from "@/views/ai/talk/types/talk.ts";
 import {ElMessage} from "element-plus";
+import ImageWithToken from "@/components/information/ImageWithToken.vue";
 
 const emptyImg = ref(empty)
 const props = withDefaults(defineProps<{

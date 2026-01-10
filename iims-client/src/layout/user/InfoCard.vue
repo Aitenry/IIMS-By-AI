@@ -1,7 +1,7 @@
 <template>
   <el-descriptions direction="vertical" border style="margin-top: 20px;">
     <el-descriptions-item :rowspan="2" :width="140" label="头像" align="center">
-      <el-image
+      <image-with-token
           style="width: 100px; height: 100px"
           :src="info.imageUrl || ''"
           :preview-src-list="[info.imageUrl || '']"
@@ -24,6 +24,7 @@
 <script setup lang="ts">
 import { ref, watch, onMounted } from 'vue'
 import { getBaseAdminInfo } from '@/api/admin.js'
+import ImageWithToken from "@/components/information/ImageWithToken.vue";
 
 // 类型定义
 interface UserInfo {

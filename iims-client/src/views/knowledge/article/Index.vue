@@ -5,7 +5,7 @@
         plain
         type="primary"
         @click="showEditDialog()"
-      ><i style="margin-right: 3px;" class="ri-menu-add-fill"></i>添加文章</el-button>
+      ><i style="margin-right: 3px;" class="ri-menu-add-fill"></i>添加文档</el-button>
       <el-button
           plain
           type="success"
@@ -24,12 +24,12 @@
           style="height: 32px; text-align: end;"
         >
           <el-form-item
-            label="文章标题"
+            label="文档标题"
             prop="title"
           >
             <el-input
               v-model="pages.title"
-              placeholder="请输入文章标题"
+              placeholder="请输入文档标题"
               clearable
               @keyup.enter.native="handleQuery"
             />
@@ -91,13 +91,11 @@
         align="center"
       >
         <template #default="scope">
-          <el-image
+          <image-with-token
             fit="contain"
             style="width: 100px; border-radius: 10px; margin-top: 6px;"
             :initial-index="scope.$index"
             :src="scope.row.imageUrl"
-            :preview-teleported="true"
-            :show-progress="true"
             :preview-src-list="previewList"
           />
         </template>
@@ -184,7 +182,7 @@
       >
         <template #default="{ row }">
 
-          <el-tooltip class="box-item" effect="dark" content="预览文章" placement="bottom">
+          <el-tooltip class="box-item" effect="dark" content="预览文档" placement="bottom">
             <el-button size="small" plain type="primary" @click="goArticleDetailPage(row.id)"
                        :icon="View">
             </el-button>
@@ -193,7 +191,7 @@
           <el-tooltip
             class="item"
             effect="dark"
-            content="修改文章"
+            content="修改文档"
             placement="bottom"
           >
             <el-button
@@ -266,7 +264,7 @@
           style="width: 100%;"
         >
           <el-tab-pane
-            label="文章内容"
+            label="文档内容"
             name="content"
           >
             <el-form-item
@@ -278,7 +276,7 @@
             </el-form-item>
           </el-tab-pane>
           <el-tab-pane
-            label="文章信息"
+            label="文档信息"
             name="info"
           >
             <el-row style="height: 66vh;" :gutter="20">
@@ -338,7 +336,7 @@
                     :on-success="handleAvatarSuccess"
                     :before-upload="beforeAvatarUpload"
                   >
-                    <el-image
+                    <image-with-token
                       v-if="form.cover"
                       :src="imageUrl"
                       class="cover"
@@ -433,6 +431,7 @@ import VditorEdit from '@/components/v-md-editor/Index.vue'
 import type { FormInstance, FormRules } from 'element-plus'
 import {Plus, View} from "@element-plus/icons-vue";
 import {useRouter} from "vue-router";
+import ImageWithToken from "@/components/information/ImageWithToken.vue";
 
 // 类型定义
 interface PageParams {
@@ -713,7 +712,7 @@ const articleIsTop = async (row: ArticleItem) => {
 const deleteArticleHandle = async (row: ArticleItem) => {
   try {
     await ElMessageBox.confirm(
-        `是否确认删除文章为"${row.title}"的数据项?`,
+        `是否确认删除文档为"${row.title}"的数据项?`,
         '警告',
         {
           confirmButtonText: '确定',
@@ -745,7 +744,7 @@ const beforeAvatarUpload = (file: File) => {
   return isLt3M
 }
 
-// 跳转文章详情页
+// 跳转文档详情页
 const goArticleDetailPage = (articleId: string) => {
   const url = router.resolve({
     path: `/article/${articleId}`

@@ -176,10 +176,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue';
+import {ref, computed, onMounted, nextTick, watch} from 'vue';
 import { Loading } from '@element-plus/icons-vue';
 import { useStore } from 'vuex';
 import logoAvatar from '@/assets/icons/QJingTalk-logo-avatar.png';
+import { getStorage } from '@/utils/auth'
 import type {Message, MetadataItem, StatusData, Tool} from "@/views/ai/talk/types/talk.ts";
 
 const props = withDefaults(defineProps<{
@@ -204,7 +205,7 @@ const emit = defineEmits<{
 const showToolDetailDialog = ref(false);
 const selectedToolDetail = ref<Tool | null>(null);
 const store = useStore();
-const mainContainerRef = ref<HTMLElement | null>(null);
+const mainContainerRef = ref<any | null>(null);
 
 // Computed properties
 const avatar = computed(() => store.getters.avatar);
@@ -271,9 +272,99 @@ const formatJsonContent = (content: string | null) => {
   }
 };
 
+// 设置图片安全加载监听器
+const setupImageSecurity = () => {
+  // 使用setTimeout确保DOM已经更新
+  setTimeout(() => {
+    const container = mainContainerRef.value?.$el || mainContainerRef.value;
+    if (container instanceof HTMLElement) {
+      const images = container.querySelectorAll('img');
+      images.forEach(img => {
+        const originalSrc = img.getAttribute('data-original-src') || img.getAttribute('src');
+        if (originalSrc) {
+          // 存储原始src用于后续比较
+          img.setAttribute('data-original-src', originalSrc);
+          loadImageWithToken(originalSrc, img);
+        }
+
+        // 监听 src 属性变化
+        const observer = new MutationObserver((mutations) => {
+          mutations.forEach((mutation) => {
+            if (mutation.type === 'attributes' && mutation.attributeName === 'src') {
+              const newSrc = img.getAttribute('src');
+              const originalSrc = img.getAttribute('data-original-src');
+              // 只有当src发生变化且不是我们设置的blob URL时才重新加载
+              if (newSrc && originalSrc && !newSrc.startsWith('blob:')) {
+                img.setAttribute('data-original-src', newSrc);
+                loadImageWithToken(newSrc, img);
+              }
+            }
+          });
+        });
+
+        observer.observe(img, {
+          attributes: true,
+          attributeFilter: ['src']
+        });
+      });
+    }
+  }, 100);
+};
+
+// 加载带token的图片
+const loadImageWithToken = async (src: string, imgElement: HTMLImageElement) => {
+  try {
+    const token = getStorage('token'); // 获取认证token
+    if (!token) {
+      // 如果没有token，则直接使用原始src
+      imgElement.src = src;
+      return;
+    }
+
+    // 创建带认证头的fetch请求
+    const response = await fetch(src, {
+      headers: {
+        'token': token
+      }
+    })
+
+    const blob = await response.blob();
+    const objectUrl = URL.createObjectURL(blob);
+
+    // 清理之前的object URL
+    if (imgElement.src.startsWith('blob:')) {
+      URL.revokeObjectURL(imgElement.src);
+    }
+
+    imgElement.src = objectUrl;
+  } catch (error) {
+    console.error('Failed to load image with token:', error);
+    // 失败时回退到原始src
+    imgElement.src = src;
+  }
+};
+
 defineExpose({
   mainContainerRef
 });
+
+onMounted(async () => {
+  // 初始设置
+  await nextTick();
+  setupImageSecurity();
+
+  // 如果消息列表发生变化，重新设置
+  watch(
+      () => props.messages,
+      () => {
+        nextTick(() => {
+          setupImageSecurity();
+        });
+      },
+      { deep: true }
+  );
+});
+
 </script>
 
 <style scoped>
