@@ -451,8 +451,10 @@ const closeFileClick = () => {
   }
 }
 
-const handleCheckboxClick = (wikiIds: string[]) => {
-  loadWikiTitles.value = wikis.value.filter(wiki => wikiIds.includes(wiki.id)).map(wiki => wiki.title) || []
+const handleCheckboxClick = (_wikiIds: string[]) => {
+  wikiIds.value = _wikiIds
+  msgParam.value.wikiIds = isFlashing.value ? wikiIds.value : null
+  loadWikiTitles.value = wikis.value.filter(wiki => _wikiIds.includes(wiki.id)).map(wiki => wiki.title) || []
 }
 
 const loadMoreChatDialogue = async () => {

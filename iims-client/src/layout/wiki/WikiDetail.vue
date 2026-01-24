@@ -425,7 +425,7 @@ function scrollToIndex(index: number) {
 
   if (index <= 0 || index > filteredHeadings.length) return
 
-  const targetHeading = filteredHeadings[index]
+  const targetHeading = filteredHeadings[filteredHeadings.length === index ? index - 1 : index]
   const offsetTop = targetHeading.offsetTop - 30
 
   window.scrollTo({
