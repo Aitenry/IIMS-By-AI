@@ -6,9 +6,10 @@ import com.toryu.iims.ai.agent.react.RunAgentOptions;
 import com.toryu.iims.ai.agent.react.event.ReActAgentEvent;
 import com.toryu.iims.ai.agent.react.memory.BranchMessageSaver;
 import com.toryu.iims.ai.agent.react.memory.MemoryBranchMessageSaver;
+import com.toryu.iims.ai.chat.model.entity.AiContent;
 import com.toryu.iims.ai.chat.model.entity.ChatTool;
 import com.toryu.iims.ai.chat.model.entity.MessageData;
-import com.toryu.iims.ai.chat.service.ModelWarehouseService;
+import com.toryu.iims.ai.chat.service.ModelService;
 import com.toryu.iims.ai.tools.factory.AITool;
 import com.toryu.iims.ai.tools.factory.ToolFactory;
 import com.toryu.iims.common.context.BaseContext;
@@ -21,6 +22,7 @@ import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.tool.annotation.Tool;
 import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Component;
+import org.springframework.util.StringUtils;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
@@ -41,11 +43,11 @@ public class AgentUtil {
 
     private final ChatUtil chatUtil;
     private final ToolFactory toolFactory;
-    private final ModelWarehouseService modelWarehouseService;
+    private final ModelService modelService;
     private final ObjectMapper objectMapper = new ObjectMapper();
 
-    public AgentUtil(ModelWarehouseService modelWarehouseService, ChatUtil chatUtil, ToolFactory toolFactory) {
-        this.modelWarehouseService = modelWarehouseService;
+    public AgentUtil(ModelService modelService, ChatUtil chatUtil, ToolFactory toolFactory) {
+        this.modelService = modelService;
         this.chatUtil = chatUtil;
         this.toolFactory = toolFactory;
     }
@@ -53,23 +55,23 @@ public class AgentUtil {
     public void processStream(Long uuid, Long userId, Long modelId, List<Long> enabledToolIds,
                               List<Message> messages, MessageData messageData,
                               SseEmitter emitter, Map<Long, MessageData> msgMap) {
-        StringBuffer aiContent = new StringBuffer();
+        List<AiContent> aiContent = new ArrayList<>();
         messageData.setAiContent(aiContent);
         Flux<ReActAgentEvent> reActAgentEvents = this.getReActAgentEvents(modelId, messages, enabledToolIds);
         reActAgentEvents.subscribe(data -> {
                     try {
                         Object content = data.getContent();
                         String type = data.getType();
-                        if (Objects.equals(type, "AssistantTextPartEvent")) {
-                            aiContent.append(content.toString());
-                        } else if (Objects.equals(type, "LlmMessageEvent")) {
+                        if (Objects.equals(type, "LlmMessageEvent")) {
                             // 处理工具调用和响应
                             if (content instanceof AssistantMessage assistantMessage) {
+                                List<AssistantMessage.ToolCall> toolCalls = new ArrayList<>();
                                 assistantMessage.getToolCalls().forEach(toolCall -> {
                                     String toolId = toolCall.id();
+                                    String effectiveToolId = StringUtils.hasText(toolId) ? toolId : UUID.randomUUID().toString();
                                     boolean exists = false;
                                     for (ChatTool existingTool : messageData.getTools()) {
-                                        if (existingTool.getId().equals(toolId)) {
+                                        if (existingTool.getId().equals(effectiveToolId)) {
                                             exists = true;
                                             break;
                                         }
@@ -77,29 +79,61 @@ public class AgentUtil {
                                     // 如果不存在则添加
                                     if (!exists) {
                                         ChatTool newTool = new ChatTool();
-                                        newTool.setId(toolId);
+                                        newTool.setId(effectiveToolId);
                                         newTool.setType(toolCall.type());
                                         newTool.setName(toolCall.name());
                                         newTool.setArguments(toolCall.arguments());
                                         messageData.getTools().add(newTool);
                                     }
+                                    toolCalls.add(new AssistantMessage.ToolCall(
+                                            effectiveToolId, toolCall.type(), toolCall.name(), toolCall.arguments()));
                                 });
+                                aiContent.add(AiContent.builder().content(
+                                        new StringBuffer(Objects.requireNonNull(assistantMessage.getText()))).build());
+                                content = AssistantMessage.builder()
+                                        .content(Objects.requireNonNull(assistantMessage.getText()))
+                                        .media(assistantMessage.getMedia()).properties(assistantMessage.getMetadata())
+                                        .toolCalls(toolCalls).build();
                             } else if (content instanceof ToolResponseMessage toolResponseMessage) {
-                                toolResponseMessage.getResponses().forEach(responseMessage -> {
-                                    String responseId = responseMessage.id();
-                                    String responseData = responseMessage.responseData();
-                                    // 查找对应的工具并设置响应数据
+                                List<ToolResponseMessage.ToolResponse> responses = toolResponseMessage.getResponses();
+                                boolean hasAllId = responses.stream()
+                                        .noneMatch(item -> StringUtils.hasText(item.id()));
+                                List<ChatTool> tools = new ArrayList<>();
+                                if (hasAllId) {
+                                    int toolCallCount = 0;
+                                    List<ToolResponseMessage.ToolResponse> toolResponses = new ArrayList<>();
                                     for (ChatTool tool : messageData.getTools()) {
-                                        if (tool.getId().equals(responseId)) {
-                                            tool.setResponseData(responseData);
-                                            break;
+                                        ToolResponseMessage.ToolResponse toolResponse = responses.get(toolCallCount);
+                                        if (Objects.isNull(tool.getResponseData()) && Objects.equals(tool.getName(), toolResponse.name())) {
+                                            tool.setResponseData(toolResponse.responseData());
+                                            tools.add(tool);
+                                            toolResponses.add(new ToolResponseMessage.ToolResponse(
+                                                    tool.getId(), toolResponse.name(), toolResponse.responseData()));
+                                            toolCallCount++;
                                         }
                                     }
-                                });
+                                    content = ToolResponseMessage.builder()
+                                            .metadata(toolResponseMessage.getMetadata())
+                                            .responses(toolResponses).build();
+                                } else {
+                                    responses.forEach(responseMessage -> {
+                                        String responseId = responseMessage.id();
+                                        String responseData = responseMessage.responseData();
+                                        // 查找对应的工具并设置响应数据
+                                        for (ChatTool tool : messageData.getTools()) {
+                                            if (tool.getId().equals(responseId)) {
+                                                tool.setResponseData(responseData);
+                                                tools.add(tool);
+                                                break;
+                                            }
+                                        }
+                                    });
+                                }
+                                aiContent.add(AiContent.builder().tools(tools).build());
                             }
                         }
-                        emitter.send(SseEmitter.event().name(type)
-                                .id(String.valueOf(uuid)).data(content));
+                        emitter.send(SseEmitter.event().name("output")
+                                .id(String.valueOf(uuid)).data(aiContent));
                     } catch (IOException e) {
                         log.error("AI Stream 消息发送出错：", e);
                         BaseContext.setCurrentId(userId);
@@ -118,7 +152,7 @@ public class AgentUtil {
     }
 
     public Flux<ReActAgentEvent> getReActAgentEvents(Long modelId, List<Message> messages, List<Long> enabledToolIds) {
-        ChatModel chatModel = modelWarehouseService.getChatModel(modelId);
+        ChatModel chatModel = modelService.getChatModel(modelId);
 
         // 获取启用的工具实例列表
         List<Object> toolInstances = getEnabledToolInstances(enabledToolIds);
@@ -207,12 +241,12 @@ public class AgentUtil {
         prompt.append("""
         工具调用格式说明:
         1. 当需要使用工具时，请按照指定格式输入参数。
-        2. 当工具调用完成后，你会收到结果，然后继续处理或给出最终答案。
-        3. 请根据用户的问题和上下文，合理选择和使用工具。
-        4. 只有在确实需要工具帮助时才调用工具，否则直接回答用户问题。
-        5. 当使用工具之后，必须要输出内容，解读和总结。
-        6. 该换行必须换行，该缩进必须缩进，严格遵循markdown语法输出内容。
-        7. 工具返回的内容里面包含图片链接，必须构建markdown格式，显示图片
+        2. 请根据用户的问题和上下文，合理选择和使用工具。
+        3. 只有在确实需要工具帮助时才调用工具，否则直接回答用户问题。
+        4. 当使用工具之后，必须要输出内容，解读和总结。
+        5. 工具返回的内容里面包含链接，必须构建markdown格式
+        - 显示图片：![xxx](xxx)
+        - 文件链接：[xxx](xxx)
         """);
 
         return prompt.toString();

@@ -1,7 +1,7 @@
 package com.toryu.iims.ai.rag.service.impl;
 
 import com.toryu.iims.ai.rag.service.CustomizeVectorStoreService;
-import com.toryu.iims.ai.chat.service.ModelWarehouseService;
+import com.toryu.iims.ai.chat.service.ModelService;
 import io.milvus.client.MilvusServiceClient;
 import io.milvus.param.ConnectParam;
 import io.milvus.param.IndexType;
@@ -17,15 +17,15 @@ import org.springframework.stereotype.Service;
 @Service
 public class CustomizeVectorStoreServiceImpl implements CustomizeVectorStoreService {
 
-    private final ModelWarehouseService modelWarehouseService;
+    private final ModelService modelService;
 
-    public CustomizeVectorStoreServiceImpl(ModelWarehouseService modelWarehouseService) {
-        this.modelWarehouseService = modelWarehouseService;
+    public CustomizeVectorStoreServiceImpl(ModelService modelService) {
+        this.modelService = modelService;
     }
 
     @Override
     public VectorStore loadMilvusVectorStore(String dbName, String collectionName) {
-        EmbeddingModel embeddingModel = modelWarehouseService.getEmbeddingModel(3L);
+        EmbeddingModel embeddingModel = modelService.getEmbeddingModel(3L);
         MilvusServiceClient milvusServiceClient = new MilvusServiceClient(ConnectParam.newBuilder().build());
         return MilvusVectorStore.builder(milvusServiceClient, embeddingModel)
                 .databaseName(dbName)

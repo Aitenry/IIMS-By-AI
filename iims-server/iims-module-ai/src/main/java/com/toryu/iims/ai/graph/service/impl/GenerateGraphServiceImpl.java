@@ -6,7 +6,7 @@ import com.toryu.iims.ai.graph.model.entity.GraphEntity;
 import com.toryu.iims.ai.graph.model.entity.GraphRelationship;
 import com.toryu.iims.ai.chat.model.entity.ModelSetting;
 import com.toryu.iims.ai.chat.service.AiChatSettingService;
-import com.toryu.iims.ai.chat.service.ModelWarehouseService;
+import com.toryu.iims.ai.chat.service.ModelService;
 import com.toryu.iims.ai.rag.utils.PromptTemplateUtil;
 import com.toryu.iims.ai.graph.service.GenerateGraphService;
 import com.toryu.iims.common.utils.SnowFlakeIdWorker;
@@ -25,13 +25,13 @@ import java.util.Map;
 public class GenerateGraphServiceImpl implements GenerateGraphService {
 
     private final SnowFlakeIdWorker aiSnowFlakeIdWorker;
-    private final ModelWarehouseService modelWarehouseService;
+    private final ModelService modelService;
     private final AiChatSettingService settingService;
 
-    public GenerateGraphServiceImpl(SnowFlakeIdWorker aiSnowFlakeIdWorker, ModelWarehouseService modelWarehouseService,
+    public GenerateGraphServiceImpl(SnowFlakeIdWorker aiSnowFlakeIdWorker, ModelService modelService,
                                     AiChatSettingService settingService) {
         this.aiSnowFlakeIdWorker = aiSnowFlakeIdWorker;
-        this.modelWarehouseService = modelWarehouseService;
+        this.modelService = modelService;
         this.settingService = settingService;
     }
 
@@ -48,7 +48,7 @@ public class GenerateGraphServiceImpl implements GenerateGraphService {
         List<Message> messages = new ArrayList<>(List.of(systemMessage, userMessage));
 
         ModelSetting modelSetting = settingService.getUserModelSetting();
-        ChatResponse call = modelWarehouseService.getChatModel(modelSetting.getLanguageModel())
+        ChatResponse call = modelService.getChatModel(modelSetting.getLanguageModel())
                 .call(new Prompt(messages));
         String result = PromptTemplateUtil.removeJsonCodeBlocks(PromptTemplateUtil.removeThink(call.getResult().getOutput().getText()));
         List<GraphEntity> graphEntities = JSONArray.parseArray(result, GraphEntity.class);
@@ -63,7 +63,7 @@ public class GenerateGraphServiceImpl implements GenerateGraphService {
                 .createMessage(Map.of("chunk", chunk, "content", content));
         List<Message> messages = new ArrayList<>(List.of(systemMessage, userMessage));
         ModelSetting modelSetting = settingService.getUserModelSetting();
-        ChatResponse call = modelWarehouseService.getChatModel(modelSetting.getLanguageModel()).call(new Prompt(messages));
+        ChatResponse call = modelService.getChatModel(modelSetting.getLanguageModel()).call(new Prompt(messages));
         String result = PromptTemplateUtil.removeJsonCodeBlocks(PromptTemplateUtil.removeThink(call.getResult().getOutput().getText()));
         List<GraphRelationship> graphRelationships = JSONArray.parseArray(result, GraphRelationship.class);
         graphRelationships.forEach(relationship -> relationship.setId(uniqueId()));

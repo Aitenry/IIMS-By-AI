@@ -1,3 +1,5 @@
+import type {ParseResult} from "@/utils/parse-reasoning.ts";
+
 export interface ChatHeaderProps {
     isOpenChatList: boolean
     wikiStatusDecl: string
@@ -30,6 +32,7 @@ export interface WikiItem {
 export interface WikiMeta {
     wikiId: string
     docId: string
+    index: string
     name: string
 }
 
@@ -77,20 +80,25 @@ export interface MetadataItem {
 
 export interface Message {
     id: string | null
-    content: string
+    aiContent?: AiContent[]
+    userContent?: UserContent
     sender: string
     fileInfos?: any[]
-    view?: string
-    tools?: Tool[]
     isLoadingAnswer?: boolean
     isStar: boolean
     feedbackStatus: number
     docMetadata?: any
     lastId: string | null
-    think?: string
-    isComplete?: boolean
-    isShowThink?: boolean
-    isExpanded?: boolean
+}
+
+export interface AiContent {
+    content: string
+    contentResult?: ParseResult[]
+    tools?: Tool[]
+}
+
+export interface UserContent {
+    question: string
 }
 
 export interface Tool {
@@ -110,6 +118,7 @@ export interface StatusData {
 export interface ChatItem {
     id: string;
     title: string;
+    createTime: string;
 }
 
 export interface HotTopic {

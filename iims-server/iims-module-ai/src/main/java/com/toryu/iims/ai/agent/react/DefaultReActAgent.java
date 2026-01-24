@@ -48,8 +48,6 @@ class DefaultReActAgent implements ReActAgent {
 
     @Override
     public Flux<ReActAgentEvent> run(RunAgentOptions options) {
-        // 如果历史对话在Assistant返回ToolCall处中断，应该先调用对应的方法。
-        //填充chatOptions中的toolCallbacks字段, 不会实际调用大模型
         return Flux.create(sink -> {
             String previousMessageId = options.getPreviousMessageId();
             ToolCallingChatOptions chatOptions = buildChatOptions(options);
@@ -58,16 +56,16 @@ class DefaultReActAgent implements ReActAgent {
             List<Message> allMessages = contactMessages(systemMessage, messageHistory, options.getNewMessages());
             Message lastMessage = allMessages.get(allMessages.size() - 1);
             boolean stream = options.isEnableStream();
+
             if (lastMessage instanceof AssistantMessage assistantMessage) {
                 if (assistantMessage.getToolCalls().isEmpty()) {
                     sink.complete();
                     return;
                 }
-                // 如果历史对话在Assistant返回ToolCall处中断，应该先调用对应的方法。
+
                 int toolCallCount = assistantMessage.getToolCalls().size();
                 Prompt prompt = new Prompt(allMessages.subList(0, allMessages.size() - 1), chatOptions);
 
-                //填充chatOptions中的toolCallbacks字段, 不会实际调用大模型
                 ChatClient.ChatClientRequestSpec chatClientRequestSpec = prepareChatClient(options, prompt);
                 if (stream) {
                     chatClientRequestSpec.stream();
@@ -80,22 +78,28 @@ class DefaultReActAgent implements ReActAgent {
                 List<Message> conversationHistory = toolExecutionResult.conversationHistory();
                 List<Message> toolCallResults = conversationHistory
                         .subList(conversationHistory.size() - toolCallCount, conversationHistory.size());
+
                 for (Message toolCallResult : toolCallResults) {
                     allMessages.add(toolCallResult);
+                    // 标记为历史消息，不推送事件
                     previousMessageId = saveAndSinkMessage(options.getThreadId(), toolCallResult, previousMessageId,
-                            sink);
+                            sink, true); // 是历史消息
                 }
             }
+
             Prompt prompt = new Prompt(allMessages, chatOptions);
             ChatClient.ChatClientRequestSpec chatClientRequestSpec = prepareChatClient(options, prompt);
             if (previousMessageId == null && branchMessageSaver != null) {
                 previousMessageId = branchMessageSaver.getLatestMessageId(options.getThreadId());
             }
+
             if (options.getNewMessages() != null) {
                 for (Message message : options.getNewMessages()) {
-                    previousMessageId = saveAndSinkMessage(options.getThreadId(), message, previousMessageId, sink);
+                    // 新消息，推送事件
+                    previousMessageId = saveAndSinkMessage(options.getThreadId(), message, previousMessageId, sink, true);
                 }
             }
+
             int iterationLeft = options.getMaxIterations();
             AssistantMessage firstMessage;
             if (stream) {
@@ -118,7 +122,10 @@ class DefaultReActAgent implements ReActAgent {
                             && StringUtils.isNoneBlank(toolCall.arguments())).toList();
             firstMessage.getToolCalls().clear();
             firstMessage.getToolCalls().addAll(list);
-            previousMessageId = saveAndSinkMessage(options.getThreadId(), firstMessage, previousMessageId, sink);
+
+            // 新生成的消息，推送事件
+            previousMessageId = saveAndSinkMessage(options.getThreadId(), firstMessage, previousMessageId, sink, false);
+
             ChatResponse chatResponse = buildResponseFromAssistantMessage(firstMessage);
             while (chatResponse.hasToolCalls()) {
                 this.filterValidToolCalls(chatResponse);
@@ -128,10 +135,13 @@ class DefaultReActAgent implements ReActAgent {
                 int historySize = conversationHistory.size();
                 int startIndex = Math.max(historySize - 1, historySize - toolCallCount);
                 List<Message> toolCallResults = conversationHistory.subList(startIndex, historySize);
+
                 for (Message toolCallResult : toolCallResults) {
+                    // 工具调用结果也是新生成的，推送事件
                     previousMessageId = saveAndSinkMessage(options.getThreadId(), toolCallResult, previousMessageId,
-                            sink);
+                            sink, false);
                 }
+
                 prompt = new Prompt(conversationHistory, chatOptions);
                 if (iterationLeft <= 0) {
                     sink.error(new MaxIterationReachedException(
@@ -151,8 +161,9 @@ class DefaultReActAgent implements ReActAgent {
                     return;
                 }
                 Message responseMessage = chatResponse.getResult().getOutput();
+                // 最终响应也是新生成的，推送事件
                 previousMessageId = saveAndSinkMessage(options.getThreadId(), responseMessage, previousMessageId,
-                        sink);
+                        sink, false);
             }
             sink.complete();
         });
@@ -168,7 +179,6 @@ class DefaultReActAgent implements ReActAgent {
                         && StringUtils.isNoneBlank(toolCall.arguments()))
                 .toList();
 
-        // 更新原始列表
         List<AssistantMessage.ToolCall> mutableToolCalls = chatResponse.getResult().getOutput().getToolCalls();
         mutableToolCalls.clear();
         mutableToolCalls.addAll(validToolCalls);
@@ -203,13 +213,18 @@ class DefaultReActAgent implements ReActAgent {
                 .toolContext(options.getContext());
     }
 
+    // 修改后的 saveAndSinkMessage 方法，添加 isHistorical 参数
     private String saveAndSinkMessage(String threadId, Message message, String previousMessageId,
-                                      FluxSink<ReActAgentEvent> sink) {
+                                      FluxSink<ReActAgentEvent> sink, boolean isHistorical) {
         String id = IdGenerator.generateId();
         if (branchMessageSaver != null) {
             branchMessageSaver.save(threadId, new BranchMessageItem(message, id, previousMessageId, Map.of()));
         }
-        sink.next(new LlmMessageEvent(message, id));
+
+        // 只推送非历史消息，避免重复推送历史聊天记录
+        if (!isHistorical) {
+            sink.next(new LlmMessageEvent(message, id));
+        }
         return id;
     }
 
@@ -287,7 +302,6 @@ class DefaultReActAgent implements ReActAgent {
         public ReActAgent build() {
             return new DefaultReActAgent(chatClient, branchMessageSaver, systemPromptProvider);
         }
-
     }
 
     @Override

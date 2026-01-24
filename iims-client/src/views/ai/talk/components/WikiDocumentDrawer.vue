@@ -15,6 +15,11 @@
     </template>
     <el-scrollbar style="margin: 0 10px; padding: 0 10px" height="calc(100vh - 170px)">
       <el-card v-for="(item, index) in renderedMarkdown" :key="index" style="margin: 10px">
+        <div class="text-right" @click="
+          goWikiArticleDetailPageIndex(wikiMeta.wikiId, item.index, wikiMeta.docId)
+          ">
+          <i class="ri-share-circle-line"></i>
+        </div>
         <div class="show-doc-md markdown-body">
           <div v-html="item.renderedText"></div>
         </div>
@@ -36,6 +41,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: boolean): void
   (e: 'go-wiki-article-detail-page', wikiId: string, articleId: string): void
+  (e: 'go-wiki-article-detail-page-index', wikiId: string, index: string, articleId: string): void
 }>()
 
 const visible = computed<boolean>({
@@ -49,6 +55,10 @@ const visible = computed<boolean>({
 
 const goWikiArticleDetailPage = (wikiId: string, articleId: string) => {
   emit('go-wiki-article-detail-page', wikiId, articleId)
+}
+
+const goWikiArticleDetailPageIndex = (wikiId: string, index: string, articleId: string) => {
+  emit('go-wiki-article-detail-page-index', wikiId, index, articleId)
 }
 </script>
 

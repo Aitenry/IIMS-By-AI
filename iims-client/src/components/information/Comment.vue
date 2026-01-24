@@ -8,8 +8,8 @@
       <div class="flex gap-3">
         <!-- 头像 -->
         <div>
-          <img v-if="avatar && avatar.length > 0"
-               :src="avatar" class="w-10 h-10 rounded-lg" alt="avatar">
+          <image-with-token v-if="avatar && avatar.length > 0"
+               :src="avatar" class="w-10 h-10 rounded-lg" alt="avatar" />
           <svg v-else class="w-10 h-10 text-gray-400 dark:text-gray-400" aria-hidden="true"
                xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
             <path
@@ -64,8 +64,8 @@
       <div class="flex gap-3 mt-5">
         <!-- 左边头像栏 -->
         <div>
-          <img v-if="comment.avatar && comment.avatar.length > 0" :src="comment.avatar"
-               class="w-10 h-10 rounded-lg" alt="avatar">
+          <image-with-token v-if="comment.avatar && comment.avatar.length > 0" :src="comment.avatar"
+               class="w-10 h-10 rounded-lg" alt="avatar" />
           <svg v-else class="w-10 h-10 text-gray-400 rounded-lg dark:text-gray-400"
                aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
                viewBox="0 0 20 20">
@@ -98,8 +98,8 @@
           <div class="flex items-center gap-3 mt-5">
             <!-- 左边头像栏 -->
             <div>
-              <img v-if="childComment.avatar && childComment.avatar.length > 0"
-                   :src="childComment.avatar" class="w-6 h-6 rounded-lg" alt="avatar">
+              <image-with-token v-if="childComment.avatar && childComment.avatar.length > 0"
+                   :src="childComment.avatar" class="w-6 h-6 rounded-lg" alt="avatar" />
               <svg v-else class="w-6 h-6 text-gray-400 rounded-lg dark:text-gray-400"
                    aria-hidden="true" xmlns="http://www.w3.org/2000/svg" fill="currentColor"
                    viewBox="0 0 20 20">
@@ -135,8 +135,8 @@
         <div class="flex gap-3">
           <!-- 头像 -->
           <div>
-            <img v-if="avatar && avatar.length > 0"
-                 :src="avatar" class="w-10 h-10 rounded-lg" alt="avatar">
+            <image-with-token v-if="avatar && avatar.length > 0"
+                 :src="avatar" class="w-10 h-10 rounded-lg" alt="avatar" />
             <svg v-else class="w-10 h-10 text-gray-400 dark:text-gray-400" aria-hidden="true"
                  xmlns="http://www.w3.org/2000/svg" fill="currentColor" viewBox="0 0 20 20">
               <path
@@ -201,6 +201,7 @@ import { showMessage } from '@/composables/utils.ts'
 import { publishComment, findComments } from '@/api/comment.ts'
 import { useRoute } from 'vue-router'
 import { useStore } from 'vuex';
+import ImageWithToken from "@/components/information/ImageWithToken.vue";
 
 const route = useRoute()
 const store = useStore()

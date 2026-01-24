@@ -27,6 +27,8 @@ public class Metadata implements Serializable {
     @JSONField(serializeUsing = ToStringSerializer.class)
     private Long wikiId;
 
+    private Integer chunkIndex;
+
     private DocumentTypeEnum type;
 
 }

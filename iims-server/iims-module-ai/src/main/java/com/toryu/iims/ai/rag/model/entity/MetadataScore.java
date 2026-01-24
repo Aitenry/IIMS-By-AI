@@ -18,4 +18,6 @@ public class MetadataScore implements Serializable {
     private String text;
 
     private Float score;
+
+    private Integer index;
 }

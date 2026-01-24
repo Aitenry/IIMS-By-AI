@@ -3,7 +3,7 @@ package com.toryu.iims.ai.chat.service.impl;
 import com.toryu.iims.ai.chat.model.entity.ChatApi;
 import com.toryu.iims.ai.chat.model.entity.ModelChatOptions;
 import com.toryu.iims.ai.chat.service.AiChatModelsService;
-import com.toryu.iims.ai.chat.service.ModelWarehouseService;
+import com.toryu.iims.ai.chat.service.ModelService;
 import com.toryu.iims.ai.rag.utils.AESEncryptionUtil;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.document.MetadataMode;
@@ -23,11 +23,11 @@ import org.springframework.stereotype.Service;
 import java.util.Objects;
 
 @Service
-public class ModelWarehouseServiceImpl implements ModelWarehouseService {
+public class ModelServiceImpl implements ModelService {
 
     public final AiChatModelsService aiChatModelsService;
 
-    public ModelWarehouseServiceImpl(AiChatModelsService aiChatModelsService) {
+    public ModelServiceImpl(AiChatModelsService aiChatModelsService) {
         this.aiChatModelsService = aiChatModelsService;
     }
 
@@ -49,17 +49,21 @@ public class ModelWarehouseServiceImpl implements ModelWarehouseService {
     @Override
     public ChatModel getChatModel(Long modelId, ModelChatOptions options) {
         ChatApi chatApi = aiChatModelsService.selectModelById(modelId);
+        Integer maxTokens = options.getMaxTokens();
+        if (Objects.isNull(maxTokens)) {
+            maxTokens = chatApi.getToken();
+        }
         return switch (chatApi.getType()) {
             case OLLAMA -> getOllamaChatModel(OllamaApi.builder()
-                    .baseUrl(chatApi.getUrl()).build() , OllamaChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
+                    .baseUrl(chatApi.getUrl()).build(), OllamaChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
                     .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
-                    .numCtx(options.getMaxTokens()).presencePenalty(options.getPresencePenalty()).build());
+                    .numCtx(maxTokens).presencePenalty(options.getPresencePenalty()).build());
             case OPENAI -> getOpenAIChatModel(OpenAiApi.builder()
                     .apiKey(Objects.requireNonNull(AESEncryptionUtil.decrypt(chatApi.getKey())))
                     .baseUrl(chatApi.getUrl()).build(),
                     OpenAiChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
                             .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
-                            .maxTokens(options.getMaxTokens()).presencePenalty(options.getPresencePenalty()).build());
+                            .maxTokens(maxTokens).presencePenalty(options.getPresencePenalty()).build());
         };
     }
 

@@ -52,6 +52,7 @@ public class DocMetadataUtil {
                         .id(doc.getId())
                         .text(doc.getText())
                         .score(doc.getScore())
+                        .index(doc.getMetadata().getChunkIndex())
                         .build();
                 docMetadataVoMap.get(docId).getScore().add(score);
             }

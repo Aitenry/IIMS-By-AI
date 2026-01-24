@@ -1,22 +1,23 @@
 package com.toryu.iims.ai.chat.utils;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.toryu.iims.ai.chat.model.entity.*;
 import com.toryu.iims.ai.chat.model.vo.DocMetadataVO;
+import com.toryu.iims.ai.chat.service.AiChatSettingService;
 import com.toryu.iims.ai.chat.service.DialogueManageService;
+import com.toryu.iims.ai.chat.service.ModelService;
 import com.toryu.iims.ai.rag.model.entity.RagMessage;
 import com.toryu.iims.ai.rag.service.MilvusStoreService;
-import com.toryu.iims.ai.chat.service.AiChatSettingService;
-import com.toryu.iims.ai.chat.service.ModelWarehouseService;
 import com.toryu.iims.ai.rag.utils.DocMetadataUtil;
 import com.toryu.iims.ai.rag.utils.PromptTemplateUtil;
 import com.toryu.iims.common.context.BaseContext;
 import com.toryu.iims.common.enums.FileStatusEnum;
 import com.toryu.iims.common.service.FileStorageService;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.ai.chat.messages.AssistantMessage;
 import org.springframework.ai.chat.messages.Message;
 import org.springframework.ai.chat.model.ChatResponse;
-import org.springframework.ai.chat.model.Generation;
 import org.springframework.ai.chat.prompt.Prompt;
 import org.springframework.ai.chat.prompt.PromptTemplate;
 import org.springframework.ai.chat.prompt.SystemPromptTemplate;
@@ -26,6 +27,8 @@ import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -38,18 +41,18 @@ public class ChatUtil {
     private final DialogueManageService dialogueManageService;
     private final MilvusStoreService milvusStoreService;
     private final DocMetadataUtil docMetadataUtil;
-    private final ModelWarehouseService modelWarehouseService;
+    private final ModelService modelService;
     private final FileStorageService fileStorageService;
 
     private final AiChatSettingService settingService;
 
     public ChatUtil(DialogueManageService dialogueManageService, MilvusStoreService milvusStoreService,
-                    DocMetadataUtil docMetadataUtil, ModelWarehouseService modelWarehouseService,
+                    DocMetadataUtil docMetadataUtil, ModelService modelService,
                     FileStorageService fileStorageService, AiChatSettingService settingService) {
         this.dialogueManageService = dialogueManageService;
         this.milvusStoreService = milvusStoreService;
         this.docMetadataUtil = docMetadataUtil;
-        this.modelWarehouseService = modelWarehouseService;
+        this.modelService = modelService;
         this.fileStorageService = fileStorageService;
         this.settingService = settingService;
     }
@@ -68,7 +71,8 @@ public class ChatUtil {
                 .topicId(messageData.getTopicId())
                 .lastId(messageData.getLastId())
                 .sender("user")
-                .content(messageData.getQuestion())
+                .content(JSONObject.toJSONString(UserContent.builder()
+                        .question(messageData.getQuestion()).build()))
                 .isStar(false)
                 .isDeleted(false)
                 .build();
@@ -82,23 +86,26 @@ public class ChatUtil {
     // 辅助方法：发送开始事件
     public void sendStartEvent(SseEmitter emitter, String uuid, Long topicId, Long lastId) throws IOException {
         emitter.send(SseEmitter.event().name("start")
-               .id(uuid).data(SendStartData.builder().topicId(topicId).lastId(lastId).build()));
+               .id(uuid).data(SendStartData.builder().topicId(topicId)
+                        .createTime(LocalDateTime.now()).lastId(lastId).build()));
     }
 
     // 辅助方法：处理流数据
     public void processStream(Flux<ChatResponse> stream, List<Document> documents,
                               Map<Long, MessageData> msgMap, SseEmitter emitter, Long uuid) {
-        StringBuffer aiContent = new StringBuffer();
+        StringBuffer content = new StringBuffer();
         MessageData messageData = msgMap.get(uuid);
+        List<AiContent> aiContent = new ArrayList<>();
+        aiContent.add(AiContent.builder().content(content).build());
         messageData.setAiContent(aiContent);
         messageData.setDocuments(documents);
         Long userId = BaseContext.getCurrentId();
         stream.subscribe(data -> {
                 try {
-                    Generation result = data.getResult();
-                    aiContent.append(result.getOutput().getText());
+                    AssistantMessage assistantMessage = data.getResult().getOutput();
+                    aiContent.get(0).getContent().append(assistantMessage.getText());
                     emitter.send(SseEmitter.event().name("output")
-                           .id(String.valueOf(uuid)).data(result));
+                           .id(String.valueOf(uuid)).data(aiContent));
                 } catch (IOException e) {
                     log.error("AI Stream 消息发送出错：", e);
                     BaseContext.setCurrentId(userId);
@@ -137,13 +144,13 @@ public class ChatUtil {
         List<ChatTool> tools = messageData.getTools();
         Long topicId = messageData.getTopicId();
         Long lastId = messageData.getLastId();
-        StringBuffer aiContent = messageData.getAiContent();
+        List<AiContent> aiContent = messageData.getAiContent();
         SseEmitter emitter = messageData.getSse();
         try {
             // 构建 AI 对话记录
             String metadata = Objects.isNull(documents) ? null : JSONArray.toJSONString(documents);
             String toolsResult = Objects.isNull(tools) ? null : JSONArray.toJSONString(tools);
-            String content = Objects.isNull(aiContent) ? "" : aiContent.toString();
+            String content = Objects.isNull(aiContent) ? "[]" : JSONArray.toJSONString(aiContent);
             AiChatDialogue aiAiChatDialogue = AiChatDialogue.builder()
                     .topicId(topicId).lastId(lastId).sender("assistant")
                     .content(content).isStar(false).metadata(metadata).tools(toolsResult)
@@ -201,7 +208,7 @@ public class ChatUtil {
 
             // 调用模型简化问题
             ModelSetting modelSetting = settingService.getUserModelSetting();
-            ChatResponse response = modelWarehouseService.getChatModel(modelSetting.getLanguageModel())
+            ChatResponse response = modelService.getChatModel(modelSetting.getLanguageModel())
                     .call(new Prompt(List.of(sysMessage, userMessage)));
             simplifiedQuestion = PromptTemplateUtil.removeThink(response.getResult().getOutput().getText());
             log.info("简化的内容为：{}", simplifiedQuestion);

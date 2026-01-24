@@ -4,6 +4,8 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.toryu.iims.ai.chat.model.entity.ChatTool;
+import com.toryu.iims.ai.chat.model.entity.AiContent;
+import com.toryu.iims.ai.chat.model.entity.UserContent;
 import com.toryu.iims.common.model.entity.file.FileInfo;
 import io.swagger.annotations.ApiModel;
 import lombok.AllArgsConstructor;
@@ -33,7 +35,9 @@ public class ChatDialogueVO implements Serializable {
 
     private String sender;
 
-    private String content;
+    private List<AiContent> aiContent;
+
+    private UserContent userContent;
 
     private List<DocMetadataVO> docMetadata;
 

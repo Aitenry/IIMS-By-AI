@@ -30,7 +30,7 @@ public class MessageData implements Serializable {
 
     private SseEmitter sse;
 
-    private StringBuffer aiContent;
+    private List<AiContent> aiContent;
 
     private List<Document> documents;
 

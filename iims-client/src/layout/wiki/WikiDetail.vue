@@ -398,6 +398,60 @@ const goCategoryArticleListPage = (categoryId: string, categoryName: string) => 
   console.log(categoryId, categoryName)
 }
 
+function scrollToIndex(index: number) {
+  // 通过 .article-content 样式来获取父级 div
+  const container = document.querySelector('.article-content')
+  if (!container) return
+
+  // 只提取二级、三级标题
+  let levels = ['h1', 'h2', 'h3', 'h4', 'h5', 'h6']
+  let headings = Array.from(container.querySelectorAll(levels.join(', '))) as HTMLElement[]
+
+  // 找出连续标题组并只保留每组的最后一个
+  const filteredHeadings: HTMLElement[] = []
+  let groupStart = 0
+
+  for (let i = 0; i < headings.length; i++) {
+    // 检查当前标题是否与下一个标题相邻
+    if (i === headings.length - 1 || !isAdjacent(headings[i], headings[i + 1])) {
+      // 如果当前标题与上一个不在同一组，则取这组的最后一个
+      const group = headings.slice(groupStart, i + 1)
+      if (group.length > 0) {
+        filteredHeadings.push(group[group.length - 1]) // 取每组的最后一个
+      }
+      groupStart = i + 1
+    }
+  }
+
+  if (index <= 0 || index > filteredHeadings.length) return
+
+  const targetHeading = filteredHeadings[index]
+  const offsetTop = targetHeading.offsetTop - 30
+
+  window.scrollTo({
+    top: offsetTop,
+    behavior: "smooth"
+  })
+}
+
+// 辅助函数：检查两个元素是否在DOM中相邻（中间没有其他非标题元素）
+function isAdjacent(element1: Element, element2: Element): boolean {
+  const sibling = element1.nextElementSibling
+  if (sibling === element2) {
+    return true
+  }
+  // 如果中间只有空白文本节点或其他非标题元素，也认为是相邻的
+  let current = element1.nextElementSibling
+  while (current && current !== element2) {
+    const tagName = current.tagName?.toLowerCase()
+    if (tagName && !['h1', 'h2', 'h3', 'h4', 'h5', 'h6'].includes(tagName)) {
+      return false
+    }
+    current = current.nextElementSibling
+  }
+  return current === element2
+}
+
 onMounted(async () => {
   // 获取当前知识库的目录数据
   const wikiCatalogs = await getWikiCatalogs({ id: route.params.wikiId })
@@ -407,6 +461,17 @@ onMounted(async () => {
 
   await refreshArticleDetail(route.query.articleId as string)
   await nextTick(() => initAccordions())
+
+  // 如果路由包含 index 参数，根据索引定位到对应的文档
+  if (route.params.index) {
+    const index = parseInt(route.params.index as string)
+    if (!isNaN(index)) {
+      // 等待文档内容加载完成后再滚动
+      setTimeout(() => {
+        scrollToIndex(index)
+      }, 100)
+    }
+  }
 })
 </script>
 

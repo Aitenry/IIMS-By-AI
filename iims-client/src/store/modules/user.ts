@@ -8,12 +8,13 @@ import { JSEncrypt } from 'encryptlong'
 
 // 定义状态类型
 interface UserState {
-  token: null
-  name: null
-  username: string
-  role: string
-  userId: string
+  token: string | null
+  name: string | null
+  username: string | null
+  role: string | null
+  userId: string | null
   avatar: string
+  email: string
   permissions: string[]
   menus: any[]
 }
@@ -32,6 +33,7 @@ const getDefaultState = (): UserState => {
     role: getStorage('role') || null,
     userId: getStorage('userId') || null,
     avatar: getItem('avatar') || null,
+    email: getItem('email') || null,
     permissions: getItem('permissions') || null,
     menus: getItem('menus') || null
   }
@@ -52,6 +54,9 @@ const mutations = {
   SET_AVATAR: (state: UserState, avatar: string): void => {
     state.avatar = avatar
   },
+  SET_EMAIL: (state: UserState, email: string): void => {
+    state.email = email
+  },
   SET_MENUS: (state: UserState, menus: any[]): void => {
     state.menus = menus
   },
@@ -64,7 +69,7 @@ const mutations = {
   SET_ROLE: (state: UserState, role: string): void => {
     state.role = role
   },
-  SET_USER_Id: (state: UserState, userId: string): void => {
+  SET_USER_ID: (state: UserState, userId: string): void => {
     state.userId = userId
   }
 }
@@ -92,7 +97,8 @@ const actions = {
           commit('SET_ROLE', data.role)
           commit('SET_USERNAME', data.username)
           commit('SET_AVATAR', data.imageUrl)
-          commit('SET_USER_Id', data.id)
+          commit('SET_USER_ID', data.id)
+          commit('SET_EMAIL', data.email)
 
           setStorage('token', data.token)
           setStorage('name', data.name)
@@ -102,6 +108,7 @@ const actions = {
 
           setItem('permissions', data.permissions)
           setItem('avatar', data.imageUrl)
+          setItem('email', data.email)
           setItem('menus', data.menus)
 
           resolve(data.menus)
@@ -128,6 +135,7 @@ const actions = {
         removeItem('avatar')
         removeItem('permissions')
         removeItem('menus')
+        removeItem('email')
 
         resetRouter()
         commit('RESET_STATE')

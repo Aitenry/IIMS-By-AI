@@ -8,7 +8,7 @@ import com.toryu.iims.ai.rag.model.entity.DocumentType;
 import com.toryu.iims.ai.chat.model.entity.ModelSetting;
 import com.toryu.iims.ai.chat.service.AiChatSettingService;
 import com.toryu.iims.ai.chat.service.ModelToolService;
-import com.toryu.iims.ai.chat.service.ModelWarehouseService;
+import com.toryu.iims.ai.chat.service.ModelService;
 import com.toryu.iims.ai.rag.utils.PromptTemplateUtil;
 import com.toryu.iims.common.enums.DocumentTypeEnum;
 import com.toryu.iims.common.service.MinioService;
@@ -36,7 +36,7 @@ import java.util.Objects;
 @Service
 public class ModelToolServiceImpl implements ModelToolService {
 
-    private final ModelWarehouseService modelWarehouseService;
+    private final ModelService modelService;
 
     private final MinioService minioService;
 
@@ -46,10 +46,10 @@ public class ModelToolServiceImpl implements ModelToolService {
 
     private final AiChatSettingService settingService;
 
-    public ModelToolServiceImpl (ModelWarehouseService modelWarehouseService, MinioService minioService,
+    public ModelToolServiceImpl (ModelService modelService, MinioService minioService,
                                  ApplicationEventPublisher eventPublisher, DocTypeServiceFactory docTypeServiceFactory,
                                  AiChatSettingService settingService) {
-        this.modelWarehouseService = modelWarehouseService;
+        this.modelService = modelService;
         this.minioService = minioService;
         this.eventPublisher = eventPublisher;
         this.docTypeServiceFactory = docTypeServiceFactory;
@@ -75,7 +75,7 @@ public class ModelToolServiceImpl implements ModelToolService {
         messages.add(systemMessage);
         messages.add(userMessage);
         ModelSetting modelSetting = settingService.getUserModelSetting();
-        ChatResponse call = modelWarehouseService.getChatModel(modelSetting.getVisionModel())
+        ChatResponse call = modelService.getChatModel(modelSetting.getVisionModel())
                 .call(new Prompt(messages));
         return call.getResult().getOutput().getText();
     }
@@ -129,7 +129,7 @@ public class ModelToolServiceImpl implements ModelToolService {
         ).createMessage(Map.of("content", contentBuilder.toString()));
 
         ModelSetting modelSetting = settingService.getUserModelSetting();
-        ChatResponse finalCall = modelWarehouseService.getChatModel(modelSetting.getLanguageModel())
+        ChatResponse finalCall = modelService.getChatModel(modelSetting.getLanguageModel())
                 .call(new Prompt(finalMessage));
         return PromptTemplateUtil.removeThink(finalCall.getResult().getOutput().getText());
     }
@@ -157,7 +157,7 @@ public class ModelToolServiceImpl implements ModelToolService {
         ).createMessage(Map.of("content", mergedContent, "threshold", threshold));
 
         ModelSetting modelSetting = settingService.getUserModelSetting();
-        ChatResponse call = modelWarehouseService.getChatModel(modelSetting.getLanguageModel())
+        ChatResponse call = modelService.getChatModel(modelSetting.getLanguageModel())
                 .call(new Prompt(message));
         String result = PromptTemplateUtil.removeThink(call.getResult().getOutput().getText());
 

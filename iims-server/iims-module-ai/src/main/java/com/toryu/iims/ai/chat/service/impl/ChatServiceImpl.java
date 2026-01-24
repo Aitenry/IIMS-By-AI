@@ -34,7 +34,7 @@ public class ChatServiceImpl implements ChatService {
 
     Map<Long, MessageData> msgMap = new ConcurrentHashMap<>();
 
-    private final ModelWarehouseService modelWarehouseService;
+    private final ModelService modelService;
     private final TopicManageService topicManageService;
     private final DialogueManageService dialogueManageService;
     private final FileStorageService fileStorageService;
@@ -43,10 +43,10 @@ public class ChatServiceImpl implements ChatService {
     private final ChatUtil chatUtil;
     private final AgentUtil agentUtil;
 
-    public ChatServiceImpl(ModelWarehouseService modelWarehouseService, TopicManageService topicManageService,
+    public ChatServiceImpl(ModelService modelService, TopicManageService topicManageService,
                            DialogueManageService dialogueManageService, FileStorageService fileStorageService,
                            AiChatSettingService settingService, PromptHandlerContext promptHandlerContext, ChatUtil chatUtil, AgentUtil agentUtil) {
-        this.modelWarehouseService = modelWarehouseService;
+        this.modelService = modelService;
         this.topicManageService = topicManageService;
         this.dialogueManageService = dialogueManageService;
         this.fileStorageService = fileStorageService;
@@ -135,7 +135,7 @@ public class ChatServiceImpl implements ChatService {
                     PromptTemplateUtil.defineMessage(question, fileContext, messages);
                 }
                 // 订阅 AI 流并处理数据
-                Flux<ChatResponse> stream = modelWarehouseService.getChatModel(modelId).stream(new Prompt(messages));
+                Flux<ChatResponse> stream = modelService.getChatModel(modelId).stream(new Prompt(messages));
                 chatUtil.processStream(stream, documents, msgMap, emitter, uuid);
 
                 // 设置断开连接和超时回调

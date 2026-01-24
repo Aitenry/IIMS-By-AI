@@ -68,17 +68,6 @@
           </div>
         </el-button>
       </el-tooltip>
-      <el-tooltip effect="dark" content="设置" placement="bottom-start">
-        <el-button style="
-            border: 2px solid #40a0ffa8;
-            color: #40a0ffa8;
-            background: #ecf5ff;
-            border-radius: 10px;
-            padding: 7px 12px;
-          " round>
-          <i style="font-size: 16px; font-weight: bolder" class="ri-settings-4-fill"></i>
-        </el-button>
-      </el-tooltip>
     </div>
   </div>
 

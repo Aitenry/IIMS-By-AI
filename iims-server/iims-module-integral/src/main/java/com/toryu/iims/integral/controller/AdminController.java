@@ -107,6 +107,7 @@ public class AdminController implements Serializable {
         AdminVO adminVo = AdminVO.builder()
                 .id(Long.valueOf(uid))
                 .username(admin.getUsername())
+                .email(admin.getEmail())
                 .name(admin.getName())
                 .role(roleName)
                 .imageUrl(admin.getImageUrl())

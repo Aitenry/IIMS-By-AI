@@ -18,6 +18,8 @@ public class ChatApi {
 
     private String url;
 
+    private Integer token;
+
     private String name;
 
 }

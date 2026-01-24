@@ -11,7 +11,7 @@ import org.springframework.ai.openai.OpenAiChatOptions;
 import org.springframework.ai.openai.OpenAiEmbeddingOptions;
 import org.springframework.ai.openai.api.OpenAiApi;
 
-public interface ModelWarehouseService {
+public interface ModelService {
 
     ChatModel getOllamaChatModel(OllamaApi ollamaApi, OllamaChatOptions ollamaOptions);
 

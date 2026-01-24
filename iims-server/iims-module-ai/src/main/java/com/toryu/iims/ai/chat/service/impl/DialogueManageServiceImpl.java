@@ -1,13 +1,12 @@
 package com.toryu.iims.ai.chat.service.impl;
 
 import com.alibaba.fastjson.JSONArray;
+import com.alibaba.fastjson.JSONObject;
 import com.github.pagehelper.Page;
 import com.github.pagehelper.PageHelper;
 import com.toryu.iims.ai.chat.mapper.AiChatDialogueMapper;
 import com.toryu.iims.ai.chat.model.dto.ChatDialoguePageQueryDTO;
-import com.toryu.iims.ai.chat.model.entity.AiChatDialogue;
-import com.toryu.iims.ai.chat.model.entity.ChatDialogue;
-import com.toryu.iims.ai.chat.model.entity.ChatTool;
+import com.toryu.iims.ai.chat.model.entity.*;
 import com.toryu.iims.ai.chat.model.vo.ChatDialogueVO;
 import com.toryu.iims.ai.chat.model.vo.DocMetadataVO;
 import com.toryu.iims.ai.chat.service.DialogueManageService;
@@ -65,14 +64,22 @@ public class DialogueManageServiceImpl implements DialogueManageService {
                 .topicId(pageQueryDto.getTopicId()).isDeleted(false).build();
         aiChatDialogue.setCreateBy(BaseContext.getCurrentId());
         BeanUtils.copyProperties(pageQueryDto, aiChatDialogue);
-        Page<ChatDialogue> chatTopicVos = aiChatDialogueMapper.pageQuery(aiChatDialogue);
-        long total = chatTopicVos.getTotal();
-        List<ChatDialogue> result = chatTopicVos.getResult();
+        long total;
+        List<ChatDialogue> result;
+        try (Page<ChatDialogue> chatTopicVos = aiChatDialogueMapper.pageQuery(aiChatDialogue)) {
+            total = chatTopicVos.getTotal();
+            result = chatTopicVos.getResult();
+        }
         List<ChatDialogueVO> records = new ArrayList<>();
         result.forEach(r -> {
             ChatDialogueVO chatDialogueVo = new ChatDialogueVO();
             BeanUtils.copyProperties(r, chatDialogueVo);
             List<Long> ids = r.getFileIds();
+            if (Objects.equals(r.getSender(), "user")) {
+                chatDialogueVo.setUserContent(JSONObject.parseObject(r.getContent(), UserContent.class));
+            } else {
+                chatDialogueVo.setAiContent(JSONArray.parseArray(r.getContent(), AiContent.class));
+            }
             if (Objects.nonNull(ids) && !ids.isEmpty()) {
                 List<FileWarehouse> objects = storageService.getObjectByIds(ids);
                 List<FileInfo> fileInfos = new ArrayList<>();
@@ -113,13 +120,21 @@ public class DialogueManageServiceImpl implements DialogueManageService {
 
         for (ChatDialogue chatDialogue : dialogueHistory) {
             MessageType senderType = MessageType.fromValue(chatDialogue.getSender());
-
+            String content = chatDialogue.getContent();
             if (MessageType.USER.equals(senderType)) {
                 List<Media> mediaList = getMediaFromChatDialogue(chatDialogue);
-                messages.add(UserMessage.builder().text(chatDialogue.getContent()).media(mediaList).build());
+                UserContent userContent = JSONObject.parseObject(content, UserContent.class);
+                messages.add(UserMessage.builder().text(userContent.getQuestion()).media(mediaList).build());
             } else if (MessageType.ASSISTANT.equals(senderType)) {
-                String filteredContent = PromptTemplateUtil.removeThink(chatDialogue.getContent());
-                messages.add(new AssistantMessage(filteredContent));
+                List<AiContent> aiContents = JSONArray.parseArray(content, AiContent.class);
+                aiContents.forEach(aiContent -> {
+                    StringBuffer aiContentContent = aiContent.getContent();
+                    if (aiContentContent != null) {
+                        String filteredContent = PromptTemplateUtil.removeThink(aiContentContent.toString());
+                        aiContent.setContent(new StringBuffer(filteredContent));
+                    }
+                });
+                messages.add(new AssistantMessage(JSONArray.toJSONString(aiContents)));
             }
         }
 

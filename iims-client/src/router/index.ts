@@ -20,6 +20,14 @@ const constantRoutes = [
         hidden: true
     },
     {
+        path: '/wiki/:wikiId/:index', // 知识库详情页
+        component: () => import('@/layout/wiki/WikiDetail.vue'),
+        meta: {
+            title: '知识库'
+        },
+        hidden: true
+    },
+    {
         path: '/wiki/:wikiId', // 知识库详情页
         component: () => import('@/layout/wiki/WikiDetail.vue'),
         meta: {

@@ -83,6 +83,7 @@
             :wiki-meta="wikiMeta"
             :rendered-markdown="renderedMarkdown"
             @go-wiki-article-detail-page="goWikiArticleDetailPage"
+            @go-wiki-article-detail-page-index="goWikiArticleDetailPageIndex"
         />
       </el-container>
     </el-container>
@@ -141,6 +142,7 @@ import type {
   WikiItem,
   WikiMeta, WikiPages
 } from "@/views/ai/talk/types/talk.ts";
+import {parseReasoning, type ParseResult} from "@/utils/parse-reasoning.ts";
 
 
 const store = useStore()
@@ -174,6 +176,7 @@ const useFileParam = ref<UseFileParam>({
 const wikiMeta = ref<WikiMeta>({
   wikiId: '',
   docId: '',
+  index: '',
   name: ''
 })
 const wikiDocs = ref<any[]>([])
@@ -330,8 +333,8 @@ onBeforeUnmount(() => {
 })
 
 // Methods
-const toggleThink = (message: Message) => {
-  message.isExpanded = !message.isExpanded
+const toggleThink = (parseResult: ParseResult) => {
+  parseResult.isExpanded = !parseResult.isExpanded
 }
 
 const scrollToBottom = () => {
@@ -365,6 +368,14 @@ const goWikiArticleDetailPage = (wikiId: string, articleId: string) => {
   window.open(url, '_blank')
 }
 
+const goWikiArticleDetailPageIndex = (wikiId: string, index: string, articleId: string) => {
+  const url = router.resolve({
+    path: `/wiki/${wikiId}/${index}`,
+    query: { articleId },
+  }).href
+  window.open(url, '_blank')
+}
+
 const showWikiDocMetadata = (mata: any) => {
   wikiDocsDrawer.value = true
   wikiMeta.value = mata.metadata
@@ -383,48 +394,6 @@ const filteredWikis = () => {
         item.summary.toLowerCase().includes(keyword)
     )
   }) || []
-}
-
-const extractThinkAndOther = (content: string) => {
-  const thinkRegex = /<think>([\s\S]*?)<\/think>/
-  let isComplete = false
-
-  if (content.includes('<think>') && !content.includes('</think>')) {
-    content += '</think>'
-  } else if (!content.includes('<think>') && content.includes('</think>')) {
-    content = '<think>' + content
-  } else {
-    isComplete = true
-  }
-
-  const match = content.match(thinkRegex)
-  if (match) {
-    const thinkContent = match[1].trim()
-    const hasMeaningfulThink = thinkContent.length > 0
-
-    if (hasMeaningfulThink) {
-      return {
-        think: thinkContent,
-        isThink: true,
-        content: content.replace(thinkRegex, '').trim(),
-        isComplete
-      }
-    } else {
-      return {
-        isThink: false,
-        think: null,
-        content: content.replace(thinkRegex, '').trim(),
-        isComplete
-      }
-    }
-  } else {
-    return {
-      isThink: false,
-      think: null,
-      content,
-      isComplete
-    }
-  }
 }
 
 const openChatList = () => {
@@ -500,14 +469,12 @@ const loadMoreChatDialogue = async () => {
     if (res.code === 1) {
       const newMessages = res.data.list.map((item: Message) => {
         if (item.sender === 'assistant') {
-          const result = extractThinkAndOther(item.content)
-          if (result.isThink) {
-            item.think = mdi.value.render(result.think || '')
-            item.isComplete = true
-            item.isShowThink = true
-            item.isExpanded = false
-          }
-          item.view = mdi.value.render(result.content)
+          item.aiContent?.forEach(value => {
+            value.contentResult = parseReasoning(value.content || "", [])
+            value.contentResult.forEach(result => {
+              result.view = mdi.value.render(result.content)
+            })
+          })
         }
         return item
       })
@@ -626,8 +593,8 @@ const sendOut = async () => {
   try {
     msgParam.value.question = question.value
     messages.value.push(
-        { id: null, lastId: null, content: question.value, sender: 'user', fileInfos: useFileParam.value.fileInfos, feedbackStatus: 0, isStar: false },
-        { id: null, lastId: null, content: '', view: '', isLoadingAnswer: true, sender: 'assistant', feedbackStatus: 0, isStar: false }
+        { id: null, lastId: null, userContent: { question: question.value }, sender: 'user', fileInfos: useFileParam.value.fileInfos, feedbackStatus: 0, isStar: false },
+        { id: null, lastId: null, isLoadingAnswer: true, sender: 'assistant', feedbackStatus: 0, isStar: false }
     )
     question.value = ''
     msgParam.value.fileId = null
@@ -643,64 +610,24 @@ const sendOut = async () => {
         message.isLoadingAnswer = false
       }
 
-      if (['LlmMessageEvent', 'AssistantTextPartEvent'].includes(item.event) && _data.messageType !== 'USER' && message.isLoadingAnswer) {
-        message.isLoadingAnswer = false
-      }
-
       if (item.event === 'start') {
         if (dialoguePages.value.topicId === null) {
           dialoguePages.value.topicId = _data.topicId
           msgParam.value.topicId = _data.topicId
-          chatItems.value.splice(0, 0, { id: _data.topicId, title: limitLengthWithEllipsis(msgParam.value.question) })
+          chatItems.value.splice(0, 0, {
+            id: _data.topicId, title: limitLengthWithEllipsis(msgParam.value.question), createTime: _data.createTime
+          })
+          console.log(chatItems.value)
         }
         lastMessage.id = _data.lastId
-      } else if (item.event === 'LlmMessageEvent') {
-        if (!message.tools) {
-          message.tools = []
-        }
-        if (_data.messageType === 'ASSISTANT' && _data.toolCalls) {
-          for (const toolCall of _data.toolCalls) {
-            const tool = message.tools.find(item => item.id === toolCall.id)
-            if (!tool) {
-              message.tools.push(toolCall)
-            }
-          }
-        } else if (_data.messageType === 'TOOL' && _data.responses) {
-          for (const response of _data.responses) {
-            const tool = message.tools.find(item => item.id === response.id)
-            if (tool) {
-              tool.responseData = response.responseData
-            }
-          }
-        }
-      } else if (item.event === 'AssistantTextPartEvent') {
-        message.content += _data.replace(/^data:\s*/gm, '')
-        const result = extractThinkAndOther(message.content)
-        message.view = mdi.value.render(result.content)
-        if (result.isThink) {
-          message.think = mdi.value.render(result.think || '')
-          message.isComplete = result.isComplete
-          if (message.isShowThink === undefined) {
-            message.isShowThink = true
-            message.isExpanded = true
-          }
-        } else if (message.isShowThink !== undefined) {
-          message.isShowThink = false
-        }
       } else if (item.event === 'output') {
-        message.content += _data.output.text
-        const result = extractThinkAndOther(message.content)
-        message.view = mdi.value.render(result.content)
-        if (result.isThink) {
-          message.think = mdi.value.render(result.think || '')
-          message.isComplete = result.isComplete
-          if (message.isShowThink === undefined) {
-            message.isShowThink = true
-            message.isExpanded = true
-          }
-        } else if (message.isShowThink !== undefined) {
-          message.isShowThink = false
-        }
+        message.aiContent = _data
+        message.aiContent?.forEach(value => {
+          value.contentResult = parseReasoning(value.content || "", [])
+          value.contentResult.forEach(result => {
+            result.view = mdi.value.render(result.content)
+          })
+        })
       } else if (item.event === 'end') {
         if (_data.docMetadata) {
           message.docMetadata = _data.docMetadata
@@ -773,14 +700,12 @@ const initChatDialogue = async () => {
     if (res.code === 1) {
       res.data.list.forEach((item: Message) => {
         if (item.sender === 'assistant') {
-          const result = extractThinkAndOther(item.content)
-          if (result.isThink) {
-            item.think = mdi.value.render(result.think || '')
-            item.isComplete = true
-            item.isShowThink = true
-            item.isExpanded = false
-          }
-          item.view = mdi.value.render(result.content)
+          item.aiContent?.forEach(value => {
+            value.contentResult = parseReasoning(value.content || "", [])
+            value.contentResult.forEach(result => {
+              result.view = mdi.value.render(result.content)
+            })
+          })
         }
       })
       messages.value = res.data.list
@@ -855,17 +780,28 @@ const renameChat = async (item: any) => {
   }
 }
 
-const copyContent = async (content: string) => {
+const copyContent = async (message: Message) => {
   try {
-    await navigator.clipboard.writeText(
-        content.replace(/<think>[\s\S]*?<\/think>/g, '')
-    )
-    ElNotification({
-      message: '文本已复制到剪切板！',
-      type: 'success',
-      customClass: 'talkNotification',
-      offset: 47,
-    })
+    const aiContent = message.aiContent
+    if (aiContent) {
+      const content = aiContent[aiContent.length - 1].content
+      await navigator.clipboard.writeText(
+          content.replace(/<think>[\s\S]*?<\/think>/g, '')
+      )
+      ElNotification({
+        message: '文本已复制到剪切板！',
+        type: 'success',
+        customClass: 'talkNotification',
+        offset: 47,
+      })
+    } else {
+      ElNotification({
+        message: '无可用内容复制！',
+        customClass: 'talkNotification',
+        type: 'warning',
+        offset: 47,
+      })
+    }
   } catch (err) {
     ElNotification({
       message: '复制失败，请检查是否打开复制权限！',
@@ -959,8 +895,13 @@ const delMessage = async (lastId: string | null, isStar: boolean, index: number)
         messages.value.splice(index, 1)
         messages.value.splice(index - 1, 1)
         messages.value.forEach(item => {
-          const result = extractThinkAndOther(item.content)
-          item.view = mdi.value.render(result.content)
+          item.aiContent?.forEach(value => {
+            value.contentResult = parseReasoning(value.content, [])
+            value.contentResult.forEach(result => {
+              result.view = mdi.value.render(result.content)
+            })
+          })
+
         })
         // @ts-ignore
         ElNotification({

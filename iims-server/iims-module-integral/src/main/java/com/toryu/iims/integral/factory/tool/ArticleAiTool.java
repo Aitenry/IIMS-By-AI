@@ -34,9 +34,9 @@ public class ArticleAiTool implements AITool {
         return "article-tools";
     }
 
-    @Tool(description = "分页查询文章列表内容")
+    @Tool(description = "分页查询文档列表内容")
     public String findArticlePageList(
-            @ToolParam(description = "文章的标题") String title,
+            @ToolParam(description = "文章的标题", required = false) String title,
             @ToolParam(description = "页码") Integer page,
             @ToolParam(description = "每页显示数") Integer pageSize) {
         try {

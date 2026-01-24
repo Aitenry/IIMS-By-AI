@@ -57,7 +57,7 @@ public class TopicManageServiceImpl implements TopicManageService {
     @Override
     @Transactional(rollbackFor = Exception.class)
     public Boolean delTopic(List<Long> ids) {
-        if (ids.size() > 0) {
+        if (!ids.isEmpty()) {
             DeletedStatus deletedStatus = DeletedStatus.builder()
                     .isDeleted(true).ids(ids).build();
             dialogueManageService.updateDeletedByTopicIds(ids);

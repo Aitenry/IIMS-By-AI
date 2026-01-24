@@ -90,10 +90,10 @@
     </el-row>
 
     <!-- 新增知识库 -->
-    <FormDialog ref="formDialogRef" width="470px" title="新增知识库" @submit="onSubmit">
+    <FormDialog ref="formDialogRef" width="520px" title="新增知识库" @submit="onSubmit">
       <el-form ref="formRef" :rules="rules" :model="form">
         <el-form-item label="标题" prop="title" label-width="80px" size="large">
-          <el-input style="width: 320px;" v-model="form.title" placeholder="请输入知识库标题" maxlength="15" show-word-limit clearable >
+          <el-input style="width: 350px;" v-model="form.title" placeholder="请输入知识库标题" maxlength="15" show-word-limit clearable >
             <template #prepend>
               <el-select v-model="form.type" placeholder="选择类型" style="width: 130px">
                 <el-option label="企业知识库" :value="0" />
@@ -105,7 +105,7 @@
         <el-form-item label="封面" prop="cover" label-width="80px" size="large">
           <el-upload class="avatar-uploader-wiki" action="#" :on-change="handleCoverChange" :auto-upload="false"
                      :show-file-list="false">
-            <img v-if="form.cover && imageUrl" :src="imageUrl" class="avatar" alt="avatar"/>
+            <image-with-token v-if="form.cover && imageUrl" :src="imageUrl" class="avatar" alt="avatar"/>
             <el-icon v-else class="avatar-uploader-wiki-icon">
               <Plus />
             </el-icon>
@@ -113,7 +113,7 @@
         </el-form-item>
         <el-form-item label="摘要" prop="summary" label-width="80px" size="large">
           <!-- :rows="3" 指定 textarea 默认显示 3 行 -->
-          <el-input style="width: 320px;" v-model="form.summary" :rows="3" maxlength="30" show-word-limit type="textarea"
+          <el-input style="width: 350px;" v-model="form.summary" :rows="3" maxlength="30" show-word-limit type="textarea"
                     placeholder="请输入知识库摘要" clearable />
         </el-form-item>
       </el-form>
@@ -135,7 +135,7 @@
         <el-form-item label="封面" prop="cover" label-width="100px" size="large">
           <el-upload class="avatar-uploader-wiki" action="#" :on-change="handleUpdateCoverChange" :auto-upload="false"
                      :show-file-list="false">
-            <img v-if="editForm.cover && imageUrl" :src="imageUrl" class="avatar-wiki" alt="avatar-wiki"/>
+            <image-with-token v-if="editForm.cover && imageUrl" :src="imageUrl" class="avatar-wiki" alt="avatar-wiki"/>
             <el-icon v-else class="avatar-uploader-wiki-icon">
               <Plus />
             </el-icon>

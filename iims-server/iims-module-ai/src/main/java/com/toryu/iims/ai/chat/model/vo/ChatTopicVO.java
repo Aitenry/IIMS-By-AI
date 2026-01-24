@@ -11,6 +11,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
+import java.time.LocalDateTime;
 
 @Data
 @AllArgsConstructor
@@ -26,5 +27,8 @@ public class ChatTopicVO implements Serializable {
 
     @ApiModelProperty("对话话题ID")
     private String title;
+
+    @ApiModelProperty("创建时间")
+    private LocalDateTime createTime;
 
 }

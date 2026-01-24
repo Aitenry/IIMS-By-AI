@@ -102,7 +102,7 @@
               <el-upload class="avatar-uploader" :action="baseUrl + '/common/upload'" :headers="{ token }"
                          :data="{ itemType: 1 }" :show-file-list="false" :on-success="handleAvatarSuccess"
                          :before-upload="beforeAvatarUpload">
-                <img v-if="form.avatar" :src="imageUrl" class="avatar" alt="avatar">
+                <image-with-token v-if="form.avatar" :src="imageUrl" class="avatar" alt="avatar" />
                 <el-icon v-else class="avatar-uploader-icon">
                   <Plus />
                 </el-icon>
