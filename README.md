@@ -117,6 +117,14 @@ The system is under active development, with some core functions completed and o
 
 
 
+![](/resources/image/permission-organization.png)
+
+
+
+![](/resources/image/permission-organization-tree.png)
+
+
+
 ![](/resources/image/article-list.png)
 
 
