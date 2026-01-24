@@ -145,6 +145,10 @@ The system is under active development, with some core functions completed and o
 
 
 
+![](/resources/image/chat-model.png)
+
+
+
 ![](/resources/image/chat-home.png)
 
 
