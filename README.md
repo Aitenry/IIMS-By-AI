@@ -89,12 +89,6 @@ IIMS is an integrated platform with multiple professional management systems bui
 | 🐳      | Planned        |
 | 🌠      | To Optimize    |
 
-## Current Version
-
-**Version**: 1.0.0  
-
-**Update Date**: November 8, 2025
-
 ## Development Status
 
 The system is under active development, with some core functions completed and other modules continuously being optimized and improved.
