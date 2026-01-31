@@ -2,12 +2,16 @@
 import mermaid from "mermaid";
 import MarkdownIt from 'markdown-it';
 
-// Mermaid插件函数
 function markdownItMermaid(md: MarkdownIt): MarkdownIt {
     // 存储已渲染的图表缓存
     const chartCache = new Map<string, string>();
 
-    // 初始化Mermaid（延迟初始化，避免重复初始化）
+    // 跟踪正在渲染的节点，防止重复渲染
+    const renderingMap = new WeakMap<Element, boolean>();
+
+    // 跟踪已渲染的节点，防止重复处理
+    const renderedNodes = new WeakSet<Element>();
+
     let mermaidInitialized = false;
 
     function initMermaid(): void {
@@ -26,22 +30,22 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
         }
     }
 
-    // 生成稳定的ID
+    // 生成唯一ID：添加时间戳和随机数
     function generateStableId(content: string): string {
-        // 简单的哈希函数
         let hash = 0;
         for (let i = 0; i < content.length; i++) {
             const char = content.charCodeAt(i);
             hash = ((hash << 5) - hash) + char;
-            hash = hash & hash; // 转换为32位整数
+            hash = hash & hash;
         }
-        return `mermaid-${Math.abs(hash)}`;
+        // 添加时间戳和随机数确保全局唯一
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2, 8);
+        return `mermaid-${Math.abs(hash)}-${timestamp}-${random}`;
     }
 
-    // 匹配Mermaid代码块的正则表达式
     const mermaidRegex = /^mermaid\s*$/i;
 
-    // 修改fence规则来处理Mermaid代码块
     const defaultFenceRenderer = md.renderer.rules.fence || function(tokens, idx, options, self) {
         return self.renderToken(tokens, idx, options);
     };
@@ -51,53 +55,110 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
         const code = token.content.trim();
         const info = token.info ? md.utils.unescapeAll(token.info).trim() : '';
 
-        // 检查是否是Mermaid代码块
         if (mermaidRegex.test(info)) {
             initMermaid();
             const id = generateStableId(code);
 
-            // 返回占位符，后续通过DOM操作渲染
             return `<div class="mermaid-placeholder" data-mermaid-content="${encodeURIComponent(code)}" data-mermaid-id="${id}" data-mermaid-raw="${encodeURIComponent(code)}">
                         <div class="mermaid-loading">Loading diagram...</div>
                     </div>`;
-
         }
 
-        // 如果不是Mermaid代码块，使用默认渲染
         return defaultFenceRenderer(tokens, idx, options, env, self);
     };
 
-    // 自动渲染Mermaid图表的函数
+    // 防抖函数
+    let renderDebounceTimer: number | null = null;
+    function debounceRender(delay: number = 50): void {
+        if (renderDebounceTimer) {
+            clearTimeout(renderDebounceTimer);
+        }
+        renderDebounceTimer = window.setTimeout(() => {
+            autoRenderMermaidCharts().then();
+        }, delay);
+    }
+
+    // 【重构】自动渲染函数
     async function autoRenderMermaidCharts(): Promise<void> {
         if (typeof document === 'undefined') return;
 
-        // 只处理未渲染的占位符
         const placeholders = document.querySelectorAll('.mermaid-placeholder:not(.mermaid-rendered)');
+        if (placeholders.length === 0) return;
+
+        async function bindCopyButtonEvents(wrapper: HTMLElement): Promise<void> {
+            const copyBtn = wrapper.querySelector<HTMLElement>('.mermaid-copy-code');
+            if (!copyBtn || (copyBtn as any).__copyBound) return; // 防重复绑定
+
+            (copyBtn as any).__copyBound = true;
+            copyBtn.addEventListener('click', async () => {
+                const codePanel = wrapper.querySelector('.mermaid-code-panel');
+                const codeEl = codePanel?.querySelector('code');
+                const codeText = codeEl?.textContent?.trim();
+
+                if (!codeText) return;
+
+                try {
+                    await navigator.clipboard.writeText(codeText);
+                    const original = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="ri-check-line"></i>';
+                    setTimeout(() => { copyBtn.innerHTML = original; }, 2000);
+                } catch {
+                    // 降级方案
+                    const ta = document.createElement('textarea');
+                    ta.value = codeText;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+
+                    const original = copyBtn.innerHTML;
+                    copyBtn.innerHTML = '<i class="ri-check-line"></i>';
+                    setTimeout(() => { copyBtn.innerHTML = original; }, 2000);
+                }
+            });
+        }
 
         for (const placeholder of Array.from(placeholders)) {
+            // 检查是否已在渲染中
+            if (renderingMap.has(placeholder)) {
+                continue;
+            }
+
+            // 检查是否已被替换（防止重复处理）
+            if (renderedNodes.has(placeholder)) {
+                placeholder.classList.add('mermaid-rendered');
+                continue;
+            }
+
             try {
-                // 立即标记为已处理，避免重复处理
+                // 标记为正在渲染
+                renderingMap.set(placeholder, true);
+
+                if (!placeholder.isConnected || !placeholder.parentNode) {
+                    console.warn('[Mermaid] Placeholder removed before render, skipping:', placeholder);
+                    renderingMap.delete(placeholder);
+                    continue;
+                }
+
                 placeholder.classList.add('mermaid-rendered');
 
                 const content = decodeURIComponent(placeholder.getAttribute('data-mermaid-content') || '');
                 const rawContent = decodeURIComponent(placeholder.getAttribute('data-mermaid-raw') || '');
                 const id = placeholder.getAttribute('data-mermaid-id') || '';
 
-                // 检查缓存
+                // 使用ID作为缓存键，而非content
                 let svg: string | null = null;
                 let renderSuccess = true;
 
-                if (chartCache.has(content)) {
-                    svg = chartCache.get(content) || null;
+                if (chartCache.has(id)) {
+                    svg = chartCache.get(id) || null;
                 } else {
-                    // 渲染Mermaid图表
                     try {
                         if (await mermaid.parse(content, { suppressErrors: false })) {
                             const renderResult = await mermaid.render(id, content);
                             svg = renderResult.svg;
-                            // 缓存结果
                             if (svg) {
-                                chartCache.set(content, svg);
+                                chartCache.set(id, svg);
                             }
                         }
                     } catch (renderError) {
@@ -106,32 +167,57 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
                     }
                 }
 
-                // 创建容器
-                let containerHtml: string;
-                if (renderSuccess && svg) {
-                    containerHtml = createCanvasContainer(svg, id, rawContent);
-                } else {
-                    // 渲染失败时显示原始内容
-                    containerHtml = createErrorContainer(rawContent, id);
+                //二次校验
+                if (!placeholder.isConnected || !placeholder.parentNode) {
+                    placeholder.classList.remove('mermaid-rendered');
+                    renderingMap.delete(placeholder);
+                    continue;
                 }
 
-                // 替换占位符
-                placeholder.outerHTML = containerHtml;
+                //检查是否已被其他任务替换
+                if (!placeholder.classList.contains('mermaid-placeholder')) {
+                    renderingMap.delete(placeholder);
+                    continue;
+                }
+
+                const containerHtml = renderSuccess && svg
+                    ? createCanvasContainer(svg, id, rawContent)
+                    : createErrorContainer(rawContent, id);
+
+                const tempDiv = document.createElement('div');
+                tempDiv.innerHTML = containerHtml.trim();
+                const newNode = tempDiv.firstElementChild;
+
+                if (newNode) {
+                    // 替换前再次确认
+                    if (placeholder.isConnected && placeholder.parentNode) {
+                        placeholder.replaceWith(newNode);
+                        renderedNodes.add(placeholder); // 标记为已处理
+                        await bindCopyButtonEvents(newNode as HTMLElement);
+                    }
+                } else {
+                    console.error('[Mermaid] Failed to create replacement node');
+                    placeholder.classList.remove('mermaid-rendered');
+                }
 
             } catch (error) {
-                console.error('Failed to process Mermaid placeholder:', error);
-                // 移除处理标记，允许重试
-                placeholder.classList.remove('mermaid-rendered');
+                console.error('[Mermaid] Render failed for placeholder:', placeholder, error);
+                if (placeholder.classList.contains('mermaid-rendered')) {
+                    placeholder.classList.remove('mermaid-rendered');
+                }
+            } finally {
+                // 清除渲染标记
+                renderingMap.delete(placeholder);
             }
         }
 
-        // 初始化画布功能（只对新创建的画布）
-        if (placeholders.length > 0) {
+        // 初始化画布功能
+        if (document.querySelector('.mermaid-canvas:not(.mermaid-canvas-initialized)')) {
             initCanvasFeatures();
         }
     }
 
-    // 创建画布容器
+    // 创建画布容器（修改按钮文本和图标）
     function createCanvasContainer(svg: string, id: string, rawContent: string): string {
         return `
           <div class="mermaid-canvas-wrapper mermaid-rendered" data-mermaid-id="${id}">
@@ -139,7 +225,7 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
               <div class="mermaid-canvas-title">图表预览</div>
               <div class="mermaid-canvas-controls">
                 <button class="mermaid-btn mermaid-reset-view" title="重置视图"><i class="ri-restart-line"></i></button>
-                <button class="mermaid-btn mermaid-show-code" title="显示源码"><i class="ri-book-read-line"></i></button>
+                <button class="mermaid-btn mermaid-copy-code" title="复制源码"><i class="ri-file-copy-2-line"></i></button>
                 <button class="mermaid-btn mermaid-download-svg" title="下载SVG"><i class="ri-download-line"></i></button>
               </div>
             </div>
@@ -157,14 +243,14 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
         `;
     }
 
-    // 创建错误容器（显示原始内容）
+    // 创建错误容器（修改按钮文本和图标）
     function createErrorContainer(rawContent: string, id: string): string {
         return `
           <div class="mermaid-canvas-wrapper mermaid-error-wrapper mermaid-rendered" data-mermaid-id="${id}">
             <div class="mermaid-canvas-header">
-              <div class="mermaid-error-title">图表渲染失败 - 显示原始内容</div>
+              <div class="mermaid-error-title">mermaid</div>
               <div class="mermaid-canvas-controls">
-                <button class="mermaid-btn mermaid-show-code active" title="隐藏源码"><i class="ri-book-read-line"></i></button>
+                <button class="mermaid-btn mermaid-copy-code" title="复制源码"><i class="ri-file-copy-2-line"></i></button>
               </div>
             </div>
             <div class="mermaid-code-panel" style="display: block;">
@@ -174,7 +260,6 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
         `;
     }
 
-    // HTML转义
     function escapeHtml(text: string): string {
         const map: Record<string, string> = {
             '&': '&amp;',
@@ -186,11 +271,9 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
         return text.replace(/[&<>"']/g, function(m) { return map[m]; });
     }
 
-    // 初始化画布功能
     function initCanvasFeatures(): void {
         if (typeof document === 'undefined') return;
 
-        // 只为未初始化的画布初始化
         const canvases = document.querySelectorAll('.mermaid-canvas:not(.mermaid-canvas-initialized)');
         canvases.forEach(canvas => {
             canvas.classList.add('mermaid-canvas-initialized');
@@ -198,7 +281,6 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
         });
     }
 
-    // 初始化单个画布
     function initializeCanvas(canvas: HTMLElement): void {
         let isPanning = false;
         let startX = 0, startY = 0;
@@ -208,14 +290,12 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
 
         if (!svgWrapper) return;
 
-        // 初始化居中显示
         setTimeout(() => {
             centerSvgInCanvas(canvas, svgWrapper);
         }, 50);
 
-        // 鼠标按下 - 开始拖拽
         canvas.addEventListener('mousedown', function(e: MouseEvent) {
-            if (e.button === 0) { // 左键
+            if (e.button === 0) {
                 isPanning = true;
                 startX = e.clientX;
                 startY = e.clientY;
@@ -226,7 +306,6 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
             }
         });
 
-        // 鼠标移动 - 拖拽中
         document.addEventListener('mousemove', function(e: MouseEvent) {
             if (isPanning) {
                 const deltaX = e.clientX - startX;
@@ -236,7 +315,6 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
             }
         });
 
-        // 鼠标释放 - 结束拖拽
         document.addEventListener('mouseup', function() {
             if (isPanning) {
                 isPanning = false;
@@ -244,19 +322,16 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
             }
         });
 
-        // 鼠标进入画布
         canvas.addEventListener('mouseenter', function() {
             canvas.style.cursor = 'grab';
         });
 
-        // 鼠标离开画布
         canvas.addEventListener('mouseleave', function() {
             if (!isPanning) {
                 canvas.style.cursor = 'default';
             }
         });
 
-        // 滚轮缩放
         canvas.addEventListener('wheel', function(e: WheelEvent) {
             e.preventDefault();
 
@@ -264,30 +339,23 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
             const mouseX = e.clientX - rect.left;
             const mouseY = e.clientY - rect.top;
 
-            // 获取当前SVG wrapper的位置和缩放
             const currentLeft = parseFloat(svgWrapper.style.left) || 0;
             const currentTop = parseFloat(svgWrapper.style.top) || 0;
             const currentScale = scale;
 
-            // 计算鼠标相对于SVG内容的位置（考虑缩放）
             const relativeX = (mouseX - currentLeft) / currentScale;
             const relativeY = (mouseY - currentTop) / currentScale;
 
-            // 计算缩放因子
             const zoomIntensity = 0.1;
             const wheel = e.deltaY < 0 ? 1 : -1;
             const zoom = Math.exp(wheel * zoomIntensity);
 
-            // 限制缩放范围
             const newScale = Math.max(0.1, Math.min(5, currentScale * zoom));
 
             if (newScale !== currentScale) {
                 scale = newScale;
-
-                // 应用缩放
                 svgWrapper.style.transform = `scale(${scale})`;
 
-                // 重新计算位置以保持鼠标位置不变
                 const newLeft = mouseX - relativeX * scale;
                 const newTop = mouseY - relativeY * scale;
 
@@ -296,12 +364,10 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
             }
         });
 
-        // 双击重置
         canvas.addEventListener('dblclick', function() {
             resetCanvasView(canvas, svgWrapper);
         });
 
-        // 重置视图按钮
         const wrapper = canvas.closest('.mermaid-canvas-wrapper');
         const resetBtn = wrapper?.querySelector('.mermaid-reset-view');
         if (resetBtn) {
@@ -310,20 +376,47 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
             });
         }
 
-        // 显示/隐藏源码
-        const showCodeBtn = wrapper?.querySelector('.mermaid-show-code');
-        if (showCodeBtn) {
-            showCodeBtn.addEventListener('click', function() {
+        // 复制源码功能
+        const copyCodeBtn = wrapper?.querySelector('.mermaid-copy-code');
+        if (copyCodeBtn) {
+            copyCodeBtn.addEventListener('click', async function() {
                 const codePanel = wrapper?.querySelector('.mermaid-code-panel') as HTMLElement | null;
-                if (codePanel) {
-                    const isVisible = codePanel.style.display !== 'none';
-                    codePanel.style.display = isVisible ? 'none' : 'block';
-                    showCodeBtn.classList.toggle('active', !isVisible);
+                const codeElement = codePanel?.querySelector('code');
+
+                if (codeElement && codeElement.textContent) {
+                    try {
+                        await navigator.clipboard.writeText(codeElement.textContent);
+
+                        // 临时改变按钮样式提示复制成功
+                        const originalIcon = copyCodeBtn.innerHTML;
+                        copyCodeBtn.innerHTML = '<i class="ri-check-line"></i>';
+
+                        setTimeout(() => {
+                            copyCodeBtn.innerHTML = originalIcon;
+                        }, 2000);
+                    } catch (err) {
+                        console.error('Failed to copy code: ', err);
+
+                        // 降级方案：创建临时textarea复制
+                        const textarea = document.createElement('textarea');
+                        textarea.value = codeElement.textContent;
+                        document.body.appendChild(textarea);
+                        textarea.select();
+                        document.execCommand('copy');
+                        document.body.removeChild(textarea);
+
+                        // 同样的视觉反馈
+                        const originalIcon = copyCodeBtn.innerHTML;
+                        copyCodeBtn.innerHTML = '<i class="ri-check-line"></i>';
+
+                        setTimeout(() => {
+                            copyCodeBtn.innerHTML = originalIcon;
+                        }, 2000);
+                    }
                 }
             });
         }
 
-        // 下载SVG按钮
         const downloadSvgBtn = wrapper?.querySelector('.mermaid-download-svg');
         if (downloadSvgBtn) {
             downloadSvgBtn.addEventListener('click', async function() {
@@ -332,21 +425,15 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
         }
     }
 
-    // 居中显示SVG
     function centerSvgInCanvas(canvas: HTMLElement, svgWrapper: HTMLElement): void {
         if (!canvas || !svgWrapper) return;
 
-        // 获取画布尺寸
         const canvasRect = canvas.getBoundingClientRect();
-
-        // 强制重新计算SVG尺寸
         svgWrapper.style.width = 'auto';
         svgWrapper.style.height = 'auto';
 
-        // 获取SVG的实际尺寸
         const svgRect = svgWrapper.getBoundingClientRect();
 
-        // 计算居中位置
         const centerX = (canvasRect.width - svgRect.width) / 2;
         const centerY = (canvasRect.height - svgRect.height) / 2;
 
@@ -354,23 +441,19 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
         svgWrapper.style.top = Math.max(0, centerY) + 'px';
     }
 
-    // 重置画布视图
     function resetCanvasView(canvas: HTMLElement, svgWrapper: HTMLElement): void {
         if (svgWrapper) {
             svgWrapper.style.transform = 'scale(0.3)';
             svgWrapper.style.left = '0px';
             svgWrapper.style.top = '0px';
-            // 重置宽度
             svgWrapper.style.width = 'auto';
             svgWrapper.style.height = 'auto';
         }
-        // 重新居中
         setTimeout(() => {
             centerSvgInCanvas(canvas, svgWrapper);
         }, 10);
     }
 
-    // 下载SVG
     async function downloadSvg(canvas: HTMLElement, wrapper: HTMLElement): Promise<void> {
         const svgWrapper = canvas.querySelector('.mermaid-svg-wrapper') as HTMLElement | null;
         if (!svgWrapper) return;
@@ -378,18 +461,13 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
         const svgElement = svgWrapper.querySelector('svg') as SVGElement;
         if (!svgElement) return;
 
-        // 获取原始内容以生成文件名
         const rawContent = wrapper.querySelector('.mermaid-code-panel code')?.textContent || 'diagram';
         const filename = generateFilename(rawContent, 'svg');
 
-        // 获取SVG的XML字符串
         const serializer = new XMLSerializer();
         let svgString = serializer.serializeToString(svgElement);
-
-        // 添加XML声明
         svgString = '<?xml version="1.0" standalone="no"?>\n' + svgString;
 
-        // 创建Blob并下载
         const blob = new Blob([svgString], { type: 'image/svg+xml' });
         const url = URL.createObjectURL(blob);
 
@@ -402,13 +480,10 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
         URL.revokeObjectURL(url);
     }
 
-    // 生成文件名
     function generateFilename(content: string, extension: string): string {
-        // 简单的文件名生成逻辑
         const prefix = 'mermaid-diagram';
         const timestamp = new Date().toISOString().slice(0, 19).replace(/[:\-]/g, '');
 
-        // 从内容中提取一些有意义的字符作为标识
         const contentPreview = content
             .substring(0, 20)
             .replace(/[^a-zA-Z0-9]/g, '-')
@@ -421,27 +496,58 @@ function markdownItMermaid(md: MarkdownIt): MarkdownIt {
         return `${prefix}${suffix}-${timestamp}.${extension}`;
     }
 
-    // 设置自动渲染
+    // 【关键修复】移除高频轮询，改用智能触发
     if (typeof window !== 'undefined') {
-        // 页面加载完成后渲染
         if (document.readyState === 'loading') {
             document.addEventListener('DOMContentLoaded', () => autoRenderMermaidCharts());
         } else {
-            // 延迟执行，确保DOM完全加载
             setTimeout(() => autoRenderMermaidCharts(), 0);
         }
 
-        // 定期检查新内容（适用于打字机效果）
-        setInterval(() => autoRenderMermaidCharts(), 100);
+        // 【新增】监听 DOM 变化，智能触发渲染
+        const observer = new MutationObserver((mutations) => {
+            // 检查是否有新的 mermaid-placeholder
+            for (const mutation of mutations) {
+                if (mutation.addedNodes.length > 0) {
+                    for (const node of mutation.addedNodes) {
+                        if (node.nodeType === Node.ELEMENT_NODE) {
+                            const element = node as Element;
+                            if (element.classList?.contains('mermaid-placeholder') ||
+                                element.querySelector('.mermaid-placeholder')) {
+                                debounceRender();
+                                break;
+                            }
+                        }
+                    }
+                }
+            }
+        });
+
+        observer.observe(document.body, {
+            childList: true,
+            subtree: true
+        });
+
+        // 【新增】暴露手动触发方法
+        window.addEventListener('mermaid:refresh', () => {
+            autoRenderMermaidCharts().then();
+        });
     }
 
-    // 将渲染函数挂载到markdown-it实例上（供手动调用）
     (md as any).renderMermaidCharts = autoRenderMermaidCharts;
+    (md as any).refreshMermaidCharts = () => {
+        // 清除所有渲染标记，重新渲染
+        document.querySelectorAll('.mermaid-rendered').forEach(el => {
+            el.classList.remove('mermaid-rendered');
+        });
+        chartCache.clear();
+        autoRenderMermaidCharts().then();
+    };
 
     return md;
 }
 
-// 添加必要的CSS
+// CSS 保持不变
 function addMermaidStyles(): void {
     if (typeof document !== 'undefined' && !document.getElementById('mermaid-plugin-styles')) {
         const style = document.createElement('style');
@@ -535,7 +641,7 @@ function addMermaidStyles(): void {
           .mermaid-canvas {
             width: 100%;
             height: 100%;
-            overflow: hidden; /* 隐藏滚动条 */
+            overflow: hidden;
             cursor: grab;
             position: relative;
             background: 
@@ -558,7 +664,7 @@ function addMermaidStyles(): void {
             transform: scale(0.3);
             left: 0;
             top: 0;
-            will-change: transform, left, top; /* 优化性能 */
+            will-change: transform, left, top;
             width: auto !important;
             height: auto !important;
           }
@@ -568,14 +674,13 @@ function addMermaidStyles(): void {
             background: #ffffff00;
             border-radius: 4px;
             width: 1920px !important;
-            max-width: none !important; /* 防止SVG被压缩 */
+            max-width: none !important;
             height: auto !important;
           }
           
           .mermaid-code-panel {
             border-top: 1px solid #eee;
             background: #f8f9fa;
-            height: 400px;
             max-height: 400px;
             overflow: auto;
           }
@@ -621,7 +726,6 @@ function addMermaidStyles(): void {
     }
 }
 
-// 确保样式被添加
 if (typeof window !== 'undefined') {
     addMermaidStyles();
 }

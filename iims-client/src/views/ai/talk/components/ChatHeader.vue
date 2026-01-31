@@ -5,14 +5,27 @@
       justify-content: space-between;
       margin: 10px;
     ">
-    <el-button style="
-        border: 2px solid #8ac5ff;
-        color: #40a0ffa8;
-        background: #ecf5ff;
-        border-radius: 12px;
-      " @click="emit('open-chat-list')" circle>
-      <i :class="'ri-indent-' + (isOpenChatList ? 'decrease' : 'increase')"></i>
-    </el-button>
+    <div style="display: flex; align-items: center; gap: 8px;">
+      <!-- 原有的聊天列表按钮 -->
+      <el-button style="
+          border: 2px solid #8ac5ff;
+          color: #40a0ffa8;
+          background: #ecf5ff;
+          border-radius: 12px;
+        " @click="emit('open-chat-list')" circle>
+        <i :class="'ri-indent-' + (isOpenChatList ? 'decrease' : 'increase')"></i>
+      </el-button>
+      <AIMultiLevelSelector
+          :button-style="{
+            border: '2px solid #8ac5ff',
+            color: '#40a0ffa8',
+            background: '#ecf5ff',
+            borderRadius: '12px'
+          }"
+          :models="endpointList"
+          @selection-changed="handleModelSelectionChanged"
+      />
+    </div>
     <div class="animate__animated animate__pulse animate__fadeInRight">
       <el-tooltip effect="dark" content="开启新对话" placement="bottom-start">
         <el-button style="
@@ -37,35 +50,6 @@
             (isFlashing ? 'flashlight' : 'archive-stack') +
             '-fill'
           "></i>
-        </el-button>
-      </el-tooltip>
-      <el-tooltip effect="dark" :content="agentEnabled ? '关闭智能体模式' : '开启智能体模式'" placement="bottom-start">
-        <el-button
-            class="agent-btn"
-            :class="{ 'agent-enabled': agentEnabled }"
-            style="
-            border: 2px solid #40a0ffa8;
-            color: #40a0ffa8;
-            background: #ecf5ff;
-            border-radius: 10px;
-            padding: 7px 12px;
-          "
-            round
-            @click="toggleAgent">
-          <div class="thinking-indicator">
-            <i
-                style="font-size: 16px; font-weight: bolder;"
-                :class="{
-                  'ri-chat-ai-3-line': !agentEnabled,
-                  'thinking-animation': agentEnabled && isThinking
-                }"
-            ></i>
-            <div v-if="agentEnabled && isThinking" class="neural-pulse">
-              <div class="pulse-dot" style="--delay: 0s"></div>
-              <div class="pulse-dot" style="--delay: 0.2s"></div>
-              <div class="pulse-dot" style="--delay: 0.4s"></div>
-            </div>
-          </div>
         </el-button>
       </el-tooltip>
     </div>
@@ -100,13 +84,13 @@
 
 <script setup lang="ts">
 import type {ChatHeaderProps} from "@/views/ai/talk/types/talk.ts";
-import {ref, watch, nextTick, onUnmounted} from 'vue';
+import {ref, watch, nextTick, onMounted} from 'vue';
+import AIMultiLevelSelector from "@/views/ai/talk/components/AIMultiLevelSelector.vue";
+import {getEndpointList} from "@/api/ai/chat.ts";
 
 const props = withDefaults(defineProps<ChatHeaderProps>(), {})
+const endpointList = ref([])
 
-// 添加 Agent 相关状态
-const agentEnabled = ref(false)
-const isThinking = ref(false)
 const wikiContainerStyle = ref({})
 
 const emit = defineEmits<{
@@ -115,33 +99,13 @@ const emit = defineEmits<{
   'handle-wiki-click': []
   'close-file-click': []
   'toggle-wiki-drawer': []
-  'toggle-agent': [enabled: boolean]
 }>()
 
 // 容器引用
 const wikiContainerRef = ref<HTMLElement | null>(null)
 
-// 切换 Agent 状态
-const toggleAgent = () => {
-  agentEnabled.value = !agentEnabled.value
-  isThinking.value = agentEnabled.value;
-  emit('toggle-agent', agentEnabled.value)
-}
-
-// 模拟思考过程
-let thinkingInterval: number | null = null
-
-const startThinkingAnimation = () => {
-  if (!agentEnabled.value) return
-  isThinking.value = true
-}
-
-const stopThinkingAnimation = () => {
-  if (thinkingInterval) {
-    clearInterval(thinkingInterval)
-    thinkingInterval = null
-  }
-  isThinking.value = false
+const handleModelSelectionChanged = (model: any) => {
+  props.onModelSelectionChanged(model)
 }
 
 // 更新位置
@@ -155,19 +119,18 @@ const updatePosition = async () => {
   }
 };
 
-watch(() => agentEnabled.value, (newVal) => {
-  if (newVal) {
-    startThinkingAnimation()
-  } else {
-    stopThinkingAnimation()
-  }
-}, { immediate: false })
-
 watch(() => [props.loadWikiTitles, props.isFlashing], updatePosition, { immediate: true });
 
-onUnmounted(() => {
-  stopThinkingAnimation()
+onMounted(() => {
+  initEndpointList()
 })
+
+const initEndpointList = async () => {
+  const res = await getEndpointList()
+  if (res.code === 1) {
+    endpointList.value = res.data
+  }
+}
 </script>
 
 <style scoped>
@@ -228,105 +191,5 @@ onUnmounted(() => {
 /* 如果只有一个知识库，保持紧凑样式 */
 .wiki-names-list:has(.wiki-name-item:first-child:last-child) {
   justify-content: center;
-}
-
-/* Agent 按钮整体样式 */
-.agent-btn {
-  transition: all 0.3s ease;
-  position: relative;
-  overflow: visible;
-  min-width: 45px;
-}
-
-.agent-btn::before {
-  content: '';
-  position: absolute;
-  top: -4px;
-  left: -4px;
-  right: -4px;
-  bottom: -4px;
-  border-radius: 14px;
-  background: linear-gradient(45deg, transparent, rgba(64, 160, 255, 0.3), transparent);
-  opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: -1;
-}
-
-.agent-btn.agent-enabled::before {
-  animation: agent-glow 3s infinite;
-  opacity: 1;
-}
-
-.agent-btn.agent-enabled {
-  background: linear-gradient(135deg, #e6f7ff, #d1eaff);
-  border-color: #1890ff !important;
-  color: #1890ff !important;
-  box-shadow: 0 0 15px rgba(24, 144, 255, 0.3);
-}
-
-.thinking-indicator {
-  position: relative;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-}
-
-.thinking-animation {
-  animation: brain-think 1.5s infinite ease-in-out;
-}
-
-.neural-pulse {
-  position: absolute;
-  top: -2px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 2px;
-  pointer-events: none;
-}
-
-.pulse-dot {
-  width: 4px;
-  height: 4px;
-  background: #1890ff;
-  border-radius: 50%;
-  animation: neural-pulse 1.5s infinite;
-  animation-delay: var(--delay, 0s);
-}
-
-@keyframes agent-glow {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.6;
-  }
-  50% {
-    transform: scale(1.05);
-    opacity: 0.8;
-  }
-}
-
-@keyframes brain-think {
-  0%, 100% {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(5deg);
-  }
-  75% {
-    transform: rotate(-5deg);
-  }
-}
-
-@keyframes neural-pulse {
-  0%, 100% {
-    transform: scale(1);
-    opacity: 0.3;
-  }
-  50% {
-    transform: scale(1.5);
-    opacity: 1;
-  }
 }
 </style>

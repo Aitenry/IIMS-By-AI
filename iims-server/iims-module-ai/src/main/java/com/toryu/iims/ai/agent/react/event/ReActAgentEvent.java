@@ -8,6 +8,10 @@ public interface ReActAgentEvent {
         return this.getClass().getSimpleName();
     }
 
+    default Boolean getComplete() {
+        return true;
+    }
+
     /**
      * 获取事件内容
      */

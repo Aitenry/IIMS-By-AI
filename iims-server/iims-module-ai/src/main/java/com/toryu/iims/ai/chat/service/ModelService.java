@@ -2,6 +2,8 @@ package com.toryu.iims.ai.chat.service;
 
 import com.toryu.iims.ai.chat.model.entity.ModelChatOptions;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.deepseek.DeepSeekChatOptions;
+import org.springframework.ai.deepseek.api.DeepSeekApi;
 import org.springframework.ai.document.MetadataMode;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.ollama.api.OllamaApi;
@@ -16,6 +18,8 @@ public interface ModelService {
     ChatModel getOllamaChatModel(OllamaApi ollamaApi, OllamaChatOptions ollamaOptions);
 
     ChatModel getOpenAIChatModel(OpenAiApi openAiApi, OpenAiChatOptions openAiOptions);
+
+    ChatModel getDeepSeekChatModel(DeepSeekApi deepSeekApi, DeepSeekChatOptions deepSeekChatOptions);
 
     ChatModel getChatModel(Long modelId, ModelChatOptions options);
 

@@ -22,7 +22,7 @@ public class MessageData implements Serializable {
 
     private Long fileId;
 
-    private Boolean isUseAgent;
+    private Long modelId;
 
     private List<Long> wikiIds;
 

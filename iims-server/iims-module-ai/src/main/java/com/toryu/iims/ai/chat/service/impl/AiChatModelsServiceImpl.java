@@ -6,8 +6,14 @@ import com.toryu.iims.ai.chat.mapper.AiChatModelsMapper;
 import com.toryu.iims.ai.chat.model.dto.ModelPageQueryDTO;
 import com.toryu.iims.ai.chat.model.entity.ChatApi;
 import com.toryu.iims.ai.chat.model.vo.ModelVO;
+import com.toryu.iims.ai.chat.model.vo.SelectEndpointVO;
+import com.toryu.iims.ai.chat.model.vo.SelectModelVO;
 import com.toryu.iims.ai.chat.service.AiChatModelsService;
 import org.springframework.stereotype.Service;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Objects;
 
 /**
  * @Author: Aitenry
@@ -35,5 +41,21 @@ public class AiChatModelsServiceImpl implements AiChatModelsService {
         int pageSize = modelPageQueryDTO.getPageSize();
         PageHelper.startPage(page, pageSize);
         return aiChatModelsMapper.pageQuery(modelPageQueryDTO);
+    }
+
+    @Override
+    public List<SelectModelVO> selectModelList() {
+        return aiChatModelsMapper.selectModelList();
+    }
+
+    @Override
+    public List<SelectEndpointVO> selectEndpointList() {
+        List<SelectModelVO> selectModelVOS = this.selectModelList();
+        List<SelectEndpointVO> selectEndpointVOS = new ArrayList<>();
+        selectModelVOS.forEach(selectModelVO -> selectEndpointVOS.add(SelectEndpointVO.builder()
+                .id(selectModelVO.getId()).description(selectModelVO.getDescription()).apiType(selectModelVO.getType())
+                .name(Objects.isNull(selectModelVO.getRename()) ? selectModelVO.getName() : selectModelVO.getRename() )
+                .modelType(selectModelVO.getModelType()).build()));
+        return selectEndpointVOS;
     }
 }

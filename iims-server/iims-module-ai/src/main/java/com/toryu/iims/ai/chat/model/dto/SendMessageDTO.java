@@ -12,7 +12,7 @@ public class SendMessageDTO implements Serializable {
 
     private Long lastId;
 
-    private Boolean isUseAgent;
+    private Long modelId;
 
     private List<Long> wikiIds;
 

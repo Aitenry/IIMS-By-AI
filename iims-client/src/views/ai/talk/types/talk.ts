@@ -5,6 +5,7 @@ export interface ChatHeaderProps {
     wikiStatusDecl: string
     isFlashing: boolean
     loadWikiTitles: string[]
+    onModelSelectionChanged: (model: any) => void
 }
 
 // 定义类型
@@ -41,7 +42,7 @@ export interface MsgParam {
     lastId: string | null
     fileId: string | null
     question: string
-    isUseAgent: boolean | null
+    modelId: string | null
     wikiIds: string[] | null
 }
 

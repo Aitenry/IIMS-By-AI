@@ -3,6 +3,13 @@ import request from '@/utils/request.ts'
 
 const VITE_APP_API_URL = import.meta.env.VITE_APP_API_URL
 
+export function getEndpointList() {
+  return request({
+    url: `/ai/chat/endpoint/list`,
+    method: 'get'
+  }) as any
+}
+
 /**
  * 接收AI回答的函数
  * @param {string} uuid - 唯一标识符

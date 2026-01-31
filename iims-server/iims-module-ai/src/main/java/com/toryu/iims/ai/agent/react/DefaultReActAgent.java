@@ -1,6 +1,5 @@
 package com.toryu.iims.ai.agent.react;
 
-import com.toryu.iims.ai.agent.react.event.AssistantTextPartEvent;
 import com.toryu.iims.ai.agent.react.event.LlmMessageEvent;
 import com.toryu.iims.ai.agent.react.event.ReActAgentEvent;
 import com.toryu.iims.ai.agent.react.exception.MaxIterationReachedException;
@@ -198,7 +197,8 @@ class DefaultReActAgent implements ReActAgent {
             String text = output.getText();
             if (text != null && !text.isEmpty()) {
                 accumulatedText.append(text);
-                sink.next(new AssistantTextPartEvent(text));
+                sink.next(new LlmMessageEvent(AssistantMessage.builder()
+                        .content(accumulatedText.toString()).toolCalls(toolCalls).build(), false));
             }
             if (partResponse.hasToolCalls()) {
                 toolCalls.addAll(output.getToolCalls());
@@ -223,7 +223,7 @@ class DefaultReActAgent implements ReActAgent {
 
         // 只推送非历史消息，避免重复推送历史聊天记录
         if (!isHistorical) {
-            sink.next(new LlmMessageEvent(message, id));
+            sink.next(new LlmMessageEvent(message, true));
         }
         return id;
     }

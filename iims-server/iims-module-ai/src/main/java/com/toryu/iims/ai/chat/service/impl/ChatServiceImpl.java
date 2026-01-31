@@ -10,6 +10,7 @@ import com.toryu.iims.ai.rag.handle.PromptHandlerContext;
 import com.toryu.iims.ai.rag.model.entity.RagMessage;
 import com.toryu.iims.ai.rag.utils.PromptTemplateUtil;
 import com.toryu.iims.common.context.BaseContext;
+import com.toryu.iims.common.enums.AiModelApiType;
 import com.toryu.iims.common.model.entity.file.FileWarehouse;
 import com.toryu.iims.common.service.FileStorageService;
 import lombok.extern.slf4j.Slf4j;
@@ -35,6 +36,7 @@ public class ChatServiceImpl implements ChatService {
     Map<Long, MessageData> msgMap = new ConcurrentHashMap<>();
 
     private final ModelService modelService;
+    private final AiChatModelsService aiChatModelsService;
     private final TopicManageService topicManageService;
     private final DialogueManageService dialogueManageService;
     private final FileStorageService fileStorageService;
@@ -43,10 +45,11 @@ public class ChatServiceImpl implements ChatService {
     private final ChatUtil chatUtil;
     private final AgentUtil agentUtil;
 
-    public ChatServiceImpl(ModelService modelService, TopicManageService topicManageService,
+    public ChatServiceImpl(ModelService modelService, AiChatModelsService aiChatModelsService, TopicManageService topicManageService,
                            DialogueManageService dialogueManageService, FileStorageService fileStorageService,
                            AiChatSettingService settingService, PromptHandlerContext promptHandlerContext, ChatUtil chatUtil, AgentUtil agentUtil) {
         this.modelService = modelService;
+        this.aiChatModelsService = aiChatModelsService;
         this.topicManageService = topicManageService;
         this.dialogueManageService = dialogueManageService;
         this.fileStorageService = fileStorageService;
@@ -66,7 +69,7 @@ public class ChatServiceImpl implements ChatService {
         MessageData messageData = MessageData.builder().sse(new SseEmitter(0L))
                 .fileId(messageDto.getFileId()).wikiIds(messageDto.getWikiIds())
                 .question(messageDto.getQuestion()).topicId(messageDto.getTopicId()).tools(new ArrayList<>())
-                .lastId(messageDto.getLastId()).isUseAgent(messageDto.getIsUseAgent()).build();
+                .lastId(messageDto.getLastId()).modelId(messageDto.getModelId()).build();
         Long userId = BaseContext.getCurrentId();
         // 提取必要信息
         SseEmitter emitter = messageData.getSse();
@@ -107,18 +110,18 @@ public class ChatServiceImpl implements ChatService {
                 }
 
                 ModelSetting modelSetting = settingService.getUserModelSetting();
-                Long modelId;
-                switch (type) {
-                    case IMAGE -> modelId = modelSetting.getVisionModel();
-                    case AUDIO, VIDEO -> modelId = modelSetting.getMultimodalModel();
-                    default -> modelId = modelSetting.getLanguageModel();
-                }
-
+                Long modelId = messageData.getModelId();
+                ChatApi chatApi = aiChatModelsService.selectModelById(modelId);
                 // 发送开始事件
                 chatUtil.sendStartEvent(emitter, _uuid, topicId, lastId);
 
-                if (messageData.getIsUseAgent()) {
+                if (Objects.equals(chatApi.getType(), AiModelApiType.AGENT)) {
                     PromptTemplateUtil.defineMessage(question, fileContext, messages);
+                    switch (type) {
+                        case IMAGE -> modelId = modelSetting.getVisionModel();
+                        case AUDIO, VIDEO -> modelId = modelSetting.getMultimodalModel();
+                        default -> modelId = modelSetting.getLanguageModel();
+                    }
                     agentUtil.processStream(
                             uuid, userId, modelId, new ArrayList<>(), messages,
                             messageData, emitter, msgMap);

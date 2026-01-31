@@ -39,6 +39,8 @@ spring:
   ai:
     openai:
       api-key: xxx
+    deepseek:
+      api-key: xxx
 
 mybatis:
   #mapper配置文件

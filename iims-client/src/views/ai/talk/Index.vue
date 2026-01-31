@@ -17,11 +17,11 @@
               :wiki-status-decl="wikiStatusDecl"
               :is-flashing="isFlashing"
               :load-wiki-titles="loadWikiTitles"
+              :on-model-selection-changed="handleModelSelectionChanged"
               @open-chat-list="openChatList"
               @open-new-chat="openNewChat"
               @handle-wiki-click="handleWikiClick"
               @close-file-click="closeFileClick"
-              @toggle-agent="handleAgentToggle"
               @toggle-wiki-drawer="wikiDrawer = true"
           />
           <el-divider style="width: calc(100% - 30px); margin: 0 15px" />
@@ -185,7 +185,7 @@ const msgParam = ref<MsgParam>({
   topicId: null,
   lastId: null,
   fileId: null,
-  isUseAgent: false,
+  modelId: null,
   question: '',
   wikiIds: null
 })
@@ -501,8 +501,8 @@ const openNewChat = () => {
     topicId: null,
     lastId: null,
     fileId: null,
+    modelId: msgParam.value.modelId,
     question: '',
-    isUseAgent: msgParam.value.isUseAgent,
     wikiIds: msgParam.value.wikiIds
   }
   dialoguePages.value = {
@@ -573,8 +573,8 @@ const limitLengthWithEllipsis = (question: string) => {
   }
 }
 
-const handleAgentToggle = (enabled: boolean) => {
-  msgParam.value.isUseAgent = enabled
+const handleModelSelectionChanged = (model: any) => {
+  msgParam.value.modelId = model.id
 }
 
 const sendOut = async () => {
@@ -619,7 +619,6 @@ const sendOut = async () => {
           chatItems.value.splice(0, 0, {
             id: _data.topicId, title: limitLengthWithEllipsis(msgParam.value.question), createTime: _data.createTime
           })
-          console.log(chatItems.value)
         }
         lastMessage.id = _data.lastId
       } else if (item.event === 'output') {

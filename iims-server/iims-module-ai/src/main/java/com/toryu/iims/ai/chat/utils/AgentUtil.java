@@ -29,6 +29,8 @@ import reactor.core.publisher.Flux;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.*;
+import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 import java.util.stream.Collectors;
 
 /**
@@ -55,17 +57,42 @@ public class AgentUtil {
     public void processStream(Long uuid, Long userId, Long modelId, List<Long> enabledToolIds,
                               List<Message> messages, MessageData messageData,
                               SseEmitter emitter, Map<Long, MessageData> msgMap) {
-        List<AiContent> aiContent = new ArrayList<>();
-        messageData.setAiContent(aiContent);
+        List<AiContent> aiContents = new ArrayList<>();
+        messageData.setAiContent(aiContents);
         Flux<ReActAgentEvent> reActAgentEvents = this.getReActAgentEvents(modelId, messages, enabledToolIds);
-        reActAgentEvents.subscribe(data -> {
+
+        AtomicReference<AiContent> currentAiContent = new AtomicReference<>();
+        AtomicBoolean isNewContent = new AtomicBoolean(true); // 标识是否是新的内容块
+
+        reActAgentEvents.subscribe(
+                data -> {
                     try {
                         Object content = data.getContent();
                         String type = data.getType();
+                        AiContent aiContent;
+                        if (data.getComplete()) {
+                            // 完成事件，使用当前正在构建的内容块（如果有的话）
+                            aiContent = currentAiContent.get();
+                            if (aiContent != null) {
+                                isNewContent.set(true);
+                            }
+                        } else {
+                            // 非完成事件，复用当前内容块或创建新块
+                            if (isNewContent.get()) {
+                                aiContent = new AiContent();
+                                aiContents.add(aiContent);
+                                currentAiContent.set(aiContent);
+                                isNewContent.set(false);
+                            } else {
+                                aiContent = currentAiContent.get();
+                            }
+                        }
+
                         if (Objects.equals(type, "LlmMessageEvent")) {
                             // 处理工具调用和响应
                             if (content instanceof AssistantMessage assistantMessage) {
-                                List<AssistantMessage.ToolCall> toolCalls = new ArrayList<>();
+                                // 工具调用处理逻辑保持不变
+                                List<ChatTool> chatTools = new ArrayList<>();
                                 assistantMessage.getToolCalls().forEach(toolCall -> {
                                     String toolId = toolCall.id();
                                     String effectiveToolId = StringUtils.hasText(toolId) ? toolId : UUID.randomUUID().toString();
@@ -76,50 +103,43 @@ public class AgentUtil {
                                             break;
                                         }
                                     }
-                                    // 如果不存在则添加
                                     if (!exists) {
                                         ChatTool newTool = new ChatTool();
                                         newTool.setId(effectiveToolId);
                                         newTool.setType(toolCall.type());
                                         newTool.setName(toolCall.name());
                                         newTool.setArguments(toolCall.arguments());
-                                        messageData.getTools().add(newTool);
+                                        chatTools.add(newTool);
                                     }
-                                    toolCalls.add(new AssistantMessage.ToolCall(
-                                            effectiveToolId, toolCall.type(), toolCall.name(), toolCall.arguments()));
                                 });
-                                aiContent.add(AiContent.builder().content(
-                                        new StringBuffer(Objects.requireNonNull(assistantMessage.getText()))).build());
-                                content = AssistantMessage.builder()
-                                        .content(Objects.requireNonNull(assistantMessage.getText()))
-                                        .media(assistantMessage.getMedia()).properties(assistantMessage.getMetadata())
-                                        .toolCalls(toolCalls).build();
+                                messageData.getTools().addAll(chatTools);
+
+                                if (aiContent != null) {
+                                    aiContent.setContent(new StringBuffer(Objects.requireNonNull(assistantMessage.getText())));
+                                    if (!assistantMessage.getToolCalls().isEmpty()) {
+                                        aiContent.setTools(chatTools);
+                                    }
+                                }
                             } else if (content instanceof ToolResponseMessage toolResponseMessage) {
                                 List<ToolResponseMessage.ToolResponse> responses = toolResponseMessage.getResponses();
                                 boolean hasAllId = responses.stream()
                                         .noneMatch(item -> StringUtils.hasText(item.id()));
                                 List<ChatTool> tools = new ArrayList<>();
+
                                 if (hasAllId) {
                                     int toolCallCount = 0;
-                                    List<ToolResponseMessage.ToolResponse> toolResponses = new ArrayList<>();
                                     for (ChatTool tool : messageData.getTools()) {
                                         ToolResponseMessage.ToolResponse toolResponse = responses.get(toolCallCount);
                                         if (Objects.isNull(tool.getResponseData()) && Objects.equals(tool.getName(), toolResponse.name())) {
                                             tool.setResponseData(toolResponse.responseData());
                                             tools.add(tool);
-                                            toolResponses.add(new ToolResponseMessage.ToolResponse(
-                                                    tool.getId(), toolResponse.name(), toolResponse.responseData()));
                                             toolCallCount++;
                                         }
                                     }
-                                    content = ToolResponseMessage.builder()
-                                            .metadata(toolResponseMessage.getMetadata())
-                                            .responses(toolResponses).build();
                                 } else {
                                     responses.forEach(responseMessage -> {
                                         String responseId = responseMessage.id();
                                         String responseData = responseMessage.responseData();
-                                        // 查找对应的工具并设置响应数据
                                         for (ChatTool tool : messageData.getTools()) {
                                             if (tool.getId().equals(responseId)) {
                                                 tool.setResponseData(responseData);
@@ -129,11 +149,19 @@ public class AgentUtil {
                                         }
                                     });
                                 }
-                                aiContent.add(AiContent.builder().tools(tools).build());
+
+                                if (aiContent != null) {
+                                    aiContent.setTools(tools);
+                                }
+                            } else if (data.getComplete()) {
+                                // 将当前内容块重置，准备下一个
+                                currentAiContent.set(null);
                             }
                         }
+
                         emitter.send(SseEmitter.event().name("output")
-                                .id(String.valueOf(uuid)).data(aiContent));
+                                .id(String.valueOf(uuid)).data(aiContents));
+
                     } catch (IOException e) {
                         log.error("AI Stream 消息发送出错：", e);
                         BaseContext.setCurrentId(userId);

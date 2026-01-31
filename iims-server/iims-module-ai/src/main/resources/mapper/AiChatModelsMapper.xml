@@ -13,4 +13,8 @@
         </where>
     </select>
 
+    <select id="selectModelList" resultType="com.toryu.iims.ai.chat.model.vo.SelectModelVO">
+        select * from iims_ai_chat_models where is_deleted = 0 and model_type != 0 order by type
+    </select>
+
 </mapper>

@@ -6,6 +6,9 @@ import com.toryu.iims.ai.chat.service.AiChatModelsService;
 import com.toryu.iims.ai.chat.service.ModelService;
 import com.toryu.iims.ai.rag.utils.AESEncryptionUtil;
 import org.springframework.ai.chat.model.ChatModel;
+import org.springframework.ai.deepseek.DeepSeekChatModel;
+import org.springframework.ai.deepseek.DeepSeekChatOptions;
+import org.springframework.ai.deepseek.api.DeepSeekApi;
 import org.springframework.ai.document.MetadataMode;
 import org.springframework.ai.embedding.EmbeddingModel;
 import org.springframework.ai.ollama.OllamaChatModel;
@@ -47,6 +50,13 @@ public class ModelServiceImpl implements ModelService {
     }
 
     @Override
+    public ChatModel getDeepSeekChatModel(DeepSeekApi deepSeekApi, DeepSeekChatOptions deepSeekChatOptions) {
+        return DeepSeekChatModel.builder()
+                .deepSeekApi(deepSeekApi)
+                .defaultOptions(deepSeekChatOptions).build();
+    }
+
+    @Override
     public ChatModel getChatModel(Long modelId, ModelChatOptions options) {
         ChatApi chatApi = aiChatModelsService.selectModelById(modelId);
         Integer maxTokens = options.getMaxTokens();
@@ -54,6 +64,7 @@ public class ModelServiceImpl implements ModelService {
             maxTokens = chatApi.getToken();
         }
         return switch (chatApi.getType()) {
+            case AGENT -> null;
             case OLLAMA -> getOllamaChatModel(OllamaApi.builder()
                     .baseUrl(chatApi.getUrl()).build(), OllamaChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
                     .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
@@ -62,6 +73,12 @@ public class ModelServiceImpl implements ModelService {
                     .apiKey(Objects.requireNonNull(AESEncryptionUtil.decrypt(chatApi.getKey())))
                     .baseUrl(chatApi.getUrl()).build(),
                     OpenAiChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
+                            .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
+                            .maxTokens(maxTokens).presencePenalty(options.getPresencePenalty()).build());
+            case DEEPSEEK -> getDeepSeekChatModel(DeepSeekApi.builder()
+                    .apiKey(Objects.requireNonNull(AESEncryptionUtil.decrypt(chatApi.getKey())))
+                    .baseUrl(chatApi.getUrl()).build(),
+                    DeepSeekChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
                             .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
                             .maxTokens(maxTokens).presencePenalty(options.getPresencePenalty()).build());
         };
@@ -84,6 +101,7 @@ public class ModelServiceImpl implements ModelService {
     public EmbeddingModel getEmbeddingModel(Long modelId, MetadataMode metadataMode, ModelChatOptions options) {
         ChatApi chatApi = aiChatModelsService.selectModelById(modelId);
         return switch (chatApi.getType()) {
+            case AGENT, DEEPSEEK -> null;
             case OLLAMA -> getOllamaEmbeddingModel(OllamaApi.builder()
                     .baseUrl(chatApi.getUrl()).build() , OllamaEmbeddingOptions.builder()
                     .model(chatApi.getName()).build());

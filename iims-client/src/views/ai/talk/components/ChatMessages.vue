@@ -345,9 +345,11 @@ onMounted(async () => {
 
 <style scoped>
 .tool-collapse {
-  margin-bottom: 10px;
+  margin: 10px 0;
   border-radius: 6px;
   overflow: hidden;
+  border: 1px solid var(--el-collapse-border-color);
+  box-shadow: 0 0 3px rgba(0, 0, 0, 0.15);
 }
 
 .tool-title-bar {
