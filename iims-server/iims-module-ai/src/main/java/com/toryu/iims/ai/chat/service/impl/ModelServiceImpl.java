@@ -65,20 +65,17 @@ public class ModelServiceImpl implements ModelService {
         }
         return switch (chatApi.getType()) {
             case AGENT -> null;
-            case OLLAMA -> getOllamaChatModel(OllamaApi.builder()
-                    .baseUrl(chatApi.getUrl()).build(), OllamaChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
+            case OLLAMA -> getOllamaChatModel(OllamaApi.builder().baseUrl(chatApi.getUrl()).build(), OllamaChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
                     .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
                     .numCtx(maxTokens).presencePenalty(options.getPresencePenalty()).build());
             case OPENAI -> getOpenAIChatModel(OpenAiApi.builder()
-                    .apiKey(Objects.requireNonNull(AESEncryptionUtil.decrypt(chatApi.getKey())))
-                    .baseUrl(chatApi.getUrl()).build(),
-                    OpenAiChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
+                            .apiKey(Objects.requireNonNullElse(AESEncryptionUtil.decrypt(chatApi.getKey()), ""))
+                            .baseUrl(chatApi.getUrl()).build(), OpenAiChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
                             .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
                             .maxTokens(maxTokens).presencePenalty(options.getPresencePenalty()).build());
             case DEEPSEEK -> getDeepSeekChatModel(DeepSeekApi.builder()
-                    .apiKey(Objects.requireNonNull(AESEncryptionUtil.decrypt(chatApi.getKey())))
-                    .baseUrl(chatApi.getUrl()).build(),
-                    DeepSeekChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
+                            .apiKey(Objects.requireNonNullElse(AESEncryptionUtil.decrypt(chatApi.getKey()), ""))
+                            .baseUrl(chatApi.getUrl()).build(), DeepSeekChatOptions.builder().model(chatApi.getName()).topP(options.getTopP())
                             .temperature(options.getTemperature()).frequencyPenalty(options.getFrequencyPenalty())
                             .maxTokens(maxTokens).presencePenalty(options.getPresencePenalty()).build());
         };

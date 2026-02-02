@@ -33,10 +33,7 @@ import org.springframework.util.MimeTypeUtils;
 
 import java.io.IOException;
 import java.io.InputStream;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Objects;
+import java.util.*;
 
 @Service
 @Slf4j
@@ -70,6 +67,7 @@ public class DialogueManageServiceImpl implements DialogueManageService {
             total = chatTopicVos.getTotal();
             result = chatTopicVos.getResult();
         }
+        result = this.rebuildDialogueChain(result);
         List<ChatDialogueVO> records = new ArrayList<>();
         result.forEach(r -> {
             ChatDialogueVO chatDialogueVo = new ChatDialogueVO();
@@ -96,8 +94,56 @@ public class DialogueManageServiceImpl implements DialogueManageService {
             chatDialogueVo.setTools(JSONArray.parseArray(r.getTools(), ChatTool.class));
             records.add(chatDialogueVo);
         });
-        Collections.reverse(records);
         return new PageResult(total, records);
+    }
+
+    /**
+     * 按 lastId 重建对话链（处理时间错乱/并发插入场景）
+     * @return 按对话逻辑升序排列的列表（第一条为链头，最后一条为最新回复）
+     */
+    private List<ChatDialogue> rebuildDialogueChain(List<ChatDialogue> rawList) {
+        if (rawList == null || rawList.isEmpty()) return new ArrayList<>();
+
+        Map<Long, ChatDialogue> idMap = new HashMap<>();
+        for (ChatDialogue msg : rawList) {
+            if (msg.getId() != null) {
+                idMap.put(msg.getId(), msg);
+            }
+        }
+
+        // 找到链头（lastId 为空或无效）
+        ChatDialogue head = null;
+        for (ChatDialogue msg : rawList) {
+            if (msg.getLastId() == null || !idMap.containsKey(msg.getLastId())) {
+                head = msg;
+                break;
+            }
+        }
+
+        // 构建 next 映射：从 lastId 反推 next
+        Map<Long, ChatDialogue> nextMap = new HashMap<>();
+        for (ChatDialogue msg : rawList) {
+            if (msg.getLastId() != null && idMap.containsKey(msg.getLastId())) {
+                nextMap.put(msg.getLastId(), msg); // 上一条 -> 当前条
+            }
+        }
+
+        // 从 head 开始按 next 顺序遍历
+        List<ChatDialogue> result = new ArrayList<>();
+        ChatDialogue current = head;
+        while (current != null && result.size() < rawList.size()) {
+            result.add(current);
+            current = nextMap.get(current.getId()); // 正确获取下一条
+        }
+
+        // 容错：若链断裂，追加剩余消息（按 create_time 升序）
+        if (result.size() < rawList.size()) {
+            List<ChatDialogue> remaining = rawList.stream()
+                    .filter(msg -> !result.contains(msg)).toList();
+            result.addAll(remaining);
+        }
+
+        return result;
     }
 
     @Override
@@ -127,14 +173,19 @@ public class DialogueManageServiceImpl implements DialogueManageService {
                 messages.add(UserMessage.builder().text(userContent.getQuestion()).media(mediaList).build());
             } else if (MessageType.ASSISTANT.equals(senderType)) {
                 List<AiContent> aiContents = JSONArray.parseArray(content, AiContent.class);
+                StringBuffer aiContentsBuffer = new StringBuffer();
                 aiContents.forEach(aiContent -> {
                     StringBuffer aiContentContent = aiContent.getContent();
                     if (aiContentContent != null) {
                         String filteredContent = PromptTemplateUtil.removeThink(aiContentContent.toString());
-                        aiContent.setContent(new StringBuffer(filteredContent));
+                        aiContentsBuffer.append(filteredContent).append("\n");
+                    }
+                    List<ChatTool> tools = aiContent.getTools();
+                    if (tools != null) {
+                        aiContentsBuffer.append("Tools used: ").append(JSONArray.toJSONString(tools));
                     }
                 });
-                messages.add(new AssistantMessage(JSONArray.toJSONString(aiContents)));
+                messages.add(new AssistantMessage(aiContentsBuffer.toString()));
             }
         }
 

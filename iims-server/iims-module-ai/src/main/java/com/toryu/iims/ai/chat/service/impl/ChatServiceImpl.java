@@ -22,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
 import reactor.core.publisher.Flux;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -146,6 +147,15 @@ public class ChatServiceImpl implements ChatService {
 
             } catch (Exception e) {
                 log.error("[Start] >> ", e);
+                List<AiContent> aiContent = new ArrayList<>();
+                aiContent.add(AiContent.builder().content(new StringBuffer("服务器繁忙，请稍后重试！")).build());
+                messageData.setAiContent(aiContent);
+                try {
+                    emitter.send(SseEmitter.event().name("output")
+                            .id(String.valueOf(uuid)).data(aiContent));
+                } catch (IOException ex) {
+                    throw new RuntimeException(ex);
+                }
                 this.stopConversation(uuid);
             }
         });
