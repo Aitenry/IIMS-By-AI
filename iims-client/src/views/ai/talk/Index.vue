@@ -99,20 +99,21 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed, watch, onMounted, onBeforeUnmount, nextTick } from 'vue'
-import { useStore } from 'vuex'
-import { useRouter } from 'vue-router'
+import {computed, nextTick, onBeforeUnmount, onMounted, ref, watch} from 'vue'
+import {useStore} from 'vuex'
+import {useRouter} from 'vue-router'
 import markdownItMermaid from "@/utils/mermaid-plugin.ts"
 import {
-  receiveAnswer,
-  stopAnswer,
-  getChatTopicList,
-  getChatDialogueList,
-  starSwitch,
+  clearDialogueFromTopic,
   delDialogue,
   delTopic,
+  exchangeFeedback,
+  getChatDialogueList,
+  getChatTopicList,
+  receiveAnswer,
   renameTopic,
-  clearDialogueFromTopic, exchangeFeedback
+  starSwitch,
+  stopAnswer
 } from '@/api/ai/chat.js'
 import MarkdownIt from 'markdown-it'
 import mathjax from 'markdown-it-mathjax3'
@@ -120,8 +121,8 @@ import hljs from 'highlight.js'
 import 'highlight.js/styles/intellij-light.min.css'
 import 'github-markdown-css/github-markdown-light.css'
 import '@/styles/chat.css'
-import { getStorage } from '@/utils/auth.js'
-import { getWikiPublishPageList } from '@/api/wiki.js'
+import {getStorage} from '@/utils/auth.js'
+import {getWikiPublishPageList} from '@/api/wiki.js'
 
 import ChatSidebar from './components/ChatSidebar.vue'
 import ChatHeader from './components/ChatHeader.vue'
@@ -133,14 +134,18 @@ import WikiDocumentDrawer from './components/WikiDocumentDrawer.vue'
 import FileUploadDialog from './components/FileUploadDialog.vue'
 import {ElMessageBox, ElNotification, type UploadFile} from "element-plus";
 import type {
-  AgentTopic, DialoguePages,
+  AgentTopic,
+  AiContent,
+  DialoguePages,
   HotTopic,
   Message,
   MsgParam,
-  ToolTopic, TopicPages,
+  ToolTopic,
+  TopicPages,
   UseFileParam,
   WikiItem,
-  WikiMeta, WikiPages
+  WikiMeta,
+  WikiPages
 } from "@/views/ai/talk/types/talk.ts";
 import {parseReasoning, type ParseResult} from "@/utils/parse-reasoning.ts";
 
@@ -472,7 +477,21 @@ const loadMoreChatDialogue = async () => {
       const newMessages = res.data.list.map((item: Message) => {
         if (item.sender === 'assistant') {
           item.aiContent?.forEach(value => {
-            value.contentResult = parseReasoning(value.content || "", [])
+            if (value.thinking) {
+              value.contentResult = [{
+                type: "reasoning",
+                content: value.thinking,
+                isComplete: true,
+                isExpanded: false
+              }, {
+                type: "text",
+                content: value.content,
+                isComplete: true,
+                isExpanded: false
+              }]
+            } else {
+              value.contentResult = parseReasoning(value.content || "", [])
+            }
             value.contentResult.forEach(result => {
               result.view = mdi.value.render(result.content)
             })
@@ -622,13 +641,51 @@ const sendOut = async () => {
         }
         lastMessage.id = _data.lastId
       } else if (item.event === 'output') {
-        message.aiContent = _data
-        message.aiContent?.forEach(value => {
-          value.contentResult = parseReasoning(value.content || "", [])
-          value.contentResult.forEach(result => {
-            result.view = mdi.value.render(result.content)
-          })
-        })
+        const exchangeData = message.aiContent ?? []
+        message.aiContent = _data.map((newValue: AiContent, index: number) => {
+          const existingValue = exchangeData[index];
+
+          let contentResult;
+
+          if (newValue.thinking) {
+            // 构造新的 contentResult，但继承旧状态
+            const existingReasoning = existingValue?.contentResult?.find((r: any) => r.type === "reasoning");
+            const existingText = existingValue?.contentResult?.find((r: any) => r.type === "text");
+
+            contentResult = [
+              {
+                type: "reasoning",
+                content: newValue.thinking,
+                isComplete: newValue.content && newValue.content?.trim() !== '',
+                isExpanded: existingReasoning?.isExpanded ?? false,
+                view: ''
+              },
+              {
+                type: "text",
+                content: newValue.content,
+                isComplete: true,
+                isExpanded: existingText?.isExpanded ?? false,
+                view: ''
+              }
+            ];
+          } else {
+            const parsed = parseReasoning(newValue.content || "", []);
+            contentResult = parsed.map(newRes => {
+              const existingRes = existingValue?.contentResult?.find((r: any) => r.type === newRes.type);
+              return {...existingRes, ...newRes};
+            });
+          }
+
+          contentResult.forEach(result => {
+            result.view = mdi.value.render(result.content);
+          });
+
+          return {
+            ...existingValue,   // 保留旧状态
+            ...newValue,        // 覆盖新数据（thinking, content 等）
+            contentResult,      // 使用合并后的 contentResult
+          };
+        });
       } else if (item.event === 'end') {
         if (_data.docMetadata) {
           message.docMetadata = _data.docMetadata
@@ -702,7 +759,21 @@ const initChatDialogue = async () => {
       res.data.list.forEach((item: Message) => {
         if (item.sender === 'assistant') {
           item.aiContent?.forEach(value => {
-            value.contentResult = parseReasoning(value.content || "", [])
+            if (value.thinking) {
+              value.contentResult = [{
+                type: "reasoning",
+                content: value.thinking,
+                isComplete: true,
+                isExpanded: false
+              }, {
+                type: "text",
+                content: value.content,
+                isComplete: true,
+                isExpanded: false
+              }]
+            } else {
+              value.contentResult = parseReasoning(value.content || "", [])
+            }
             value.contentResult.forEach(result => {
               result.view = mdi.value.render(result.content)
             })
@@ -897,7 +968,21 @@ const delMessage = async (lastId: string | null, isStar: boolean, index: number)
         messages.value.splice(index - 1, 1)
         messages.value.forEach(item => {
           item.aiContent?.forEach(value => {
-            value.contentResult = parseReasoning(value.content, [])
+            if (value.thinking) {
+              value.contentResult = [{
+                type: "reasoning",
+                content: value.thinking,
+                isComplete: true,
+                isExpanded: false
+              }, {
+                type: "text",
+                content: value.content,
+                isComplete: true,
+                isExpanded: false
+              }]
+            } else {
+              value.contentResult = parseReasoning(value.content || "", [])
+            }
             value.contentResult.forEach(result => {
               result.view = mdi.value.render(result.content)
             })

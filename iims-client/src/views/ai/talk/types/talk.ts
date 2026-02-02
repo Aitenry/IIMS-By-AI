@@ -94,6 +94,7 @@ export interface Message {
 
 export interface AiContent {
     content: string
+    thinking: string
     contentResult?: ParseResult[]
     tools?: Tool[]
 }
