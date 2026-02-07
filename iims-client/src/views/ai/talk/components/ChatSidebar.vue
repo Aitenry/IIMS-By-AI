@@ -44,6 +44,7 @@
             <div v-for="(item, index) in group.items" :key="item.id || index" class="chat-item"
                  :class="{ active: activeTopicId === item.id, moreActive: clickMoreBtnId === item.id }" @click="$emit('switch-topic', item.id)">
               <div class="chat-content">
+                <i v-if="loadTopicIdSet.has(item.id)" class="chat-loading text-base ri-loader-4-line animate-spin"></i>
                 <p class="chat-title">{{ item.title }}</p>
               </div>
               <el-popover
@@ -149,6 +150,7 @@ const props = withDefaults(defineProps<{
   activeTopicId?: string | null;
   hasMore?: boolean; // 是否还有更多数据
   loadingMore?: boolean; // 是否正在加载更多
+  loadTopicIdSet?: Set<string>;
 }>(), {
   activeTopicId: null,
   chatItems: () => [],
@@ -175,6 +177,8 @@ const clickMoreBtnId = ref<string | null>(null);
 
 // 定义分组名称数组
 const GROUP_NAMES = ['today', 'yesterday', 'last7Days', 'last30Days', 'older'] as const;
+
+const loadTopicIdSet = computed(() => props.loadTopicIdSet || new Set<string>());
 
 // 折叠状态管理
 const expandedGroups = ref({
@@ -406,7 +410,10 @@ onUnmounted(() => {
 
 .chat-content {
   flex: 1;
+  gap: 3px;
   overflow: hidden;
+  display: flex;
+  align-items: center;
   text-overflow: ellipsis;
   white-space: nowrap;
   margin-left: 6px;
@@ -427,6 +434,11 @@ onUnmounted(() => {
 }
 
 .chat-item.active .chat-title {
+  color: #409EFF;
+  font-weight: 500;
+}
+
+.chat-item.active .chat-loading {
   color: #409EFF;
   font-weight: 500;
 }

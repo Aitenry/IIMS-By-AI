@@ -7,6 +7,7 @@
           :active-topic-id="dialoguePages.topicId"
           :has-more="hasMoreData"
           :loading-more="isLoadingMore"
+          :load-topic-id-set="loadTopicIdSet"
           @switch-topic="switchTopic"
           @rename-chat="renameChat"
           @del-chat="delChat"
@@ -176,6 +177,7 @@ const isInitDialogue = ref(true)
 const isLoadingMore = ref(false);
 const hasMoreData = ref(true);
 const messagesMap = ref<Map<string, Message[]>>(new Map());
+const loadTopicIdSet = ref<Set<string>>(new Set())
 
 const useFileParam = ref<UseFileParam>({
   isUseFile: false,
@@ -226,7 +228,6 @@ const wikis = ref<WikiItem[]>([])
 const searchWikis = ref<WikiItem[]>([])
 const messages = ref<Message[]>([])
 const chatItems = ref<any[]>([])
-const loadTopicId = ref<string | null>(null)
 
 const hotTopics: HotTopic[] = [
   { rank: 1, title: '中秋佳节习近平总书记这样寄语。' },
@@ -535,7 +536,6 @@ const openNewChat = () => {
     pageSize: 10,
     total: 0,
   }
-  loadTopicId.value = null
   messages.value = []
   isInitDialogue.value = true
 }
@@ -547,10 +547,8 @@ const switchTopic = (id: string) => {
     dialoguePages.value.page = 1
     isDialogueMore.value = true
     isLoadDialogueMore.value = false
-    if (!loadTopicId.value) {
-      loadTopicId.value = id
-    } else if (loadTopicId.value === id && messagesMap.value.get(loadTopicId.value)) {
-      messages.value = [...(messagesMap.value.get(loadTopicId.value) || [])];
+    if (loadTopicIdSet.value.has(id) && messagesMap.value.get(id)) {
+      messages.value = [...(messagesMap.value.get(id) || [])];
       if (messages.value.length > 0) {
         msgParam.value.lastId = messages.value[messages.value.length - 1].id
       }
@@ -606,7 +604,8 @@ const sendOut = async () => {
     milliSecond.value = `${userId.value}${getChinaTimestamp()}`
     cancelSseConnection.value = receiveAnswer(milliSecond.value, msgParam.value, (item: any) => {
       const _data = item.data
-      const _messages = (dialoguePages.value.topicId === loadTopicId.value ? messages.value : messagesMap.value.get(loadTopicId.value || '')) || []
+      const loadTopicId = _data.topicId
+      const _messages = (dialoguePages.value.topicId === loadTopicId || dialoguePages.value.topicId === null ? messages.value : messagesMap.value.get(loadTopicId)) || []
       const message = _messages[_messages.length - 1]
       const lastMessage = _messages[_messages.length - 2]
       if (['output', 'end'].includes(item.event) && message.isLoadingAnswer) {
@@ -615,22 +614,18 @@ const sendOut = async () => {
 
       if (item.event === 'start') {
         if (dialoguePages.value.topicId === null) {
-          dialoguePages.value.topicId = _data.topicId
-          msgParam.value.topicId = _data.topicId
-          loadTopicId.value = _data.topicId
+          dialoguePages.value.topicId = loadTopicId
+          msgParam.value.topicId = loadTopicId
           chatItems.value.splice(0, 0, {
             id: _data.topicId, title: limitLengthWithEllipsis(msgParam.value.question), createTime: _data.createTime
           })
-        } else {
-          loadTopicId.value = dialoguePages.value.topicId
         }
-        if (loadTopicId.value) {
-          messagesMap.value.set(loadTopicId.value, [...messages.value])
-        }
+        messagesMap.value.set(loadTopicId, [...messages.value])
+        loadTopicIdSet.value.add(loadTopicId)
         lastMessage.id = _data.lastId
       } else if (item.event === 'output') {
         const exchangeData = message.aiContent ?? []
-        message.aiContent = _data.map((newValue: AiContent, index: number) => {
+        message.aiContent = _data.aiContent.map((newValue: AiContent, index: number) => {
           const existingValue = exchangeData[index];
 
           let contentResult;
@@ -678,15 +673,16 @@ const sendOut = async () => {
         if (_data.docMetadata) {
           message.docMetadata = _data.docMetadata
         }
-        message.id = _data.id
-        msgParam.value.lastId = _data.id
+        message.id = _data.lastId
+        msgParam.value.lastId = _data.lastId
         message.lastId = lastMessage.id
         isSendOut.value = false
         milliSecond.value = null
-        if (dialoguePages.value.topicId === loadTopicId.value && loadTopicId.value && messagesMap.value.get(loadTopicId.value)) {
-          messages.value = [...(messagesMap.value.get(loadTopicId.value) || [])];
+        if (dialoguePages.value.topicId === loadTopicId && loadTopicId && messagesMap.value.get(loadTopicId)) {
+          messages.value = [...(messagesMap.value.get(loadTopicId) || [])];
         }
-        messagesMap.value.delete(loadTopicId.value || '')
+        messagesMap.value.delete(loadTopicId)
+        loadTopicIdSet.value.delete(loadTopicId)
       } else if (item.event === 'status') {
         statusData.value = _data
       } else {
