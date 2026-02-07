@@ -14,7 +14,5 @@ public interface TopicManageService {
 
     Boolean delTopic(List<Long> ids);
 
-    Boolean clearDialogueFromTopic(Long id);
-
     Boolean renameTopic(ChatRenameTopicDTO renameTopicDto);
 }

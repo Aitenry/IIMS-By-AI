@@ -39,7 +39,6 @@ public class StatisticsServiceImpl implements StatisticsService {
                     } catch (Exception e) {
                         // 如果解析失败，返回默认值
                         return StatisticsDataVO.builder()
-                                .dictCount(0)
                                 .fileCount(0)
                                 .logCount(0)
                                 .userCount(0)
@@ -53,9 +52,6 @@ public class StatisticsServiceImpl implements StatisticsService {
                 .statisticsDays(statisticsAllData.stream()
                         .map(StatisticsEntity::getStatisticalTime)
                         .map(LocalDateTime::toLocalDate)
-                        .collect(Collectors.toList()))
-                .dictCounts(dataVOList.stream()
-                        .map(dataVO -> dataVO.getDictCount() != null ? dataVO.getDictCount() : 0)
                         .collect(Collectors.toList()))
                 .fileCounts(dataVOList.stream()
                         .map(dataVO -> dataVO.getFileCount() != null ? dataVO.getFileCount() : 0)

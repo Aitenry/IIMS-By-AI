@@ -93,17 +93,20 @@ public class ChatUtil {
     // 辅助方法：处理流数据
     public void processStream(Flux<ChatResponse> stream, List<Document> documents,
                               Map<Long, MessageData> msgMap, SseEmitter emitter, Long uuid) {
-        StringBuffer content = new StringBuffer();
         MessageData messageData = msgMap.get(uuid);
         List<AiContent> aiContent = new ArrayList<>();
-        aiContent.add(AiContent.builder().content(content).build());
+        aiContent.add(AiContent.builder().content(new StringBuffer())
+                .thinking(new StringBuffer()).build());
         messageData.setAiContent(aiContent);
         messageData.setDocuments(documents);
         Long userId = BaseContext.getCurrentId();
         stream.subscribe(data -> {
                 try {
                     AssistantMessage assistantMessage = data.getResult().getOutput();
-                    aiContent.get(0).getContent().append(assistantMessage.getText());
+                    String text = assistantMessage.getText();
+                    if (Objects.nonNull(text)) {
+                        aiContent.get(0).getContent().append(text);
+                    }
                     emitter.send(SseEmitter.event().name("output")
                            .id(String.valueOf(uuid)).data(aiContent));
                 } catch (IOException e) {

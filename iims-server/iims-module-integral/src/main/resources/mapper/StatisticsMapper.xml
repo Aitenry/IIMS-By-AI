@@ -17,7 +17,6 @@
         SELECT
             statisticDate,
             SUM(articleCount) as articleCount,
-            SUM(dictCount) as dictCount,
             SUM(wikiCount) as wikiCount,
             SUM(logCount) as logCount,
             SUM(fileCount) as fileCount,
@@ -26,7 +25,6 @@
                  SELECT
                      DATE(create_time) as statisticDate,
                      COUNT(*) as articleCount,
-                     0 as dictCount,
                      0 as wikiCount,
                      0 as logCount,
                      0 as fileCount,
@@ -41,22 +39,6 @@
                  SELECT
                      DATE(create_time) as statisticDate,
                      0 as articleCount,
-                     COUNT(*) as dictCount,
-                     0 as wikiCount,
-                     0 as logCount,
-                     0 as fileCount,
-                     0 as userCount
-                 FROM iims_integral_dict
-                 WHERE is_deleted = 0
-                   AND create_time BETWEEN #{startDate} AND #{endDate}
-                 GROUP BY DATE(create_time)
-
-                 UNION ALL
-
-                 SELECT
-                     DATE(create_time) as statisticDate,
-                     0 as articleCount,
-                     0 as dictCount,
                      COUNT(*) as wikiCount,
                      0 as logCount,
                      0 as fileCount,
@@ -71,7 +53,6 @@
                  SELECT
                      DATE(create_time) as statisticDate,
                      0 as articleCount,
-                     0 as dictCount,
                      0 as wikiCount,
                      0 as logCount,
                      COUNT(*) as fileCount,
@@ -86,7 +67,6 @@
                  SELECT
                      DATE(create_time) as statisticDate,
                      0 as articleCount,
-                     0 as dictCount,
                      0 as wikiCount,
                      COUNT(*) as logCount,
                      0 as fileCount,
@@ -101,7 +81,6 @@
                  SELECT
                      DATE(create_time) as statisticDate,
                      0 as articleCount,
-                     0 as dictCount,
                      0 as wikiCount,
                      0 as logCount,
                      0 as fileCount,

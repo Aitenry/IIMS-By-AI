@@ -185,6 +185,11 @@
             <artifactId>iims-module-common</artifactId>
         </dependency>
 
+        <dependency>
+            <groupId>com.toryu</groupId>
+            <artifactId>iims-module-subscriber</artifactId>
+        </dependency>
+
     </dependencies>
 
 </project>

@@ -11,8 +11,6 @@ import lombok.NoArgsConstructor;
 @Builder
 public class StatisticsDataVO {
 
-    private Integer dictCount;
-
     private Integer fileCount;
 
     private Integer logCount;

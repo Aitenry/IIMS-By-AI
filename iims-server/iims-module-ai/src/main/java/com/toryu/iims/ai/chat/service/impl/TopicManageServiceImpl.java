@@ -67,11 +67,6 @@ public class TopicManageServiceImpl implements TopicManageService {
     }
 
     @Override
-    public Boolean clearDialogueFromTopic(Long id) {
-        return dialogueManageService.updateDeletedByTopicIds(List.of(id));
-    }
-
-    @Override
     public Boolean renameTopic(ChatRenameTopicDTO renameTopicDto) {
         return aiChatTopicMapper.update(AiChatTopic.builder()
                 .id(renameTopicDto.getId())

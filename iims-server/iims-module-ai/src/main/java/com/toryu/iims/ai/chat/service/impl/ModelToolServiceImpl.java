@@ -10,6 +10,7 @@ import com.toryu.iims.ai.chat.service.AiChatSettingService;
 import com.toryu.iims.ai.chat.service.ModelToolService;
 import com.toryu.iims.ai.chat.service.ModelService;
 import com.toryu.iims.ai.rag.utils.PromptTemplateUtil;
+import com.toryu.iims.common.context.BaseContext;
 import com.toryu.iims.common.enums.DocumentTypeEnum;
 import com.toryu.iims.common.service.MinioService;
 import lombok.extern.slf4j.Slf4j;
@@ -136,7 +137,7 @@ public class ModelToolServiceImpl implements ModelToolService {
 
     @Override
     public void documentEmbeddingByModel(Long wikiId, DomProcessEnum domProcess) {
-        eventPublisher.publishEvent(new DocumentEmbeddingEvent(this, wikiId, domProcess));
+        eventPublisher.publishEvent(new DocumentEmbeddingEvent(this, wikiId, BaseContext.getCurrentId(), domProcess));
     }
 
     /**

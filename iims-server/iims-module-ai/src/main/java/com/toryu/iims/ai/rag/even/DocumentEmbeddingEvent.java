@@ -12,11 +12,14 @@ public class DocumentEmbeddingEvent extends ApplicationEvent {
      */
     private final Long wikiId;
 
+    private final Long currentId;
+
     private final DomProcessEnum domProcess;
 
-    public DocumentEmbeddingEvent(Object source, Long wikiId, DomProcessEnum domProcess) {
+    public DocumentEmbeddingEvent(Object source, Long wikiId, Long currentId, DomProcessEnum domProcess) {
         super(source);
         this.wikiId = wikiId;
+        this.currentId = currentId;
         this.domProcess = domProcess;
     }
 }

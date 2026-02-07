@@ -41,10 +41,4 @@ public class TopicManageController {
         return Result.fromBoolean(topicManageService.renameTopic(renameTopicDto));
     }
 
-    @GetMapping("/clear/{id}")
-    @ApiOperation("当前话题下的清空对话记录")
-    public Result<String> clearDialogueFromTopic(@PathVariable Long id) {
-        return Result.fromBoolean(topicManageService.clearDialogueFromTopic(id));
-    }
-
 }
