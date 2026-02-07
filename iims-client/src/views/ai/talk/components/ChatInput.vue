@@ -3,35 +3,14 @@
     <div class="animate__animated animate__pulse animate__fadeInUp">
       <el-row>
         <el-col :span="16" :offset="4">
-          <el-tooltip effect="dark" content="上传文件" placement="top">
-            <el-button size="small" class="ability-btn" round @click="emit('toggle-upload-dialog')">
-              <i class="ri-upload-cloud-fill"></i>
-            </el-button>
-          </el-tooltip>
-          <el-tooltip effect="dark" content="获取工具" placement="top">
+          <el-tooltip :show-arrow="false" effect="dark" content="获取工具" placement="top">
             <el-button size="small" class="ability-btn" round>
               <i class="ri-magic-fill"></i>
             </el-button>
           </el-tooltip>
-          <el-tooltip effect="dark" content="清空对话记录" placement="top">
-            <el-button
-                size="small"
-                v-show="messagesLength > 0 && msgParamTopicId"
-                class="ability-btn"
-                @click="emit('clear-dialogue')"
-                round
-            >
-              <i class="ri-eraser-fill"></i>
-            </el-button>
-          </el-tooltip>
-          <el-tooltip effect="dark" content="选择知识库" placement="top">
+          <el-tooltip :show-arrow="false" effect="dark" content="选择知识库" placement="top">
             <el-button size="small" class="ability-btn" round @click="emit('toggle-wiki-drawer')">
               <i class="ri-stack-fill"></i>
-            </el-button>
-          </el-tooltip>
-          <el-tooltip effect="dark" content="分享记录" placement="top">
-            <el-button size="small" class="ability-btn" round>
-              <i class="ri-share-forward-fill"></i>
             </el-button>
           </el-tooltip>
         </el-col>
@@ -81,6 +60,9 @@
             </div>
             <div class="flex items-center justify-between mt-2">
               <div class="flex items-center gap-3">
+                <el-button size="large" type="info" @click="emit('toggle-upload-dialog')" circle bg text>
+                  <i class="ri-attachment-2 text-base"></i>
+                </el-button>
               </div>
               <div>
                 <el-button class="send-button" circle size="large" @click="emit('send-out')">
@@ -116,7 +98,6 @@ const props = withDefaults(defineProps<{
 const emit = defineEmits<{
   (e: 'update:modelValue', value: string): void
   (e: 'send-out'): void
-  (e: 'clear-dialogue'): void
   (e: 'toggle-upload-dialog'): void
   (e: 'toggle-wiki-drawer'): void
   (e: 'remove-file', value: number): void

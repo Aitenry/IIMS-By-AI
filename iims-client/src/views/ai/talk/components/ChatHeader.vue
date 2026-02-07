@@ -27,7 +27,7 @@
       />
     </div>
     <div class="animate__animated animate__pulse animate__fadeInRight">
-      <el-tooltip effect="dark" content="开启新对话" placement="bottom-start">
+      <el-tooltip :show-arrow="false" effect="dark" content="开启新对话" placement="bottom-start">
         <el-button style="
             border: 2px solid #40a0ffa8;
             color: #40a0ffa8;
@@ -38,7 +38,7 @@
           <i style="font-size: 16px; font-weight: bolder" class="ri-discuss-line"></i>
         </el-button>
       </el-tooltip>
-      <el-tooltip effect="dark" :content="'知识库：' + wikiStatusDecl" placement="bottom-start">
+      <el-tooltip :show-arrow="false" effect="dark" :content="'知识库：' + wikiStatusDecl" placement="bottom-start">
         <el-button style="
             border: 2px solid #40a0ffa8;
             color: #40a0ffa8;

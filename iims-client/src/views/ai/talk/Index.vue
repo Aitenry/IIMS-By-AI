@@ -5,10 +5,13 @@
           v-show="isOpenChatList"
           :chat-items="chatItems"
           :active-topic-id="dialoguePages.topicId"
+          :has-more="hasMoreData"
+          :loading-more="isLoadingMore"
           @switch-topic="switchTopic"
           @rename-chat="renameChat"
           @del-chat="delChat"
           @init-chat-topic="initChatTopic"
+          @load-more="loadMoreChatTopics"
       />
       <el-container style="background-color: aliceblue;">
         <el-header>
@@ -63,7 +66,6 @@
             :use-file-param="useFileParam"
             @remove-file="handleRemoveFile"
             @send-out="sendOut"
-            @clear-dialogue="clearDialogue"
             @toggle-upload-dialog="uploadFileDialogVisible = true"
             @toggle-wiki-drawer="wikiDrawer = true"
         />
@@ -104,7 +106,6 @@ import {useStore} from 'vuex'
 import {useRouter} from 'vue-router'
 import markdownItMermaid from "@/utils/mermaid-plugin.ts"
 import {
-  clearDialogueFromTopic,
   delDialogue,
   delTopic,
   exchangeFeedback,
@@ -172,6 +173,9 @@ const wikiDocsDrawer = ref(false)
 const isDialogueMore = ref(true)
 const isLoadDialogueMore = ref(false)
 const isInitDialogue = ref(true)
+const isLoadingMore = ref(false);
+const hasMoreData = ref(true);
+const messagesMap = ref<Map<string, Message[]>>(new Map());
 
 const useFileParam = ref<UseFileParam>({
   isUseFile: false,
@@ -222,6 +226,7 @@ const wikis = ref<WikiItem[]>([])
 const searchWikis = ref<WikiItem[]>([])
 const messages = ref<Message[]>([])
 const chatItems = ref<any[]>([])
+const loadTopicId = ref<string | null>(null)
 
 const hotTopics: HotTopic[] = [
   { rank: 1, title: '中秋佳节习近平总书记这样寄语。' },
@@ -530,6 +535,7 @@ const openNewChat = () => {
     pageSize: 10,
     total: 0,
   }
+  loadTopicId.value = null
   messages.value = []
   isInitDialogue.value = true
 }
@@ -541,41 +547,17 @@ const switchTopic = (id: string) => {
     dialoguePages.value.page = 1
     isDialogueMore.value = true
     isLoadDialogueMore.value = false
-    initChatDialogue()
-  }
-}
-
-const clearDialogue = async () => {
-  const topicId = msgParam.value.topicId
-  const confirmResult = await ElMessageBox.confirm(
-      `此操作将永久清空所有对话记录, 是否继续?`,
-      '提示',
-      {
-        confirmButtonText: '确定',
-        cancelButtonText: '取消',
-        type: 'warning',
+    if (!loadTopicId.value) {
+      loadTopicId.value = id
+    } else if (loadTopicId.value === id && messagesMap.value.get(loadTopicId.value)) {
+      messages.value = [...(messagesMap.value.get(loadTopicId.value) || [])];
+      if (messages.value.length > 0) {
+        msgParam.value.lastId = messages.value[messages.value.length - 1].id
       }
-  ).catch(() => {})
-
-  if (confirmResult === 'confirm' && topicId) {
-    const res = await clearDialogueFromTopic(topicId)
-    if (res.code === 1) {
-      messages.value = []
-      msgParam.value.lastId = null
-      ElNotification({
-        message: '清空所有对话记录成功！',
-        customClass: 'talkNotification',
-        type: 'success',
-        offset: 47,
-      })
-    } else {
-      ElNotification({
-        message: '请检查是否有权限！',
-        customClass: 'talkNotification',
-        type: 'warning',
-        offset: 47,
-      })
+      isInitDialogue.value = true
+      return
     }
+    initChatDialogue()
   }
 }
 
@@ -624,9 +606,9 @@ const sendOut = async () => {
     milliSecond.value = `${userId.value}${getChinaTimestamp()}`
     cancelSseConnection.value = receiveAnswer(milliSecond.value, msgParam.value, (item: any) => {
       const _data = item.data
-      const message = messages.value[messages.value.length - 1]
-      const lastMessage = messages.value[messages.value.length - 2]
-
+      const _messages = (dialoguePages.value.topicId === loadTopicId.value ? messages.value : messagesMap.value.get(loadTopicId.value || '')) || []
+      const message = _messages[_messages.length - 1]
+      const lastMessage = _messages[_messages.length - 2]
       if (['output', 'end'].includes(item.event) && message.isLoadingAnswer) {
         message.isLoadingAnswer = false
       }
@@ -635,9 +617,15 @@ const sendOut = async () => {
         if (dialoguePages.value.topicId === null) {
           dialoguePages.value.topicId = _data.topicId
           msgParam.value.topicId = _data.topicId
+          loadTopicId.value = _data.topicId
           chatItems.value.splice(0, 0, {
             id: _data.topicId, title: limitLengthWithEllipsis(msgParam.value.question), createTime: _data.createTime
           })
+        } else {
+          loadTopicId.value = dialoguePages.value.topicId
+        }
+        if (loadTopicId.value) {
+          messagesMap.value.set(loadTopicId.value, [...messages.value])
         }
         lastMessage.id = _data.lastId
       } else if (item.event === 'output') {
@@ -695,6 +683,10 @@ const sendOut = async () => {
         message.lastId = lastMessage.id
         isSendOut.value = false
         milliSecond.value = null
+        if (dialoguePages.value.topicId === loadTopicId.value && loadTopicId.value && messagesMap.value.get(loadTopicId.value)) {
+          messages.value = [...(messagesMap.value.get(loadTopicId.value) || [])];
+        }
+        messagesMap.value.delete(loadTopicId.value || '')
       } else if (item.event === 'status') {
         statusData.value = _data
       } else {
@@ -751,6 +743,34 @@ const initChatTopic = async () => {
     console.log(error)
   }
 }
+
+// 加载更多数据
+const loadMoreChatTopics = async () => {
+  if (isLoadingMore.value || !hasMoreData.value) return;
+
+  isLoadingMore.value = true;
+
+  try {
+    const nextPage = topicPages.value.page + 1;
+    const res = await getChatTopicList({
+      ...topicPages.value,
+      page: nextPage
+    });
+
+    if (res.code === 1) {
+      // 将新数据追加到现有数据后面
+      chatItems.value = [...chatItems.value, ...res.data.list];
+      topicPages.value.page = nextPage;
+
+      // 判断是否还有更多数据
+      hasMoreData.value = chatItems.value.length < res.data.total;
+    }
+  } catch (error) {
+    console.log(error);
+  } finally {
+    isLoadingMore.value = false;
+  }
+};
 
 const initChatDialogue = async () => {
   try {

@@ -28,7 +28,7 @@
                     margin-right: 6px;
                     font-style: italic;
                   " :class="topicColorClass(topic)">{{ topic.rank }}</span>
-                <el-tooltip :content="topic.title" popper-class="tips-tooltip" :visible-arrow="false"
+                <el-tooltip :show-arrow="false" :content="topic.title" popper-class="tips-tooltip" :visible-arrow="false"
                             placement="bottom-start">
                   <span class="hot-title">{{ topic.title }}</span>
                 </el-tooltip>

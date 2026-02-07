@@ -6,110 +6,75 @@
         统计信息
       </span>
     </template>
-    <div class="w-full flex flex-col md:flex-row gap-6">
-      <!-- 扇形图 -->
-      <div class="w-full md:w-1/3">
-        <div ref="sectorChartRef" class="w-full h-72 md:h-80 lg:h-96"></div>
+
+    <!-- 统计卡片区域 -->
+    <div class="w-full grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+      <div class="bg-blue-50 dark:bg-blue-900/20 p-4 rounded-lg border border-blue-100 dark:border-blue-800">
+        <div class="flex items-center">
+          <i class="ri-file-text-line text-2xl text-blue-500 mr-3"></i>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">文档</p>
+            <p class="text-xl font-bold text-gray-800 dark:text-white">{{ statisticsData.articleCount || 0 }}</p>
+          </div>
+        </div>
       </div>
 
-      <!-- 折线图 -->
-      <div class="w-full md:w-2/3">
-        <div ref="lineChartRef" class="w-full h-72 md:h-80 lg:h-96"></div>
+      <div class="bg-green-50 dark:bg-green-900/20 p-4 rounded-lg border border-green-100 dark:border-green-800">
+        <div class="flex items-center">
+          <i class="ri-folder-2-line text-2xl text-green-500 mr-3"></i>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">文件</p>
+            <p class="text-xl font-bold text-gray-800 dark:text-white">{{ statisticsData.fileCount || 0 }}</p>
+          </div>
+        </div>
       </div>
+
+      <div class="bg-orange-50 dark:bg-orange-900/20 p-4 rounded-lg border border-orange-100 dark:border-orange-800">
+        <div class="flex items-center">
+          <i class="ri-user-line text-2xl text-orange-500 mr-3"></i>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">人员</p>
+            <p class="text-xl font-bold text-gray-800 dark:text-white">{{ statisticsData.userCount || 0 }}</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="bg-purple-50 dark:bg-purple-900/20 p-4 rounded-lg border border-purple-100 dark:border-purple-800">
+        <div class="flex items-center">
+          <i class="ri-book-open-line text-2xl text-purple-500 mr-3"></i>
+          <div>
+            <p class="text-sm text-gray-500 dark:text-gray-400">知识库</p>
+            <p class="text-xl font-bold text-gray-800 dark:text-white">{{ statisticsData.wikiCount || 0 }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 折线图 - 日志和文件 -->
+    <div class="w-full">
+      <div ref="lineChartRef" class="w-full h-72 md:h-80 lg:h-96"></div>
     </div>
   </el-card>
 </template>
 
 <script lang="ts" setup>
-import { ref, onMounted, onUnmounted, nextTick } from 'vue'
+import { ref, onMounted, onUnmounted, reactive } from 'vue'
 import * as echarts from 'echarts'
-import {getStatisticsData, getStatisticsDayData} from "@/api/statistics.ts";
+import { getStatisticsData, getStatisticsDayData } from "@/api/statistics.ts";
 
-const sectorChartRef = ref<HTMLDivElement | null>(null)
 const lineChartRef = ref<HTMLDivElement | null>(null)
-let sectorChartInstance: echarts.ECharts | null = null
 let lineChartInstance: echarts.ECharts | null = null
 
-interface PieDataItem {
-  value: number;
-  name: string;
+interface StatisticsData {
+  articleCount?: number;
+  fileCount?: number;
+  logCount?: number;
+  userCount?: number;
+  dictCount?: number;
+  wikiCount?: number;
 }
 
-interface LineDataItem {
-  data: number[];
-  name: string;
-  smooth: boolean;
-  type: string;
-}
-
-const initSectorChart = async () => {
-  if (!sectorChartRef.value) return
-
-  // 销毁之前的实例
-  if (sectorChartInstance) {
-    sectorChartInstance.dispose()
-  }
-
-  sectorChartInstance = echarts.init(sectorChartRef.value)
-
-  const option = {
-    legend: {
-      top: 'top'
-    },
-    toolbox: {
-      show: true
-    },
-    tooltip: {
-      trigger: 'item',
-      formatter: '{a} <br/>{b}: {c} ({d}%)'
-    },
-    series: [
-      {
-        name: '统计信息',
-        type: 'pie',
-        radius: ['40%', '75%'],
-        center: ['50%', '50%'],
-        avoidLabelOverlap: false,
-        top: 35,
-        itemStyle: {
-          borderRadius: 8
-        },
-        label: {
-          show: true,
-          formatter: '{b}\n{d}%\n({c})',
-          fontSize: 12,
-          lineHeight: 16
-        },
-        emphasis: {
-          label: {
-            show: true,
-            fontSize: 16,
-            fontWeight: 'bold'
-          }
-        },
-        labelLine: {
-          show: true
-        },
-        data: [] as PieDataItem[]
-      }
-    ]
-  }
-
-  const res = await getStatisticsData()
-
-  if (res.code === 1) {
-    option.series[0].data = [
-      { value: res.data.articleCount || 0, name: '文档' },
-      { value: res.data.fileCount || 0, name: '文件' },
-      { value: res.data.logCount || 0, name: '日志' },
-      { value: res.data.userCount || 0, name: '人员' },
-      { value: res.data.dictCount || 0, name: '字典' },
-      { value: res.data.wikiCount || 0, name: '知识库' }
-    ]
-  }
-
-  sectorChartInstance.setOption(option)
-}
+const statisticsData = reactive<StatisticsData>({})
 
 const initLineChart = async () => {
   if (!lineChartRef.value) return
@@ -126,7 +91,7 @@ const initLineChart = async () => {
       trigger: 'axis'
     },
     legend: {
-      data: ['文档', '文件', '日志', '人员', '字典', '知识库']
+      data: ['日志', '文件']
     },
     grid: {
       left: '3%',
@@ -142,45 +107,65 @@ const initLineChart = async () => {
     yAxis: {
       type: 'value'
     },
-    series: [] as LineDataItem[]
+    series: [
+      {
+        data: [],
+        smooth: true,
+        type: 'line',
+        name: '日志',
+        itemStyle: {
+          color: '#ef4444'
+        },
+        areaStyle: {
+          opacity: 0.1
+        }
+      },
+      {
+        data: [],
+        smooth: true,
+        type: 'line',
+        name: '文件',
+        itemStyle: {
+          color: '#10b981'
+        },
+        areaStyle: {
+          opacity: 0.1
+        }
+      }
+    ]
   }
 
   const res = await getStatisticsDayData()
   if (res.code === 1) {
     option.xAxis.data = res.data.statisticsDays
-    option.series = [
-      { data: res.data.articleCounts, smooth: true, type: 'line', name: '文档' },
-      { data: res.data.fileCounts, smooth: true, type: 'line', name: '文件' },
-      { data: res.data.logCounts, smooth: true, type: 'line', name: '日志' },
-      { data: res.data.userCounts, smooth: true, type: 'line', name: '人员' },
-      { data: res.data.dictCounts, smooth: true, type: 'line', name: '字典' },
-      { data: res.data.wikiCounts, smooth: true, type: 'line', name: '知识库' }
-    ]
+    option.series[0].data = res.data.logCounts
+    option.series[1].data = res.data.fileCounts
   }
+
   lineChartInstance.setOption(option)
 }
 
-const handleResize = () => {
-  if (sectorChartInstance) {
-    sectorChartInstance.resize()
+// 获取统计数据
+const fetchStatisticsData = async () => {
+  const res = await getStatisticsData()
+  if (res.code === 1) {
+    Object.assign(statisticsData, res.data)
   }
+}
+
+const handleResize = () => {
   if (lineChartInstance) {
     lineChartInstance.resize()
   }
 }
 
-onMounted(() => {
-  nextTick(async () => {
-    await initSectorChart()
-    await initLineChart()
-    window.addEventListener('resize', handleResize)
-  })
+onMounted(async () => {
+  await fetchStatisticsData()
+  await initLineChart()
+  window.addEventListener('resize', handleResize)
 })
 
 onUnmounted(() => {
-  if (sectorChartInstance) {
-    sectorChartInstance.dispose()
-  }
   if (lineChartInstance) {
     lineChartInstance.dispose()
   }

@@ -1,4 +1,4 @@
-import sse from '@/utils/request-chat.ts'
+import sse from '@/utils/request-sse.ts'
 import request from '@/utils/request.ts'
 
 const VITE_APP_API_URL = import.meta.env.VITE_APP_API_URL

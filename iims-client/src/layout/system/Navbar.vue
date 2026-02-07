@@ -23,7 +23,14 @@
           <i :class="switchFullScreen ? 'ri-fullscreen-exit-line' : 'ri-fullscreen-fill'"></i>
         </el-button>
       </div>
-      <el-dropdown class="avatar-container">
+      <el-dropdown
+          class="avatar-container"
+          placement="top-end"
+          trigger="click"
+          popper-class="user-popover"
+          :offset="3"
+          :show-arrow="false"
+      >
         <div style="display: flex; align-items: center;">
           <div class="avatar-wrapper">
             <image-with-token class="user-avatar" alt="user-avatar" :src="avatar">
@@ -38,15 +45,19 @@
           </div>
         </div>
         <template #dropdown>
-          <el-dropdown-menu style="margin: 0 5px;">
-            <el-dropdown-item class="function-btn">
-              <span style="display: block; padding: 6px;" @click="showEditPasswordDialog(userId)"><i class="ri-shield-keyhole-fill"></i>修改密码</span>
+          <el-dropdown-menu class="user-menu">
+            <el-dropdown-item class="menu-item" @click="showEditPasswordDialog(userId)">
+              <i class="ri-shield-keyhole-line menu-icon"></i>
+              <span>修改密码</span>
             </el-dropdown-item>
-            <el-dropdown-item class="function-btn" style="margin-top: 6px;">
-              <span style="display: block; padding: 6px;"><i class="ri-edit-circle-fill"></i>修改信息</span>
+            <el-dropdown-item class="menu-item">
+              <i class="ri-edit-line menu-icon"></i>
+              <span>修改信息</span>
             </el-dropdown-item>
-            <el-dropdown-item class="logout-btn" divided @click.native="logout">
-              <span style="display: block; padding: 6px;"><i class="ri-logout-circle-line"></i>退出登录</span>
+            <el-divider style="margin: 6px 0; width: 110px;" />
+            <el-dropdown-item class="menu-item" @click="logout">
+              <i class="ri-logout-box-r-line menu-icon"></i>
+              <span>退出登录</span>
             </el-dropdown-item>
           </el-dropdown-menu>
         </template>
@@ -77,16 +88,17 @@
 </template>
 
 <script setup lang="ts">
-import {ref, onMounted, nextTick, computed} from 'vue'
+import {ref, onMounted, nextTick, computed, onUnmounted} from 'vue'
 import { useStore } from 'vuex'
 import { useRouter } from 'vue-router'
-import { ElMessage, ElForm } from 'element-plus'
+import { ElMessage, ElForm, ElDropdownMenu } from 'element-plus'
 import { updatePassword } from '@/api/admin.js'
 import screenfull from "screenfull"
 import Breadcrumb from '@/components/breadcrumb/Index.vue'
 import Hamburger from '@/components/hamburger/Index.vue'
 import url from '@/assets/icons/iims.png'
 import ImageWithToken from "@/components/information/ImageWithToken.vue";
+import {subscriberCompleted, subscriberConnect} from "@/api/subscriber.ts";
 
 // 定义类型接口
 interface PasswordForm {
@@ -105,7 +117,7 @@ const pwForm = ref<PasswordForm>({
   newPassword: ''
 })
 const switchFullScreen = ref(false)
-
+const cancelSubscriberConnect = ref<any>(null)
 // 表单校验规则
 const rulesPassword = {
   oldPassword: [{ required: true, message: '不能为空', trigger: 'blur' }],
@@ -127,9 +139,13 @@ const resetForm = (formName: string) => {
   }
 }
 
+cancelSubscriberConnect.value = subscriberConnect((item: any) => {
+  console.log(item)
+})
+
 // 方法
 const toggleSideBar = () => {
-  store.dispatch('app/toggleSideBar')
+  store.dispatch('app/toggleSideTabar')
 }
 
 const showEditPasswordDialog = (userId: string | number) => {
@@ -188,6 +204,18 @@ onMounted(() => {
   screenfull.on('change', () => {
     switchFullScreen.value = screenfull.isFullscreen
   })
+
+  // 正确地在 beforeunload 事件中调用取消函数
+  const handleBeforeUnload = async (event: any) => {
+    await subscriberCompleted(userId.value)
+    event.preventDefault()
+  }
+
+  window.addEventListener('beforeunload', handleBeforeUnload);
+  // 如果你需要清理资源，在组件销毁时也移除监听器
+  onUnmounted(() => {
+    window.removeEventListener('beforeunload', handleBeforeUnload);
+  });
 })
 </script>
 
@@ -286,37 +314,43 @@ onMounted(() => {
     }
   }
 }
+
+// 新增的用户菜单样式
+.user-menu {
+  width: 130px !important;
+  border-radius: 8px !important;
+  padding: 8px !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+  border: none !important;
+}
+
+.menu-item {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: background-color 0.2s, color 0.2s;
+  margin: 2px 0;
+  font-size: 14px;
+  color: #606266;
+}
+
+.menu-icon {
+  margin-right: 4px;
+  font-size: 16px;
+}
+
+:deep(.user-popover) {
+  border-radius: 8px !important;
+  padding: 8px 0 !important;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+  border: none !important;
+}
 </style>
 
 <style>
-.logout-btn {
-  border-radius: 6px;
-  padding: 1px 6px !important;
-  background-color: rgb(253, 225.6, 225.6) !important;
-  border: 3px solid rgb(253, 225.6, 225.6) !important;
-  color: rgb(255, 115, 115) !important;
-  font-weight: bolder !important;
-}
-
-.logout-btn:hover, .logout-btn:focus {
-  background-color: rgb(255, 115, 115) !important;
-  color: rgb(253, 225.6, 225.6) !important;
-}
-
-.function-btn {
-  border-radius: 6px;
-  padding: 1px 6px !important;
-  border: 3px solid rgb(216.8, 235.6, 255) !important;
-  background-color: rgb(216.8, 235.6, 255) !important;
-  color: rgb(97, 176, 255) !important;
-  font-weight: bolder !important;
-}
-
-.function-btn:hover, .function-btn:focus {
-  background-color: rgb(97, 176, 255) !important;
-  color: rgb(216.8, 235.6, 255) !important;
-}
-
+/* 移除旧的样式类，保留其他必要样式 */
 .avatar-container .el-tooltip__trigger:focus-visible {
   outline: none;
   border: none;
