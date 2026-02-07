@@ -3,28 +3,29 @@ package com.toryu.iims.ai.chat.model.entity;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.toryu.iims.ai.chat.model.vo.DocMetadataVO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.io.Serializable;
 import java.util.List;
 
+/**
+ * @Author: Aitenry
+ * @Date: 2026/2/7 21:10
+ * @Version: v1.0.0
+ * @Description: TODO
+ **/
 @Data
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class SendEndData implements Serializable {
+public class SendOutputData {
 
     @JsonFormat(shape = JsonFormat.Shape.STRING)
     @JSONField(serializeUsing = ToStringSerializer.class)
     private Long topicId;
 
-    @JsonFormat(shape = JsonFormat.Shape.STRING)
-    @JSONField(serializeUsing = ToStringSerializer.class)
-    private Long lastId;
+    private List<AiContent> aiContent;
 
-    private List<DocMetadataVO> docMetadata;
 }

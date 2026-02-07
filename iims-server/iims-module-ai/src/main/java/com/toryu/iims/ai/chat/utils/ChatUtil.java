@@ -99,7 +99,10 @@ public class ChatUtil {
                 .thinking(new StringBuffer()).build());
         messageData.setAiContent(aiContent);
         messageData.setDocuments(documents);
+        Long topicId = messageData.getTopicId();
         Long userId = BaseContext.getCurrentId();
+        SendOutputData outputData = SendOutputData.builder()
+                .topicId(topicId).aiContent(aiContent).build();
         stream.subscribe(data -> {
                 try {
                     AssistantMessage assistantMessage = data.getResult().getOutput();
@@ -108,7 +111,7 @@ public class ChatUtil {
                         aiContent.get(0).getContent().append(text);
                     }
                     emitter.send(SseEmitter.event().name("output")
-                           .id(String.valueOf(uuid)).data(aiContent));
+                           .id(String.valueOf(uuid)).data(outputData));
                 } catch (IOException e) {
                     log.error("AI Stream 消息发送出错：", e);
                     BaseContext.setCurrentId(userId);
@@ -170,7 +173,9 @@ public class ChatUtil {
             // 尝试发送结束事件
             List<DocMetadataVO> list = docMetadataUtil.getDocMetadata(aiAiChatDialogue.getMetadata());
             emitter.send(SseEmitter.event().name("end")
-                    .id(_uuid).data(SendEndData.builder().id(aiAiChatDialogue.getId()).docMetadata(list).build()));
+                    .id(_uuid).data(SendEndData.builder().topicId(topicId)
+                            .lastId(aiAiChatDialogue.getId())
+                            .docMetadata(list).build()));
         } catch (Exception e) {
             log.error("[End] >> ", e);
         } finally {

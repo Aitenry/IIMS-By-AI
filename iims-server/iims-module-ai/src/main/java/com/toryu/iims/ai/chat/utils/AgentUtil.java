@@ -9,6 +9,7 @@ import com.toryu.iims.ai.agent.react.memory.MemoryBranchMessageSaver;
 import com.toryu.iims.ai.chat.model.entity.AiContent;
 import com.toryu.iims.ai.chat.model.entity.ChatTool;
 import com.toryu.iims.ai.chat.model.entity.MessageData;
+import com.toryu.iims.ai.chat.model.entity.SendOutputData;
 import com.toryu.iims.ai.chat.service.ModelService;
 import com.toryu.iims.ai.tools.factory.AITool;
 import com.toryu.iims.ai.tools.factory.ToolFactory;
@@ -59,6 +60,8 @@ public class AgentUtil {
                               SseEmitter emitter, Map<Long, MessageData> msgMap) {
         List<AiContent> aiContents = new ArrayList<>();
         messageData.setAiContent(aiContents);
+        SendOutputData outputData = SendOutputData.builder()
+                .topicId(messageData.getTopicId()).aiContent(aiContents).build();
         Flux<ReActAgentEvent> reActAgentEvents = this.getReActAgentEvents(modelId, messages, enabledToolIds);
 
         AtomicReference<AiContent> currentAiContent = new AtomicReference<>();
@@ -160,7 +163,7 @@ public class AgentUtil {
                         }
 
                         emitter.send(SseEmitter.event().name("output")
-                                .id(String.valueOf(uuid)).data(aiContents));
+                                .id(String.valueOf(uuid)).data(outputData));
 
                     } catch (IOException e) {
                         log.error("AI Stream 消息发送出错：", e);
