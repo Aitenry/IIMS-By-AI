@@ -99,6 +99,7 @@ import { Search } from "@element-plus/icons-vue";
 
 interface ModelItem {
   id: string
+  modelId: string
   name: string
   description: string | null
   apiType: string

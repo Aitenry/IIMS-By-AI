@@ -42,6 +42,7 @@ export interface MsgParam {
     lastId: string | null
     fileId: string | null
     question: string
+    apiType: string
     modelId: string | null
     wikiIds: string[] | null
 }

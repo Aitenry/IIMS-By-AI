@@ -459,7 +459,7 @@ onUnmounted(() => {
 
 .topic-more-btn {
   color: #909399;
-  font-size: 16px;
+  font-size: 14px;
   transition: color 0.2s;
 }
 

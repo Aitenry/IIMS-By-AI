@@ -178,13 +178,7 @@
           </el-col>
           <el-col v-if="form.menuType !== 'F'" :span="24">
             <el-form-item label="菜单图标">
-              <el-input
-                  v-model="form.icon"
-                  placeholder="点击选择图标"
-                  readonly
-              >
-                <template #prefix></template>
-              </el-input>
+              <SelectIcon v-model="form.icon"/>
             </el-form-item>
           </el-col>
           <el-col :span="11">
@@ -261,6 +255,7 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { addMenu, deleteMenu, getMenuList, updateMenu } from '@/api/menu'
 import type { FormInstance } from 'element-plus'
 import {handleTree} from "@/utils/common.ts";
+import SelectIcon from "@/components/information/SelectIcon.vue";
 interface MenuData {
   id: string | null
   parentId: string

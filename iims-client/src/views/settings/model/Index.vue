@@ -111,10 +111,6 @@ interface TypeMapper {
 
 const formatType = (type: string) => {
   const mapper: TypeMapper = {
-    'AGENT': {
-      type: 'success',
-      title: 'Agent'
-    },
     'OPENAI': {
       type: 'info',
       title: 'OpenAI'

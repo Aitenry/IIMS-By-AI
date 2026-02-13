@@ -197,6 +197,7 @@ const msgParam = ref<MsgParam>({
   lastId: null,
   fileId: null,
   modelId: null,
+  apiType: 'AGENT',
   question: '',
   wikiIds: null
 })
@@ -527,6 +528,7 @@ const openNewChat = () => {
     lastId: null,
     fileId: null,
     modelId: msgParam.value.modelId,
+    apiType: msgParam.value.apiType,
     question: '',
     wikiIds: msgParam.value.wikiIds
   }
@@ -573,7 +575,8 @@ const limitLengthWithEllipsis = (question: string) => {
 }
 
 const handleModelSelectionChanged = (model: any) => {
-  msgParam.value.modelId = model.id
+  msgParam.value.modelId = model.modelId
+  msgParam.value.apiType = model.apiType
 }
 
 const sendOut = async () => {
