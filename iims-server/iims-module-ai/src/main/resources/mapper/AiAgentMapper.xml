@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="com.toryu.iims.ai.chat.mapper.AiAgentMapper">
+
+    <select id="selectAgentList" resultType="com.toryu.iims.ai.chat.model.vo.SelectAgentVO">
+        SELECT
+            a.*,
+            m.model_type
+        FROM iims_ai_agent a
+                 LEFT JOIN iims_ai_chat_models m ON a.model_id = m.id
+        WHERE a.is_deleted = 0 AND a.status = 0;
+    </select>
+
+</mapper>

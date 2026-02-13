@@ -216,7 +216,7 @@ public class ChatUtil {
 
             // 调用模型简化问题
             ModelSetting modelSetting = settingService.getUserModelSetting();
-            ChatResponse response = modelService.getChatModel(modelSetting.getLanguageModel())
+            ChatResponse response = modelService.getChatModel(modelSetting.getModelId())
                     .call(new Prompt(List.of(sysMessage, userMessage)));
             simplifiedQuestion = PromptTemplateUtil.removeThink(response.getResult().getOutput().getText());
             log.info("简化的内容为：{}", simplifiedQuestion);

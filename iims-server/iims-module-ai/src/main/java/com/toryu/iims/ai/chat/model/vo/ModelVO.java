@@ -3,7 +3,7 @@ package com.toryu.iims.ai.chat.model.vo;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.toryu.iims.common.enums.AiModelApiType;
+import com.toryu.iims.common.enums.AiApiType;
 import com.toryu.iims.common.model.vo.BaseAdminInfoVO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -35,7 +35,7 @@ public class ModelVO {
 
     private String description;
 
-    private AiModelApiType type;
+    private AiApiType type;
 
     private Boolean isOnline;
 

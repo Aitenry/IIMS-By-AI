@@ -76,7 +76,7 @@ public class ModelToolServiceImpl implements ModelToolService {
         messages.add(systemMessage);
         messages.add(userMessage);
         ModelSetting modelSetting = settingService.getUserModelSetting();
-        ChatResponse call = modelService.getChatModel(modelSetting.getVisionModel())
+        ChatResponse call = modelService.getChatModel(modelSetting.getModelId())
                 .call(new Prompt(messages));
         return call.getResult().getOutput().getText();
     }
@@ -130,7 +130,7 @@ public class ModelToolServiceImpl implements ModelToolService {
         ).createMessage(Map.of("content", contentBuilder.toString()));
 
         ModelSetting modelSetting = settingService.getUserModelSetting();
-        ChatResponse finalCall = modelService.getChatModel(modelSetting.getLanguageModel())
+        ChatResponse finalCall = modelService.getChatModel(modelSetting.getModelId())
                 .call(new Prompt(finalMessage));
         return PromptTemplateUtil.removeThink(finalCall.getResult().getOutput().getText());
     }
@@ -158,7 +158,7 @@ public class ModelToolServiceImpl implements ModelToolService {
         ).createMessage(Map.of("content", mergedContent, "threshold", threshold));
 
         ModelSetting modelSetting = settingService.getUserModelSetting();
-        ChatResponse call = modelService.getChatModel(modelSetting.getLanguageModel())
+        ChatResponse call = modelService.getChatModel(modelSetting.getModelId())
                 .call(new Prompt(message));
         String result = PromptTemplateUtil.removeThink(call.getResult().getOutput().getText());
 

@@ -40,7 +40,7 @@ public class ChatController {
 
     @GetMapping("/endpoint/list")
     public Result<List<SelectEndpointVO>> selectEndpointList() {
-        return Result.success(aiChatModelsService.selectEndpointList());
+        return Result.success(chatService.selectEndpointList());
     }
 
     @ApiOperation("重新生成回答")

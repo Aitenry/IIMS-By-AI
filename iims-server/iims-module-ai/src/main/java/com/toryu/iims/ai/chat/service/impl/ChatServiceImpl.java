@@ -2,15 +2,17 @@ package com.toryu.iims.ai.chat.service.impl;
 
 import com.toryu.iims.ai.chat.model.dto.SendMessageDTO;
 import com.toryu.iims.ai.chat.model.entity.*;
+import com.toryu.iims.ai.chat.model.vo.SelectAgentVO;
+import com.toryu.iims.ai.chat.model.vo.SelectEndpointVO;
+import com.toryu.iims.ai.chat.model.vo.SelectModelVO;
 import com.toryu.iims.ai.chat.service.*;
 import com.toryu.iims.ai.chat.utils.AgentUtil;
 import com.toryu.iims.ai.chat.utils.ChatUtil;
-import com.toryu.iims.ai.rag.enums.FileModelTypeEnum;
 import com.toryu.iims.ai.rag.handle.PromptHandlerContext;
 import com.toryu.iims.ai.rag.model.entity.RagMessage;
 import com.toryu.iims.ai.rag.utils.PromptTemplateUtil;
 import com.toryu.iims.common.context.BaseContext;
-import com.toryu.iims.common.enums.AiModelApiType;
+import com.toryu.iims.common.enums.AiApiType;
 import com.toryu.iims.common.model.entity.file.FileWarehouse;
 import com.toryu.iims.common.service.FileStorageService;
 import lombok.extern.slf4j.Slf4j;
@@ -38,23 +40,23 @@ public class ChatServiceImpl implements ChatService {
 
     private final ModelService modelService;
     private final AiChatModelsService aiChatModelsService;
+    private final AiAgentService aiAgentService;
     private final TopicManageService topicManageService;
     private final DialogueManageService dialogueManageService;
     private final FileStorageService fileStorageService;
-    private final AiChatSettingService settingService;
     private final PromptHandlerContext promptHandlerContext;
     private final ChatUtil chatUtil;
     private final AgentUtil agentUtil;
 
-    public ChatServiceImpl(ModelService modelService, AiChatModelsService aiChatModelsService, TopicManageService topicManageService,
+    public ChatServiceImpl(ModelService modelService, AiChatModelsService aiChatModelsService, AiAgentService aiAgentService, TopicManageService topicManageService,
                            DialogueManageService dialogueManageService, FileStorageService fileStorageService,
-                           AiChatSettingService settingService, PromptHandlerContext promptHandlerContext, ChatUtil chatUtil, AgentUtil agentUtil) {
+                           PromptHandlerContext promptHandlerContext, ChatUtil chatUtil, AgentUtil agentUtil) {
         this.modelService = modelService;
         this.aiChatModelsService = aiChatModelsService;
+        this.aiAgentService = aiAgentService;
         this.topicManageService = topicManageService;
         this.dialogueManageService = dialogueManageService;
         this.fileStorageService = fileStorageService;
-        this.settingService = settingService;
         this.promptHandlerContext = promptHandlerContext;
         this.chatUtil = chatUtil;
         this.agentUtil = agentUtil;
@@ -68,7 +70,7 @@ public class ChatServiceImpl implements ChatService {
             return chatUtil.createErrorEmitter();
         }
         MessageData messageData = MessageData.builder().sse(new SseEmitter(0L))
-                .fileId(messageDto.getFileId()).wikiIds(messageDto.getWikiIds())
+                .fileId(messageDto.getFileId()).wikiIds(messageDto.getWikiIds()).apiType(messageDto.getApiType())
                 .question(messageDto.getQuestion()).topicId(messageDto.getTopicId()).tools(new ArrayList<>())
                 .lastId(messageDto.getLastId()).modelId(messageDto.getModelId()).build();
         Long userId = BaseContext.getCurrentId();
@@ -102,27 +104,19 @@ public class ChatServiceImpl implements ChatService {
                 messageData.setLastId(lastId);
 
                 List<String> fileContext = null;
-                FileModelTypeEnum type = FileModelTypeEnum.TEXT;
                 FileWarehouse object = fileStorageService.getObjectById(fileId);
                 if (Objects.nonNull(object)) {
                     ModelUseInfo filePrompt = promptHandlerContext.handleFile(object);
-                    type = filePrompt.getType();
                     fileContext = filePrompt.getContext();
                 }
 
-                ModelSetting modelSetting = settingService.getUserModelSetting();
                 Long modelId = messageData.getModelId();
-                ChatApi chatApi = aiChatModelsService.selectModelById(modelId);
                 // 发送开始事件
                 chatUtil.sendStartEvent(emitter, _uuid, topicId, lastId);
 
-                if (Objects.equals(chatApi.getType(), AiModelApiType.AGENT)) {
+                if (Objects.equals(messageData.getApiType(), AiApiType.AGENT)) {
                     PromptTemplateUtil.defineMessage(question, fileContext, messages);
-                    switch (type) {
-                        case IMAGE -> modelId = modelSetting.getVisionModel();
-                        case AUDIO, VIDEO -> modelId = modelSetting.getMultimodalModel();
-                        default -> modelId = modelSetting.getLanguageModel();
-                    }
+
                     agentUtil.processStream(
                             uuid, userId, modelId, new ArrayList<>(), messages,
                             messageData, emitter, msgMap);
@@ -160,6 +154,22 @@ public class ChatServiceImpl implements ChatService {
             }
         });
         return emitter;
+    }
+
+    @Override
+    public List<SelectEndpointVO> selectEndpointList() {
+        List<SelectModelVO> selectModelVOS = aiChatModelsService.selectModelList();
+        List<SelectAgentVO> selectAgentVOS = aiAgentService.selectAgentList();
+        List<SelectEndpointVO> endpoints = new ArrayList<>();
+        selectAgentVOS.forEach(agent -> endpoints.add(SelectEndpointVO.builder()
+                .id(agent.getId()).modelId(agent.getModelId()).description(agent.getDescription()).apiType(AiApiType.AGENT)
+                .name(Objects.isNull(agent.getRename()) ? agent.getName() : agent.getRename())
+                .modelType(agent.getModelType()).build()));
+        selectModelVOS.forEach(model -> endpoints.add(SelectEndpointVO.builder()
+                .id(model.getId()).modelId(model.getId()).description(model.getDescription()).apiType(model.getType())
+                .name(Objects.isNull(model.getRename()) ? model.getName() : model.getRename())
+                .modelType(model.getModelType()).build()));
+        return endpoints;
     }
 
     @Override

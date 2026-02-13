@@ -1,6 +1,6 @@
 package com.toryu.iims.ai.chat.model.entity;
 
-import com.toryu.iims.common.enums.AiModelApiType;
+import com.toryu.iims.common.enums.AiApiType;
 import com.toryu.iims.common.enums.AiModelType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -21,7 +21,7 @@ public class ChatApi {
 
     private String name;
 
-    private AiModelApiType type;
+    private AiApiType type;
 
     private AiModelType modelType;
 

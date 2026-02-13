@@ -11,22 +11,12 @@ import lombok.*;
 public class ModelSetting extends BaseTable {
 
     /**
-     * 大语言模型
+     * 模型ID
      */
-    private Long languageModel;
+    private Long modelId;
 
     /**
-     * 视觉大模型
-     */
-    private Long visionModel;
-
-    /**
-     * 多模态模型
-     */
-    private Long multimodalModel;
-
-    /**
-     * 嵌入向量模型
+     * 嵌入向量模型ID
      */
     private Long embeddingModel;
 

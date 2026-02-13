@@ -1,5 +1,6 @@
 package com.toryu.iims.ai.chat.model.entity;
 
+import com.toryu.iims.common.enums.AiApiType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +24,8 @@ public class MessageData implements Serializable {
     private Long fileId;
 
     private Long modelId;
+
+    private AiApiType apiType;
 
     private List<Long> wikiIds;
 

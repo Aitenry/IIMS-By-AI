@@ -13,7 +13,7 @@ public interface AiChatSettingsMapper {
     @Select("select * from iims_ai_chat_settings where user_id = #{userId} limit 1")
     ModelSetting getModelSettingByUserId(Long userId);
 
-    @Select("SELECT user_id FROM iims_ai_chat_settings WHERE language_model = #{modelId} OR vision_model = #{modelId} OR multimodal_model = #{modelId} OR embedding_model = #{modelId}")
+    @Select("SELECT user_id FROM iims_ai_chat_settings WHERE model_id = #{modelId} OR embedding_model = #{modelId}")
     List<Long> selectUserIdByModelId(@Param("modelId") Long modelId);
 
 }

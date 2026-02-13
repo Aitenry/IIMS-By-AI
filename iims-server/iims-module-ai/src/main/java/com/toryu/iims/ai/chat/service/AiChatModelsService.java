@@ -4,7 +4,6 @@ import com.github.pagehelper.Page;
 import com.toryu.iims.ai.chat.model.dto.ModelPageQueryDTO;
 import com.toryu.iims.ai.chat.model.entity.ChatApi;
 import com.toryu.iims.ai.chat.model.vo.ModelVO;
-import com.toryu.iims.ai.chat.model.vo.SelectEndpointVO;
 import com.toryu.iims.ai.chat.model.vo.SelectModelVO;
 
 import java.util.List;
@@ -22,7 +21,5 @@ public interface AiChatModelsService {
     Page<ModelVO> pageQuery(ModelPageQueryDTO modelPageQueryDTO);
 
     List<SelectModelVO> selectModelList();
-
-    List<SelectEndpointVO> selectEndpointList();
 
 }

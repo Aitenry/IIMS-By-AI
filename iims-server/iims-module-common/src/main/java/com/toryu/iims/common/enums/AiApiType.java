@@ -6,7 +6,7 @@ package com.toryu.iims.common.enums;
  * @Version: v1.0.0
  * @Description: TODO
  **/
-public enum AiModelApiType {
+public enum AiApiType {
     AGENT,
     OPENAI,
     OLLAMA,

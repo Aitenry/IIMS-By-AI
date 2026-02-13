@@ -48,7 +48,7 @@ public class GenerateGraphServiceImpl implements GenerateGraphService {
         List<Message> messages = new ArrayList<>(List.of(systemMessage, userMessage));
 
         ModelSetting modelSetting = settingService.getUserModelSetting();
-        ChatResponse call = modelService.getChatModel(modelSetting.getLanguageModel())
+        ChatResponse call = modelService.getChatModel(modelSetting.getModelId())
                 .call(new Prompt(messages));
         String result = PromptTemplateUtil.removeJsonCodeBlocks(PromptTemplateUtil.removeThink(call.getResult().getOutput().getText()));
         List<GraphEntity> graphEntities = JSONArray.parseArray(result, GraphEntity.class);
@@ -63,7 +63,7 @@ public class GenerateGraphServiceImpl implements GenerateGraphService {
                 .createMessage(Map.of("chunk", chunk, "content", content));
         List<Message> messages = new ArrayList<>(List.of(systemMessage, userMessage));
         ModelSetting modelSetting = settingService.getUserModelSetting();
-        ChatResponse call = modelService.getChatModel(modelSetting.getLanguageModel()).call(new Prompt(messages));
+        ChatResponse call = modelService.getChatModel(modelSetting.getModelId()).call(new Prompt(messages));
         String result = PromptTemplateUtil.removeJsonCodeBlocks(PromptTemplateUtil.removeThink(call.getResult().getOutput().getText()));
         List<GraphRelationship> graphRelationships = JSONArray.parseArray(result, GraphRelationship.class);
         graphRelationships.forEach(relationship -> relationship.setId(uniqueId()));

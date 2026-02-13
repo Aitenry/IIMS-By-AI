@@ -4,7 +4,7 @@ package com.toryu.iims.ai.chat.model.vo;
 import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
-import com.toryu.iims.common.enums.AiModelApiType;
+import com.toryu.iims.common.enums.AiApiType;
 import com.toryu.iims.common.enums.AiModelType;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,11 +28,15 @@ public class SelectEndpointVO {
     @JSONField(serializeUsing = ToStringSerializer.class)
     private Long id;
 
+    @JsonFormat(shape = JsonFormat.Shape.STRING)
+    @JSONField(serializeUsing = ToStringSerializer.class)
+    private Long modelId;
+
     private String name;
 
     private String description;
 
-    private AiModelApiType apiType;
+    private AiApiType apiType;
 
     private AiModelType modelType;
 
