@@ -7,6 +7,7 @@ import com.toryu.iims.ai.chat.service.ChatService;
 import com.toryu.iims.common.result.Result;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.http.MediaType;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.method.annotation.SseEmitter;
@@ -51,7 +52,7 @@ public class ChatController {
 
     @ApiOperation("停止回答用户问题")
     @GetMapping("/stop/answer/{uuid}")
-    public Result<Boolean> stopConversation(@PathVariable("uuid") Long uuid) {
+    public Result<T> stopConversation(@PathVariable("uuid") Long uuid) {
         return Result.fromBoolean(chatService.stopConversation(uuid));
     }
 

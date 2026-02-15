@@ -2,6 +2,7 @@ package com.toryu.iims.ai.chat.service;
 
 import com.github.pagehelper.Page;
 import com.toryu.iims.ai.chat.model.dto.ModelPageQueryDTO;
+import com.toryu.iims.ai.chat.model.entity.AiModel;
 import com.toryu.iims.ai.chat.model.entity.ChatApi;
 import com.toryu.iims.ai.chat.model.vo.ModelVO;
 import com.toryu.iims.ai.chat.model.vo.SelectModelVO;
@@ -22,4 +23,9 @@ public interface AiChatModelsService {
 
     List<SelectModelVO> selectModelList();
 
+    boolean deleteModelById(Long id);
+
+    boolean updateModel(AiModel aiModel);
+
+    boolean insertModel(AiModel aiModel);
 }

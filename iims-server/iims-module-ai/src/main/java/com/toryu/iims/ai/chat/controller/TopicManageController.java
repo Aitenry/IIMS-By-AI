@@ -7,6 +7,7 @@ import com.toryu.iims.common.result.PageResult;
 import com.toryu.iims.common.result.Result;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,13 +32,13 @@ public class TopicManageController {
 
     @PostMapping("/del")
     @ApiOperation("删除对话")
-    public Result<String> delTopic(@RequestBody List<Long> ids) {
+    public Result<T> delTopic(@RequestBody List<Long> ids) {
         return Result.fromBoolean(topicManageService.delTopic(ids));
     }
 
     @PostMapping("/rename")
     @ApiOperation("重命名对话")
-    public Result<String> renameTopic(@RequestBody ChatRenameTopicDTO renameTopicDto) {
+    public Result<T> renameTopic(@RequestBody ChatRenameTopicDTO renameTopicDto) {
         return Result.fromBoolean(topicManageService.renameTopic(renameTopicDto));
     }
 

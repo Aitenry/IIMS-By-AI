@@ -1,4 +1,4 @@
-package com.toryu.iims.ai.rag.utils;
+package com.toryu.iims.ai.chat.utils;
 
 import lombok.extern.slf4j.Slf4j;
 import org.apache.commons.codec.binary.Base64;

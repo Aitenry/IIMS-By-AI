@@ -19,7 +19,7 @@ public class SendMessageDTO implements Serializable {
 
     private List<Long> wikiIds;
 
-    private Long fileId;
+    private List<Long> fileIds;
 
     private String question;
 

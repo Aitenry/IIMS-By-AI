@@ -21,7 +21,7 @@ public class MessageData implements Serializable {
 
     private Long lastId;
 
-    private Long fileId;
+    private List<Long> fileIds;
 
     private Long modelId;
 

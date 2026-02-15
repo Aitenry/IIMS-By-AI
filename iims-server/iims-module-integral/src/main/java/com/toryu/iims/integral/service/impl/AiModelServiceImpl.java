@@ -1,7 +1,10 @@
 package com.toryu.iims.integral.service.impl;
 
 import com.github.pagehelper.Page;
+import com.toryu.iims.ai.chat.model.dto.CreateModelDTO;
 import com.toryu.iims.ai.chat.model.dto.ModelPageQueryDTO;
+import com.toryu.iims.ai.chat.model.dto.UpdateModelDTO;
+import com.toryu.iims.ai.chat.model.entity.AiModel;
 import com.toryu.iims.ai.chat.model.vo.ModelVO;
 import com.toryu.iims.ai.chat.service.AiChatModelsService;
 import com.toryu.iims.ai.chat.service.AiChatSettingService;
@@ -47,7 +50,29 @@ public class AiModelServiceImpl implements AiModelService {
             });
             return new PageResult(total, results);
         }
+    }
 
+    @Override
+    public boolean deleteModel(Long id) {
+        return aiChatModelsService.deleteModelById(id);
+    }
+
+    @Override
+    public boolean updateModel(UpdateModelDTO model) {
+        AiModel build = AiModel.builder().id(model.getId()).rename(model.getRename()).description(model.getDescription())
+                .token(model.getToken()).modelType(model.getModelType()).type(model.getType())
+                .name(model.getName()).url(model.getUrl()).key(model.getKey())
+                .build();
+        return aiChatModelsService.updateModel(build);
+    }
+
+    @Override
+    public boolean createModel(CreateModelDTO model) {
+        AiModel build = AiModel.builder().rename(model.getRename()).description(model.getDescription())
+                .token(model.getToken()).modelType(model.getModelType()).type(model.getType())
+                .name(model.getName()).url(model.getUrl()).key(model.getKey())
+                .build();
+        return aiChatModelsService.insertModel(build);
     }
 
 }

@@ -4,6 +4,7 @@ import com.alibaba.fastjson.annotation.JSONField;
 import com.alibaba.fastjson.serializer.ToStringSerializer;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import com.toryu.iims.common.enums.AiApiType;
+import com.toryu.iims.common.enums.AiModelType;
 import com.toryu.iims.common.model.vo.BaseAdminInfoVO;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -29,13 +30,19 @@ public class ModelVO {
     @JSONField(serializeUsing = ToStringSerializer.class)
     private Long id;
 
+    private String rename;
+
     private String name;
+
+    private String url;
 
     private String token;
 
     private String description;
 
     private AiApiType type;
+
+    private AiModelType modelType;
 
     private Boolean isOnline;
 

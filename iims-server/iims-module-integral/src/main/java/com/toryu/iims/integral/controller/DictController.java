@@ -12,6 +12,7 @@ import com.toryu.iims.common.result.Result;
 import io.swagger.annotations.Api;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -48,25 +49,25 @@ public class DictController {
 
     @GetMapping("/disable/{id}/{isDisable}")
     @ApiOperation("是否禁用字典")
-    public Result<PageResult> disableDict(@PathVariable Long id, @PathVariable Boolean isDisable) {
+    public Result<T> disableDict(@PathVariable Long id, @PathVariable Boolean isDisable) {
         return Result.fromBoolean(dictService.disableDict(id, isDisable));
     }
 
     @PostMapping("/add")
     @ApiOperation("添加字典")
-    public Result<Boolean> addDict(@RequestBody DictDTO dictDto) {
+    public Result<T> addDict(@RequestBody DictDTO dictDto) {
         return Result.fromBoolean(dictService.insertDict(dictDto));
     }
 
     @PostMapping("/delete")
     @ApiOperation("删除字典")
-    public Result<Boolean> deleteDict(@RequestBody List<Long> ids) {
+    public Result<T> deleteDict(@RequestBody List<Long> ids) {
         return Result.fromBoolean(dictService.delDict(ids));
     }
 
     @PostMapping("/update")
     @ApiOperation("修改字典")
-    public Result<Boolean> updateDict(@RequestBody DictDTO dictDto) {
+    public Result<T> updateDict(@RequestBody DictDTO dictDto) {
         return Result.fromBoolean(dictService.updateDict(dictDto));
     }
 
@@ -78,19 +79,19 @@ public class DictController {
 
     @PostMapping("/value/add")
     @ApiOperation("添加字典值")
-    public Result<Boolean> addDictValue(@RequestBody DictValueDTO dictValueDto) {
+    public Result<T> addDictValue(@RequestBody DictValueDTO dictValueDto) {
         return Result.fromBoolean(dictService.insertDictValue(dictValueDto));
     }
 
     @PostMapping("/value/update")
     @ApiOperation("修改字典值")
-    public Result<Boolean> updateDictValue(@RequestBody DictValueDTO dictValueDto) {
+    public Result<T> updateDictValue(@RequestBody DictValueDTO dictValueDto) {
         return Result.fromBoolean(dictService.updateDictValue(dictValueDto));
     }
 
     @PostMapping("/value/delete")
     @ApiOperation("删除字典值")
-    public Result<Boolean> deleteDictValue(@RequestBody List<Long> ids) {
+    public Result<T> deleteDictValue(@RequestBody List<Long> ids) {
         return Result.fromBoolean(dictService.delDictValue(ids));
     }
 

@@ -70,7 +70,7 @@ public class ChatServiceImpl implements ChatService {
             return chatUtil.createErrorEmitter();
         }
         MessageData messageData = MessageData.builder().sse(new SseEmitter(0L))
-                .fileId(messageDto.getFileId()).wikiIds(messageDto.getWikiIds()).apiType(messageDto.getApiType())
+                .fileIds(messageDto.getFileIds()).wikiIds(messageDto.getWikiIds()).apiType(messageDto.getApiType())
                 .question(messageDto.getQuestion()).topicId(messageDto.getTopicId()).tools(new ArrayList<>())
                 .lastId(messageDto.getLastId()).modelId(messageDto.getModelId()).build();
         Long userId = BaseContext.getCurrentId();
@@ -89,7 +89,7 @@ public class ChatServiceImpl implements ChatService {
                 messageData.setTopicId(topicId);
             }
             msgMap.put(uuid, messageData);
-            Long fileId = messageData.getFileId();
+            List<Long> fileIds = messageData.getFileIds();
             List<Long> wikiIds = messageData.getWikiIds();
             String _uuid = String.valueOf(uuid);
             try {
@@ -103,11 +103,16 @@ public class ChatServiceImpl implements ChatService {
                 Long lastId = userAiChatDialogue.getId();
                 messageData.setLastId(lastId);
 
-                List<String> fileContext = null;
-                FileWarehouse object = fileStorageService.getObjectById(fileId);
-                if (Objects.nonNull(object)) {
-                    ModelUseInfo filePrompt = promptHandlerContext.handleFile(object);
-                    fileContext = filePrompt.getContext();
+                List<String> fileContext = new ArrayList<>();
+                List<FileWarehouse> objects = fileStorageService.getObjectByIds(fileIds);
+                if (Objects.nonNull(objects) && !objects.isEmpty()) {
+                    objects.forEach(object -> {
+                        ModelUseInfo filePrompt = promptHandlerContext.handleFile(object);
+                        List<String> context = filePrompt.getContext();
+                        if (Objects.nonNull(context)) {
+                            fileContext.addAll(context);
+                        }
+                    });
                 }
 
                 Long modelId = messageData.getModelId();

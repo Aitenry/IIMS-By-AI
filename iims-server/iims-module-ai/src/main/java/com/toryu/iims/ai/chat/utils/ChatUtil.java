@@ -66,7 +66,7 @@ public class ChatUtil {
 
     // 辅助方法：构建用户对话记录
     public AiChatDialogue buildUserDialogue(MessageData messageData) {
-        Long fileId = messageData.getFileId();
+        List<Long> fileIds = messageData.getFileIds();
         AiChatDialogue dialogue = AiChatDialogue.builder()
                 .topicId(messageData.getTopicId())
                 .lastId(messageData.getLastId())
@@ -76,9 +76,9 @@ public class ChatUtil {
                 .isStar(false)
                 .isDeleted(false)
                 .build();
-        if (Objects.nonNull(fileId)) {
-            fileStorageService.updateFileStatus(fileId, FileStatusEnum.USED);
-            dialogue.setFileIds(List.of(fileId));
+        if (Objects.nonNull(fileIds) && !fileIds.isEmpty()) {
+            fileIds.forEach(fileId -> fileStorageService.updateFileStatus(fileId, FileStatusEnum.USED));
+            dialogue.setFileIds(fileIds);
         }
         return dialogue;
     }

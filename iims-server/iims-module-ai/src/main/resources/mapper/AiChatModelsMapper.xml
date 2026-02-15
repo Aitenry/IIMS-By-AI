@@ -3,6 +3,15 @@
         "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
 <mapper namespace="com.toryu.iims.ai.chat.mapper.AiChatModelsMapper">
 
+    <insert id="insert" useGeneratedKeys="true" keyProperty="id">
+        insert into iims_ai_chat_models(id, `rename`, `name`, `key`, token, `type`, url, `description`,
+                                        model_type, is_online, is_deleted, detection_time, create_by,
+                                        create_time, update_by, update_time)
+        values (#{id}, #{rename}, #{name}, #{key}, #{token}, #{type}, #{url}, #{description},
+                #{modelType}, #{isOnline}, #{isDeleted}, #{detectionTime},
+                #{createBy}, #{createTime}, #{updateBy}, #{updateTime})
+    </insert>
+
     <select id="pageQuery" resultType="com.toryu.iims.ai.chat.model.vo.ModelVO">
         select * from iims_ai_chat_models
         <where>
@@ -16,5 +25,26 @@
     <select id="selectModelList" resultType="com.toryu.iims.ai.chat.model.vo.SelectModelVO">
         select * from iims_ai_chat_models where is_deleted = 0 and model_type != 0 order by type
     </select>
+
+    <update id="deleteModelById">
+        update iims_ai_chat_models set is_deleted = 1 where id = #{id}
+    </update>
+
+    <update id="update">
+        update iims_ai_chat_models
+        <set>
+            <if test="rename != null">`rename` = #{rename},</if>
+            <if test="name != null">`name` = #{name},</if>
+            <if test="key != null">`key` = #{key},</if>
+            <if test="token != null">token = #{token},</if>
+            <if test="type != null">`type` = #{type},</if>
+            <if test="url != null">url = #{url},</if>
+            <if test="description != null">`description` = #{description},</if>
+            <if test="modelType != null">model_type = #{modelType},</if>
+            <if test="updateBy != null">update_by = #{updateBy},</if>
+            <if test="updateTime != null">update_time = #{updateTime},</if>
+        </set>
+        where id = #{id}
+    </update>
 
 </mapper>

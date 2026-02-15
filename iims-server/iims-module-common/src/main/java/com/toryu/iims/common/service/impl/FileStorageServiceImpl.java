@@ -23,6 +23,7 @@ public class FileStorageServiceImpl implements FileStorageService {
 
     @Override
     public List<FileWarehouse> getObjectByIds(List<Long> ids) {
+        if (Objects.isNull(ids) || ids.isEmpty()) return null;
         return fileStorageMapper.getObjectByIds(BaseContext.getCurrentId(), ids);
     }
 

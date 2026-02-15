@@ -69,7 +69,7 @@
         where id = #{lastId} or last_id = #{lastId};
     </update>
 
-        <update id="updateDeletedByTopicIds">
+    <update id="updateDeletedByTopicIds">
         update iims_ai_chat_dialogue
         set is_deleted = #{isDeleted}, update_by = #{updateBy}, update_time = #{updateTime}
         where topic_id in

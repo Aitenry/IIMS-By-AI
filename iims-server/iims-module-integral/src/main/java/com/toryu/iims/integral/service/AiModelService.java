@@ -1,10 +1,9 @@
 package com.toryu.iims.integral.service;
 
+import com.toryu.iims.ai.chat.model.dto.CreateModelDTO;
 import com.toryu.iims.ai.chat.model.dto.ModelPageQueryDTO;
-import com.toryu.iims.ai.chat.model.vo.SelectEndpointVO;
+import com.toryu.iims.ai.chat.model.dto.UpdateModelDTO;
 import com.toryu.iims.common.result.PageResult;
-
-import java.util.List;
 
 /**
  * @Author: Aitenry
@@ -16,4 +15,9 @@ public interface AiModelService {
 
     PageResult pageQuery(ModelPageQueryDTO modelPageQueryDTO);
 
+    boolean deleteModel(Long id);
+
+    boolean updateModel(UpdateModelDTO model);
+
+    boolean createModel(CreateModelDTO model);
 }

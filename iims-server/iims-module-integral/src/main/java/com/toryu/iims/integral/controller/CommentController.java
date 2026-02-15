@@ -6,6 +6,7 @@ import com.toryu.iims.integral.model.dto.comment.PublishCommentDTO;
 import com.toryu.iims.integral.model.vo.comment.FindCommentListVO;
 import com.toryu.iims.integral.service.CommentService;
 import io.swagger.annotations.ApiOperation;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,7 +23,7 @@ public class CommentController {
     }
 
     @PostMapping("/publish")
-    public Result<String> publishComment(@RequestBody PublishCommentDTO dto) {
+    public Result<T> publishComment(@RequestBody PublishCommentDTO dto) {
         return Result.fromBoolean(commentService.publishComment(dto));
     }
 

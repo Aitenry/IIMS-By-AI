@@ -6,6 +6,7 @@ import com.toryu.iims.common.result.PageResult;
 import com.toryu.iims.common.result.Result;
 import io.swagger.annotations.ApiOperation;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.poi.ss.formula.functions.T;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -28,19 +29,19 @@ public class DialogueManageController {
 
     @PostMapping("/star/{status}")
     @ApiOperation("收藏对话记录")
-    public Result<String> switchStar(@PathVariable Boolean status, @RequestParam("id") Long id) {
+    public Result<T> switchStar(@PathVariable Boolean status, @RequestParam("id") Long id) {
         return Result.fromBoolean(dialogueManageService.switchStar(id, status));
     }
 
     @PostMapping("/feedback/{status}")
     @ApiOperation("收藏对话记录")
-    public Result<String> exchangeFeedback(@PathVariable Integer status, @RequestParam("id") Long id) {
+    public Result<T> exchangeFeedback(@PathVariable Integer status, @RequestParam("id") Long id) {
         return Result.fromBoolean(dialogueManageService.exchangeFeedback(id, status));
     }
 
     @GetMapping("/del/{lastId}")
     @ApiOperation("删除对话历史记录")
-    public Result<String> delDialogue(@PathVariable Long lastId) {
+    public Result<T> delDialogue(@PathVariable Long lastId) {
         return Result.fromBoolean(dialogueManageService.delDialogue(lastId));
     }
 

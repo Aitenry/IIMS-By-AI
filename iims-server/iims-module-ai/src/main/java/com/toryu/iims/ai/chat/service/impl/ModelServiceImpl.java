@@ -4,7 +4,7 @@ import com.toryu.iims.ai.chat.model.entity.ChatApi;
 import com.toryu.iims.ai.chat.model.entity.ModelChatOptions;
 import com.toryu.iims.ai.chat.service.AiChatModelsService;
 import com.toryu.iims.ai.chat.service.ModelService;
-import com.toryu.iims.ai.rag.utils.AESEncryptionUtil;
+import com.toryu.iims.ai.chat.utils.AESEncryptionUtil;
 import org.springframework.ai.chat.model.ChatModel;
 import org.springframework.ai.deepseek.DeepSeekChatModel;
 import org.springframework.ai.deepseek.DeepSeekChatOptions;
