@@ -80,7 +80,7 @@
                 <span>{{ getModelTypeName(model.modelType) }}</span>
               </div>
             </div>
-            <div class="model-desc">{{ model.description || '暂无描述' }}</div>
+            <div class="model-desc line-clamp-2">{{ model.description || '暂无描述' }}</div>
             <i
                 v-if="isSelected(model)"
                 class="ri-check-line"

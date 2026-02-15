@@ -40,7 +40,7 @@ export interface WikiMeta {
 export interface MsgParam {
     topicId: string | null
     lastId: string | null
-    fileId: string | null
+    fileIds: string[] | null
     question: string
     apiType: string
     modelId: string | null

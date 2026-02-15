@@ -145,7 +145,7 @@ cancelSubscriberConnect.value = subscriberConnect((item: any) => {
 
 // 方法
 const toggleSideBar = () => {
-  store.dispatch('app/toggleSideTabar')
+  store.dispatch('app/toggleSideBar')
 }
 
 const showEditPasswordDialog = (userId: string | number) => {

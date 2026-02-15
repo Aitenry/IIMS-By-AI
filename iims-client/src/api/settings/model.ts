@@ -14,3 +14,19 @@ export function deleteModel(id: string) {
         method: 'get'
     }) as any
 }
+
+export function createModel(data: any) {
+    return request({
+        url: '/model/create',
+        method: 'post',
+        data
+    }) as any
+}
+
+export function updateModel(data: any) {
+    return request({
+        url: `/model/update`,
+        method: 'post',
+        data
+    }) as any
+}

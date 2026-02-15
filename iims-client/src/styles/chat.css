@@ -680,22 +680,11 @@
   color: #9d9d9d;
 }
 
-.upload-show-file {
-  display: flex;
-  align-items: center;
-  position: absolute;
-  left: 260px;
-  top: 7px;
-  background: #ffffff;
-  padding: 7px 12px;
-  border-radius: 6px;
-  box-shadow: #cdcdcd 0 0 7px 0;
-}
-
 .file-cards-container {
+  justify-content: end;
   display: flex;
-  flex-direction: column;
-  align-items: flex-end;
+  flex-wrap: wrap; /* 允许换行 */
+  gap: 8px; /* 卡片之间的间距 */
   margin-right: 50px;
   margin-top: 6px;
 }
@@ -706,9 +695,10 @@
   background-color: #ffffff;
   border-radius: 7px;
   padding: 7px;
-  width: fit-content;
+  min-width: 150px; /* 设置最小宽度确保内容完整显示 */
   max-width: 300px;
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  flex-shrink: 0; /* 防止卡片被压缩 */
 }
 
 .file-icon {
@@ -720,11 +710,12 @@
 .file-info {
   display: flex;
   flex-direction: column;
+  flex: 1; /* 让文件信息部分占据剩余空间 */
 }
 
 .file-name {
-  height: 17px;
-  font-size: 14px;
+  height: 14px;
+  font-size: 12px;
   font-weight: 500;
   color: #333;
   white-space: nowrap;
@@ -733,13 +724,13 @@
 }
 
 .file-details {
-    font-size: 10px;
-    color: #999;
-    margin-top: 2px;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 10px;
+  font-size: 10px;
+  color: #999;
+  margin-top: 2px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
 }
 
 .wiki-item {

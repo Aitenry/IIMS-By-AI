@@ -67,7 +67,7 @@
             :use-file-param="useFileParam"
             @remove-file="handleRemoveFile"
             @send-out="sendOut"
-            @toggle-upload-dialog="uploadFileDialogVisible = true"
+            @toggle-upload-dialog="triggerFileSelect"
             @toggle-wiki-drawer="wikiDrawer = true"
         />
         <wiki-selector-drawer
@@ -90,13 +90,15 @@
         />
       </el-container>
     </el-container>
-    <file-upload-dialog
-        v-model="uploadFileDialogVisible"
-        :file-list="fileList"
-        :base-url="baseUrl"
-        :config="config"
-        @handle-upload-file-success="handleUploadFileSuccess"
-        @handle-upload-file-remove="handleUploadFileRemove"
+
+    <!-- 隐藏的文件输入框，支持多文件 -->
+    <input
+        ref="fileInputRef"
+        type="file"
+        multiple
+        style="display: none;"
+        @change="handleFileSelect"
+        accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.md,.jpg,.jpeg,.png"
     />
   </div>
 </template>
@@ -133,8 +135,7 @@ import ChatMessages from './components/ChatMessages.vue'
 import ChatInput from './components/ChatInput.vue'
 import WikiSelectorDrawer from './components/WikiSelectorDrawer.vue'
 import WikiDocumentDrawer from './components/WikiDocumentDrawer.vue'
-import FileUploadDialog from './components/FileUploadDialog.vue'
-import {ElMessageBox, ElNotification, type UploadFile} from "element-plus";
+import {ElMessageBox, ElNotification} from "element-plus";
 import type {
   AgentTopic,
   AiContent,
@@ -150,10 +151,13 @@ import type {
   WikiPages
 } from "@/views/ai/talk/types/talk.ts";
 import {parseReasoning, type ParseResult} from "@/utils/parse-reasoning.ts";
-
+import {uploadFile} from "@/api/common.ts";
 
 const store = useStore()
 const router = useRouter()
+
+// 添加文件输入框引用
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
 // Reactive data
 const question = ref('')
@@ -166,8 +170,6 @@ const wikiIds = ref<string[] | null>(null)
 const loadWikiTitles = ref<string[]>([])
 const cancelSseConnection = ref<any>(null)
 const searchWikiName = ref('')
-const fileList = ref<UploadFile[]>([])
-const uploadFileDialogVisible = ref(false)
 const isOpenChatList = ref(true)
 const milliSecond = ref<string | null>(null)
 const wikiDocsDrawer = ref(false)
@@ -195,7 +197,7 @@ const wikiDocs = ref<any[]>([])
 const msgParam = ref<MsgParam>({
   topicId: null,
   lastId: null,
-  fileId: null,
+  fileIds: null,
   modelId: null,
   apiType: 'AGENT',
   question: '',
@@ -214,7 +216,7 @@ const statusData = ref<any>(null)
 const topicPages = ref<TopicPages>({
   title: null,
   page: 1,
-  pageSize: 20,
+  pageSize: 30,
   total: 0,
 })
 
@@ -261,22 +263,22 @@ const tools: ToolTopic[] = [
   {
     name: '系统资料调度',
     content: '专注于系统中管理和控制数据流动与分析',
-    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png  ',
+    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png',
   },
   {
     name: '专业技能测试',
     content: '用于测试员工的专业技能水平，并生成的测试结果',
-    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png  ',
+    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png',
   },
   {
     name: '全能扫描提取',
     content: '专注于从不同格式的文件提取文本的能力',
-    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png  ',
+    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png',
   },
   {
     name: '智能联网搜索',
     content: '专注于AI互联网搜索引擎，提供高质量的搜索结果',
-    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png  ',
+    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png',
   },
 ]
 
@@ -284,36 +286,31 @@ const agents: AgentTopic[] = [
   {
     name: '报告生成助手',
     content: '根据需求自动生成各类报告',
-    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png  ',
+    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png',
   },
   {
     name: '客户分析助手',
     content: '辅助销售人员追踪潜在客户，提供销售预测',
-    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png  ',
+    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png',
   },
   {
     name: '营销规划助手',
     content: '帮助企业制定营销策略，分析市场趋势',
-    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png  ',
+    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png',
   },
   {
     name: '智能客服助手',
     content: '帮助客服人员更快地查找解决方案，提供个性化推荐',
-    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png  ',
+    avatarSrc: 'https://cube.elemecdn.com/9/c2/f0ee8a3c7c9638a54940382568c9dpng.png',
   },
 ]
 
-const baseUrl = computed(() => import.meta.env.VITE_APP_API_URL)
 const wikiStatusDecl = computed(() => isFlashing.value ? '开启' : '关闭')
 const renderedMarkdown = computed(() => {
   return wikiDocs.value.map((item) => ({
     ...item,
     renderedText: mdi.value.render(item.text),
   }))
-})
-
-const config = computed(() => {
-  return { token: token.value }
 })
 
 const userId = computed(() => store.getters.userId)
@@ -344,7 +341,74 @@ onBeforeUnmount(() => {
   window.removeEventListener('beforeunload', handleBeforeUnload)
 })
 
-// Methods
+// 触发文件选择
+const triggerFileSelect = () => {
+  if (fileInputRef.value) {
+    fileInputRef.value.click()
+  }
+}
+
+// 处理文件选择
+const handleFileSelect = async (event: Event) => {
+  const target = event.target as HTMLInputElement
+  const files = target.files
+
+  if (files && files.length > 0) {
+    try {
+      // 批量上传所有文件
+      const uploadPromises = Array.from(files).map(async (file) => {
+        const formData = new FormData()
+        formData.append('file', file)
+        formData.append('itemType', '1')
+
+        const res = await uploadFile(formData)
+        if (res.code === 1) {
+          return {
+            id: res.data.fileId,
+            filename: file.name,
+            fileSize: file.size,
+            url: res.data.url
+          }
+        } else {
+          throw new Error(`文件 ${file.name} 上传失败`)
+        }
+      })
+
+      // 等待所有文件上传完成
+      const uploadedFiles = await Promise.all(uploadPromises)
+
+      // 更新 useFileParam
+      useFileParam.value = {
+        isUseFile: true,
+        fileInfos: uploadedFiles
+      }
+
+      // 更新msgParam中的fileIds数组
+      msgParam.value.fileIds = uploadedFiles.map(file => file.id)
+
+      ElNotification({
+        message: `上传文件成功！共上传 ${uploadedFiles.length} 个文件`,
+        type: 'success',
+        customClass: 'talkNotification',
+        offset: 47,
+      })
+    } catch (error) {
+      console.error('文件上传错误:', error)
+      ElNotification({
+        message: `文件上传失败：${error instanceof Error ? error.message : '未知错误'}`,
+        type: 'error',
+        customClass: 'talkNotification',
+        offset: 47,
+      })
+    }
+  }
+
+  // 清空input值，以便下次可以选择相同的文件
+  if (target) {
+    target.value = ''
+  }
+}
+
 const toggleThink = (parseResult: ParseResult) => {
   parseResult.isExpanded = !parseResult.isExpanded
 }
@@ -359,9 +423,18 @@ const scrollToBottom = () => {
 }
 
 const handleRemoveFile = (index: number) => {
+  // 从 fileInfos 中移除指定文件
   useFileParam.value.fileInfos.splice(index, 1)
+
+  // 同步更新 fileIds 数组
+  if (msgParam.value.fileIds) {
+    msgParam.value.fileIds.splice(index, 1)
+  }
+
+  // 如果没有文件了，则重置状态
   if (useFileParam.value.fileInfos.length === 0) {
     useFileParam.value.isUseFile = false
+    msgParam.value.fileIds = null
   }
 }
 
@@ -431,36 +504,12 @@ const getWikiTableData = () => {
   })
 }
 
-const handleUploadFileSuccess = (res: any, file: UploadFile) => {
-  uploadFileDialogVisible.value = false
-  msgParam.value.fileId = res.data.fileId
-  ElNotification({
-    message: '上传文件成功！',
-    type: 'success',
-    customClass: 'talkNotification',
-    offset: 47,
-  })
-  fileList.value = []
-  useFileParam.value = {
-    isUseFile: true,
-    fileInfos: [{
-      id: res.data.fileId,
-      filename: file.name,
-      fileSize: file.size,
-      url: res.data.url
-    }]
-  }
-}
-
-const handleUploadFileRemove = (file: any) => {
-  fileList.value = fileList.value.filter((f) => f.uid !== file.uid)
-}
-
 const closeFileClick = () => {
   useFileParam.value = {
     isUseFile: false,
     fileInfos: []
   }
+  msgParam.value.fileIds = null
 }
 
 const handleCheckboxClick = (_wikiIds: string[]) => {
@@ -526,7 +575,7 @@ const openNewChat = () => {
   msgParam.value = {
     topicId: null,
     lastId: null,
-    fileId: null,
+    fileIds: null, // 改为 fileIds
     modelId: msgParam.value.modelId,
     apiType: msgParam.value.apiType,
     question: '',
@@ -601,8 +650,6 @@ const sendOut = async () => {
         { id: null, lastId: null, isLoadingAnswer: true, sender: 'assistant', feedbackStatus: 0, isStar: false }
     )
     question.value = ''
-    msgParam.value.fileId = null
-    closeFileClick()
     isSendOut.value = true
     milliSecond.value = `${userId.value}${getChinaTimestamp()}`
     cancelSseConnection.value = receiveAnswer(milliSecond.value, msgParam.value, (item: any) => {
@@ -694,11 +741,12 @@ const sendOut = async () => {
     })
   } catch (error) {
     console.log(error)
+  } finally {
+    closeFileClick()
   }
 }
 
 const stopAnswerNow = async () => {
-  // @ts-ignore
   const confirmResult = await ElMessageBox.confirm(
       `此操作将停止生成内容, 是否继续?`,
       '提示',
@@ -854,7 +902,7 @@ const renameChat = async (item: any) => {
           confirmButtonText: '确定',
           cancelButtonText: '取消',
         }
-    )
+    ) as { value: string }
 
     const res = await renameTopic({ id: item.id, title: value })
     if (res.code === 1) {

@@ -1,11 +1,11 @@
 <template>
   <el-aside
-      width="210px"
+      width="260px"
       class="animate__animated animate__fadeIn"
       style="margin: 0; padding: 6px; background-color: #ffffff; box-shadow: 0 2px 8px rgba(0,0,0,0.05);"
       ref="sidebarRef"
   >
-    <el-image style="width: 130px; margin: 8px 34px 12px;" :src="logoImg" fit="fill" />
+    <el-image style="width: 130px; margin: 8px 59px 12px;" :src="logoImg" fit="fill" />
 
     <!-- 搜索框 -->
     <el-input
@@ -44,7 +44,7 @@
             <div v-for="(item, index) in group.items" :key="item.id || index" class="chat-item"
                  :class="{ active: activeTopicId === item.id, moreActive: clickMoreBtnId === item.id }" @click="$emit('switch-topic', item.id)">
               <div class="chat-content">
-                <i v-if="loadTopicIdSet.has(item.id)" class="chat-loading text-base ri-loader-4-line animate-spin"></i>
+                <i v-if="loadTopicIdSet.has(item.id)" class="chat-loading text-base ri-loader-3-line animate-spin"></i>
                 <p class="chat-title">{{ item.title }}</p>
               </div>
               <el-popover
@@ -93,7 +93,7 @@
         placement="top-start"
         trigger="click"
         popper-class="user-popover"
-        width="185px"
+        width="235px"
         :show-arrow="false"
         :offset="3"
     >
@@ -120,7 +120,7 @@
           <i class="ri-heart-3-line menu-icon"></i>
           <span>已收藏内容</span>
         </div>
-        <el-divider style="margin: 6px 0; width: 160px;" />
+        <el-divider style="margin: 6px 0; width: 210px;" />
         <div class="menu-item logout-item" @click="logout()">
           <i class="ri-logout-box-r-line menu-icon"></i>
           <span>退出登录</span>
@@ -239,8 +239,10 @@ const groupedChatItems = computed(() => {
     yesterday: { title: '昨天', items: [] },
     last7Days: { title: '过去7天', items: [] },
     last30Days: { title: '过去30天', items: [] },
-    older: { title: '更早', items: [] },
   };
+
+  // 存储超过30天的按年月分组的数据
+  const monthlyGroups: { [key: string]: { title: string; items: ChatItem[] } } = {};
 
   const parseTime = (timeStr: string) => {
     const [datePart, timePart] = timeStr.split(' ');
@@ -254,6 +256,7 @@ const groupedChatItems = computed(() => {
     const createTime = parseTime(item.createTime);
     const diffMs = now.getTime() - createTime.getTime();
     const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+
     if (diffDays === 0) {
       groups.today.items.push(item);
     } else if (diffDays === 1) {
@@ -263,17 +266,43 @@ const groupedChatItems = computed(() => {
     } else if (diffDays <= 30) {
       groups.last30Days.items.push(item);
     } else {
-      groups.older.items.push(item);
+      // 超过30天，按年月分组
+      const year = createTime.getFullYear();
+      const month = String(createTime.getMonth() + 1).padStart(2, '0'); // 月份从0开始，需要+1
+      const yearMonthKey = `${year}-${month}`;
+
+      if (!monthlyGroups[yearMonthKey]) {
+        monthlyGroups[yearMonthKey] = {
+          title: `${year}年${createTime.getMonth() + 1}月`,
+          items: []
+        };
+      }
+      monthlyGroups[yearMonthKey].items.push(item);
     }
   }
 
-  return [
+  // 构建最终结果，先添加固定分组，再添加按年月排序的分组
+  const result = [
     { key: 'today', ...groups.today },
     { key: 'yesterday', ...groups.yesterday },
     { key: 'last7Days', ...groups.last7Days },
     { key: 'last30Days', ...groups.last30Days },
-    { key: 'older', ...groups.older }
   ].filter(group => group.items.length > 0);
+
+  // 将按年月分组的数据按时间倒序排列（最新的月份在前）
+  const sortedMonthlyKeys = Object.keys(monthlyGroups).sort((a, b) => {
+    // 将年月字符串转换为Date对象进行比较，确保按时间倒序
+    const dateA = new Date(`${a}-01`);
+    const dateB = new Date(`${b}-01`);
+    return dateB.getTime() - dateA.getTime(); // 倒序，较新的在前
+  });
+
+  // 添加按年月分组的数据
+  for (const key of sortedMonthlyKeys) {
+    result.push({ key, ...monthlyGroups[key] });
+  }
+
+  return result;
 });
 
 const filteredGroupedChatItems = computed(() => {
@@ -429,6 +458,10 @@ onUnmounted(() => {
   transition: color 0.2s;
 }
 
+.chat-loading {
+  font-size: 14px;
+}
+
 .chat-item:hover .chat-title {
   color: #409EFF;
 }
@@ -489,7 +522,7 @@ onUnmounted(() => {
 }
 
 .username {
-  width: 110px;
+  width: 160px;
   font-size: 14px;
   color: #303133;
   font-weight: 500;
@@ -501,7 +534,7 @@ onUnmounted(() => {
 }
 
 .email {
-  width: 110px;
+  width: 160px;
   font-size: 12px;
   color: #909399;
   line-height: 1.2;
@@ -512,7 +545,7 @@ onUnmounted(() => {
 
 /* 用户菜单样式 */
 .user-menu {
-  min-width: 180px;
+  min-width: 230px;
 }
 
 .menu-item {
